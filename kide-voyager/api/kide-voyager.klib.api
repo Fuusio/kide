@@ -1,0 +1,21 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-voyager>
+final class <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> org.fuusio.kide.voyager/ScreenModelHost : cafe.adriel.voyager.core.model/ScreenModel, org.fuusio.kide.presentation/PresentationProcessorHost<#A> { // org.fuusio.kide.voyager/ScreenModelHost|null[0]
+    constructor <init>(#A) // org.fuusio.kide.voyager/ScreenModelHost.<init>|<init>(1:0){}[0]
+
+    final val processor // org.fuusio.kide.voyager/ScreenModelHost.processor|{}processor[0]
+        final fun <get-processor>(): #A // org.fuusio.kide.voyager/ScreenModelHost.processor.<get-processor>|<get-processor>(){}[0]
+
+    final fun onDispose() // org.fuusio.kide.voyager/ScreenModelHost.onDispose|onDispose(){}[0]
+}
+
+final val org.fuusio.kide.voyager/org_fuusio_kide_voyager_ScreenModelHost$stableprop // org.fuusio.kide.voyager/org_fuusio_kide_voyager_ScreenModelHost$stableprop|#static{}org_fuusio_kide_voyager_ScreenModelHost$stableprop[0]
+
+final fun <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> (cafe.adriel.voyager.core.screen/Screen).org.fuusio.kide.voyager/rememberProcessor(kotlin/String?, kotlin/Function0<#A>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): #A // org.fuusio.kide.voyager/rememberProcessor|rememberProcessor@cafe.adriel.voyager.core.screen.Screen(kotlin.String?;kotlin.Function0<0:0>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){0§<org.fuusio.kide.presentation.PresentationProcessor<*,*,*>>}[0]
+final fun org.fuusio.kide.voyager/org_fuusio_kide_voyager_ScreenModelHost$stableprop_getter(): kotlin/Int // org.fuusio.kide.voyager/org_fuusio_kide_voyager_ScreenModelHost$stableprop_getter|org_fuusio_kide_voyager_ScreenModelHost$stableprop_getter(){}[0]

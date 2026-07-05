@@ -1,0 +1,60 @@
+name: Bug report
+description: Something in Kide doesn't behave as documented
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Kide version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected module
+      options:
+        - kide (core)
+        - kide-navigation
+        - kide-clean-architecture
+        - kide-koin
+        - kide-devtools
+        - kide-decompose
+        - kide-voyager
+        - sample app
+        - unsure
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform(s)
+      multiple: true
+      options:
+        - Android
+        - JVM desktop
+        - iOS
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect?
+      description: Include the smallest reproduction you can — ideally a failing test.
+    validations:
+      required: true
+  - type: textarea
+    id: trace
+    attributes:
+      label: FlightRecorder trace (highly appreciated)
+      description: >
+        If the bug involves processor behavior, attach the causal trace: attach a
+        FlightRecorder to the processor and paste the output of `recorder.toJson()`
+        (or the `kide_get_trace` MCP tool). It shows every intent, action, state
+        diff, effect, and error in order.
+      render: json
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      render: text

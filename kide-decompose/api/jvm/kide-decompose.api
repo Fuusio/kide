@@ -1,0 +1,13 @@
+public final class org/fuusio/kide/decompose/InstanceKeeperHost : com/arkivanov/essenty/instancekeeper/InstanceKeeper$Instance, org/fuusio/kide/presentation/PresentationProcessorHost {
+	public fun <init> (Lorg/fuusio/kide/presentation/PresentationProcessor;)V
+	public fun getProcessor ()Lorg/fuusio/kide/presentation/PresentationProcessor;
+	public fun onDestroy ()V
+}
+
+public final class org/fuusio/kide/decompose/InstanceKeeperHostKt {
+	public static final fun retainedProcessor (Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;Ljava/lang/Object;Lcom/arkivanov/essenty/statekeeper/StateKeeper;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/functions/Function0;)Lorg/fuusio/kide/presentation/PresentationProcessor;
+	public static final fun retainedProcessor (Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Lorg/fuusio/kide/presentation/PresentationProcessor;
+	public static final fun retainedProcessor (Lcom/arkivanov/essenty/instancekeeper/InstanceKeeperOwner;Ljava/lang/Object;Lcom/arkivanov/essenty/statekeeper/StateKeeper;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/functions/Function0;)Lorg/fuusio/kide/presentation/PresentationProcessor;
+	public static final fun retainedProcessor (Lcom/arkivanov/essenty/instancekeeper/InstanceKeeperOwner;Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Lorg/fuusio/kide/presentation/PresentationProcessor;
+}
+

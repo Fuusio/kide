@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Kide Demo</string>
+
+    <string name="label_drawer_item_about">About</string>
+    <string name="label_drawer_item_home">Home</string>
+    <string name="label_drawer_item_search">Search</string>
+    <string name="label_drawer_item_browser">Saved Libraries</string>
+    <string name="label_drawer_item_settings">Settings</string>
+</resources>

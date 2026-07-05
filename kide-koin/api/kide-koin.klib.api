@@ -1,0 +1,19 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-koin>
+final object org.fuusio.kide.di/Injector : org.koin.core.component/KoinComponent { // org.fuusio.kide.di/Injector|null[0]
+    final inline fun <#A1: reified kotlin/Any> get(kotlin.reflect/KClass<#A1>): #A1 // org.fuusio.kide.di/Injector.get|get(kotlin.reflect.KClass<0:0>){0§<kotlin.Any>}[0]
+    final inline fun <#A1: reified kotlin/Any> inject(): #A1 // org.fuusio.kide.di/Injector.inject|inject(){0§<kotlin.Any>}[0]
+    final inline fun <#A1: reified kotlin/Any> invoke(): #A1 // org.fuusio.kide.di/Injector.invoke|invoke(){0§<kotlin.Any>}[0]
+}
+
+final fun org.fuusio.kide.di/params(kotlin/Array<out kotlin/Any?>...): org.koin.core.parameter/ParametersHolder // org.fuusio.kide.di/params|params(kotlin.Array<out|kotlin.Any?>...){}[0]
+final inline fun <#A: reified kotlin/Any> (kotlin.reflect/KClass<#A>).org.fuusio.kide.di/get(): #A // org.fuusio.kide.di/get|get@kotlin.reflect.KClass<0:0>(){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> org.fuusio.kide.di/get(): #A // org.fuusio.kide.di/get|get(){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> org.fuusio.kide.di/get(kotlin/Array<out kotlin/Any>...): #A // org.fuusio.kide.di/get|get(kotlin.Array<out|kotlin.Any>...){0§<kotlin.Any>}[0]
+final inline fun <#A: reified kotlin/Any> org.fuusio.kide.di/get(noinline kotlin/Function0<org.koin.core.parameter/ParametersHolder>? = ...): #A // org.fuusio.kide.di/get|get(kotlin.Function0<org.koin.core.parameter.ParametersHolder>?){0§<kotlin.Any>}[0]

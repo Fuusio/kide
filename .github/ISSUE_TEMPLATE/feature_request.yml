@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose an addition or change to Kide
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the use case, not just the mechanism.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: >
+        API sketch welcome. Note Kide's invariants (see CONTRIBUTING.md): the core module
+        stays coroutines-only, and public API additions are long-term commitments guarded
+        by ABI validation.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including "how I solve this today without the feature".

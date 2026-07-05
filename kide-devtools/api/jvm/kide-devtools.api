@@ -1,0 +1,141 @@
+public final class org/fuusio/kide/devtools/DebugHandle {
+	public final fun currentState ()Ljava/lang/String;
+	public final fun dispatch (Ljava/lang/Object;)V
+	public final fun getName ()Ljava/lang/String;
+	public final fun getProcessorClassName ()Ljava/lang/String;
+	public final fun getRecorder ()Lorg/fuusio/kide/devtools/FlightRecorder;
+}
+
+public abstract interface class org/fuusio/kide/devtools/DevToolsClient {
+	public abstract fun close ()V
+	public abstract fun send (Ljava/lang/String;)V
+}
+
+public final class org/fuusio/kide/devtools/DevToolsClientKt {
+	public static final fun createDevToolsClient (Ljava/lang/String;I)Lorg/fuusio/kide/devtools/DevToolsClient;
+	public static final fun getEpochMillis ()J
+}
+
+public final class org/fuusio/kide/devtools/FlightRecorder : org/fuusio/kide/presentation/KideInterceptor {
+	public static final field Companion Lorg/fuusio/kide/devtools/FlightRecorder$Companion;
+	public static final field DEFAULT_CAPACITY I
+	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clear ()V
+	public final fun getCapacity ()I
+	public final fun getEvents ()Ljava/util/List;
+	public fun onActionExecuting (Lorg/fuusio/kide/presentation/Action;)V
+	public fun onActionMapped (Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/Action;)V
+	public fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public fun onIntent (Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public fun onSideEffect (Lorg/fuusio/kide/presentation/SideEffect;)V
+	public fun onStateChanged (Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/ViewState;)V
+	public final fun toJson (I)Ljava/lang/String;
+	public static synthetic fun toJson$default (Lorg/fuusio/kide/devtools/FlightRecorder;IILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class org/fuusio/kide/devtools/FlightRecorder$Companion {
+}
+
+public final class org/fuusio/kide/devtools/JvmDevToolsClient : org/fuusio/kide/devtools/DevToolsClient {
+	public fun <init> (Ljava/lang/String;I)V
+	public fun close ()V
+	public fun send (Ljava/lang/String;)V
+}
+
+public final class org/fuusio/kide/devtools/KideDebug {
+	public static final field INSTANCE Lorg/fuusio/kide/devtools/KideDebug;
+	public final fun attach (Ljava/lang/String;Lorg/fuusio/kide/presentation/PresentationProcessor;Lorg/fuusio/kide/devtools/FlightRecorder;)Lorg/fuusio/kide/devtools/DebugHandle;
+	public final fun detach (Ljava/lang/String;)V
+	public final fun handle (Ljava/lang/String;)Lorg/fuusio/kide/devtools/DebugHandle;
+	public final fun handles ()Ljava/util/Map;
+}
+
+public final class org/fuusio/kide/devtools/KideDevToolsInterceptor : org/fuusio/kide/presentation/KideInterceptor {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun close ()V
+	public fun onActionExecuting (Lorg/fuusio/kide/presentation/Action;)V
+	public fun onActionMapped (Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/Action;)V
+	public fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public fun onIntent (Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public fun onSideEffect (Lorg/fuusio/kide/presentation/SideEffect;)V
+	public fun onStateChanged (Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/ViewState;)V
+}
+
+public final class org/fuusio/kide/devtools/KideDevToolsServer {
+	public fun <init> ()V
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun start ()V
+	public final fun stop ()V
+}
+
+public final class org/fuusio/kide/devtools/TraceEvent {
+	public static final field Companion Lorg/fuusio/kide/devtools/TraceEvent$Companion;
+	public fun <init> (JJLorg/fuusio/kide/devtools/TraceEventType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (JJLorg/fuusio/kide/devtools/TraceEventType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()Lorg/fuusio/kide/devtools/TraceEventType;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy (JJLorg/fuusio/kide/devtools/TraceEventType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/fuusio/kide/devtools/TraceEvent;
+	public static synthetic fun copy$default (Lorg/fuusio/kide/devtools/TraceEvent;JJLorg/fuusio/kide/devtools/TraceEventType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lorg/fuusio/kide/devtools/TraceEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPayload ()Ljava/lang/String;
+	public final fun getPayloadClass ()Ljava/lang/String;
+	public final fun getPreviousState ()Ljava/lang/String;
+	public final fun getSeq ()J
+	public final fun getTimestamp ()J
+	public final fun getType ()Lorg/fuusio/kide/devtools/TraceEventType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class org/fuusio/kide/devtools/TraceEvent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lorg/fuusio/kide/devtools/TraceEvent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lorg/fuusio/kide/devtools/TraceEvent;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lorg/fuusio/kide/devtools/TraceEvent;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class org/fuusio/kide/devtools/TraceEvent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class org/fuusio/kide/devtools/TraceEventType : java/lang/Enum {
+	public static final field ActionExecuting Lorg/fuusio/kide/devtools/TraceEventType;
+	public static final field ActionMapped Lorg/fuusio/kide/devtools/TraceEventType;
+	public static final field Companion Lorg/fuusio/kide/devtools/TraceEventType$Companion;
+	public static final field Error Lorg/fuusio/kide/devtools/TraceEventType;
+	public static final field Intent Lorg/fuusio/kide/devtools/TraceEventType;
+	public static final field SideEffect Lorg/fuusio/kide/devtools/TraceEventType;
+	public static final field StateChanged Lorg/fuusio/kide/devtools/TraceEventType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lorg/fuusio/kide/devtools/TraceEventType;
+	public static fun values ()[Lorg/fuusio/kide/devtools/TraceEventType;
+}
+
+public final class org/fuusio/kide/devtools/TraceEventType$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class org/fuusio/kide/devtools/TraceTestGenerator {
+	public static final field INSTANCE Lorg/fuusio/kide/devtools/TraceTestGenerator;
+	public final fun generate (Lorg/fuusio/kide/devtools/DebugHandle;)Ljava/lang/String;
+}
+
+public final class org/fuusio/kide/devtools/mcp/KideMcpServer {
+	public static final field INSTANCE Lorg/fuusio/kide/devtools/mcp/KideMcpServer;
+	public final fun start (I)V
+	public static synthetic fun start$default (Lorg/fuusio/kide/devtools/mcp/KideMcpServer;IILjava/lang/Object;)V
+	public final fun stop ()V
+}
+

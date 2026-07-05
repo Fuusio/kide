@@ -1,0 +1,11 @@
+public final class org/fuusio/kide/voyager/ScreenModelHost : cafe/adriel/voyager/core/model/ScreenModel, org/fuusio/kide/presentation/PresentationProcessorHost {
+	public static final field $stable I
+	public fun <init> (Lorg/fuusio/kide/presentation/PresentationProcessor;)V
+	public fun getProcessor ()Lorg/fuusio/kide/presentation/PresentationProcessor;
+	public fun onDispose ()V
+}
+
+public final class org/fuusio/kide/voyager/ScreenModelHostKt {
+	public static final fun rememberProcessor (Lcafe/adriel/voyager/core/screen/Screen;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)Lorg/fuusio/kide/presentation/PresentationProcessor;
+}
+

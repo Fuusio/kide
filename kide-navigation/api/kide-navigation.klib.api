@@ -1,0 +1,74 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-navigation>
+abstract interface <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> org.fuusio.kide.navigation/ScreenNavKey : org.fuusio.kide.navigation/NavigationComponent { // org.fuusio.kide.navigation/ScreenNavKey|null[0]
+    abstract val screen // org.fuusio.kide.navigation/ScreenNavKey.screen|{}screen[0]
+        abstract fun <get-screen>(): kotlin/Function3<org.fuusio.kide.navigation/ScreenContext<#A>, androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit> // org.fuusio.kide.navigation/ScreenNavKey.screen.<get-screen>|<get-screen>(){}[0]
+    abstract val serialKey // org.fuusio.kide.navigation/ScreenNavKey.serialKey|{}serialKey[0]
+        abstract fun <get-serialKey>(): kotlin/String // org.fuusio.kide.navigation/ScreenNavKey.serialKey.<get-serialKey>|<get-serialKey>(){}[0]
+    open val onBack // org.fuusio.kide.navigation/ScreenNavKey.onBack|{}onBack[0]
+        open fun <get-onBack>(): kotlin/Function1<androidx.navigation3.runtime/NavBackStack<androidx.navigation3.runtime/NavKey>, kotlin/Unit> // org.fuusio.kide.navigation/ScreenNavKey.onBack.<get-onBack>|<get-onBack>(){}[0]
+    open val stateSerializer // org.fuusio.kide.navigation/ScreenNavKey.stateSerializer|{}stateSerializer[0]
+        open fun <get-stateSerializer>(): kotlinx.serialization/KSerializer<out org.fuusio.kide.presentation/ViewState>? // org.fuusio.kide.navigation/ScreenNavKey.stateSerializer.<get-stateSerializer>|<get-stateSerializer>(){}[0]
+
+    abstract fun createProcessor(): #A // org.fuusio.kide.navigation/ScreenNavKey.createProcessor|createProcessor(){}[0]
+    open fun restoreArgs(kotlin/String): org.fuusio.kide.navigation/ScreenNavKey<#A> // org.fuusio.kide.navigation/ScreenNavKey.restoreArgs|restoreArgs(kotlin.String){}[0]
+    open fun saveArgs(): kotlin/String? // org.fuusio.kide.navigation/ScreenNavKey.saveArgs|saveArgs(){}[0]
+    open fun setup(#A) // org.fuusio.kide.navigation/ScreenNavKey.setup|setup(1:0){}[0]
+}
+
+abstract interface org.fuusio.kide.navigation/NavigationComponent : org.fuusio.kide/KideComponent // org.fuusio.kide.navigation/NavigationComponent|null[0]
+
+final class <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> org.fuusio.kide.navigation/ScreenContext { // org.fuusio.kide.navigation/ScreenContext|null[0]
+    constructor <init>(#A, androidx.navigation3.runtime/NavBackStack<androidx.navigation3.runtime/NavKey>, kotlin/Function0<kotlin/Unit> = ..., kotlin.collections/Map<kotlin/String, kotlin/Function0<kotlin/Unit>> = ...) // org.fuusio.kide.navigation/ScreenContext.<init>|<init>(1:0;androidx.navigation3.runtime.NavBackStack<androidx.navigation3.runtime.NavKey>;kotlin.Function0<kotlin.Unit>;kotlin.collections.Map<kotlin.String,kotlin.Function0<kotlin.Unit>>){}[0]
+
+    final val backStack // org.fuusio.kide.navigation/ScreenContext.backStack|{}backStack[0]
+        final fun <get-backStack>(): androidx.navigation3.runtime/NavBackStack<androidx.navigation3.runtime/NavKey> // org.fuusio.kide.navigation/ScreenContext.backStack.<get-backStack>|<get-backStack>(){}[0]
+    final val callbacks // org.fuusio.kide.navigation/ScreenContext.callbacks|{}callbacks[0]
+        final fun <get-callbacks>(): kotlin.collections/Map<kotlin/String, kotlin/Function0<kotlin/Unit>> // org.fuusio.kide.navigation/ScreenContext.callbacks.<get-callbacks>|<get-callbacks>(){}[0]
+    final val onBack // org.fuusio.kide.navigation/ScreenContext.onBack|{}onBack[0]
+        final fun <get-onBack>(): kotlin/Function0<kotlin/Unit> // org.fuusio.kide.navigation/ScreenContext.onBack.<get-onBack>|<get-onBack>(){}[0]
+    final val processor // org.fuusio.kide.navigation/ScreenContext.processor|{}processor[0]
+        final fun <get-processor>(): #A // org.fuusio.kide.navigation/ScreenContext.processor.<get-processor>|<get-processor>(){}[0]
+    final val scope // org.fuusio.kide.navigation/ScreenContext.scope|{}scope[0]
+        final fun <get-scope>(): kotlinx.coroutines/CoroutineScope // org.fuusio.kide.navigation/ScreenContext.scope.<get-scope>|<get-scope>(){}[0]
+
+    final fun callback(kotlin/String): kotlin/Function0<kotlin/Unit> // org.fuusio.kide.navigation/ScreenContext.callback|callback(kotlin.String){}[0]
+    final fun navigateTo(org.fuusio.kide.navigation/ScreenNavKey<*>) // org.fuusio.kide.navigation/ScreenContext.navigateTo|navigateTo(org.fuusio.kide.navigation.ScreenNavKey<*>){}[0]
+    final fun openMenu() // org.fuusio.kide.navigation/ScreenContext.openMenu|openMenu(){}[0]
+
+    final object Companion { // org.fuusio.kide.navigation/ScreenContext.Companion|null[0]
+        final const val MENU // org.fuusio.kide.navigation/ScreenContext.Companion.MENU|{}MENU[0]
+            final fun <get-MENU>(): kotlin/String // org.fuusio.kide.navigation/ScreenContext.Companion.MENU.<get-MENU>|<get-MENU>(){}[0]
+    }
+}
+
+final class <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> org.fuusio.kide.navigation/ViewModelHost : androidx.lifecycle/ViewModel, org.fuusio.kide.presentation/PresentationProcessorHost<#A> { // org.fuusio.kide.navigation/ViewModelHost|null[0]
+    constructor <init>(#A, androidx.lifecycle/SavedStateHandle? = ..., kotlinx.serialization/KSerializer<out org.fuusio.kide.presentation/ViewState>? = ...) // org.fuusio.kide.navigation/ViewModelHost.<init>|<init>(1:0;androidx.lifecycle.SavedStateHandle?;kotlinx.serialization.KSerializer<out|org.fuusio.kide.presentation.ViewState>?){}[0]
+
+    final val processor // org.fuusio.kide.navigation/ViewModelHost.processor|{}processor[0]
+        final fun <get-processor>(): #A // org.fuusio.kide.navigation/ViewModelHost.processor.<get-processor>|<get-processor>(){}[0]
+}
+
+final object org.fuusio.kide.navigation/ScreenNavKeyRegistry { // org.fuusio.kide.navigation/ScreenNavKeyRegistry|null[0]
+    final fun get(kotlin/String): org.fuusio.kide.navigation/ScreenNavKey<*> // org.fuusio.kide.navigation/ScreenNavKeyRegistry.get|get(kotlin.String){}[0]
+    final fun register(org.fuusio.kide.navigation/ScreenNavKey<*>) // org.fuusio.kide.navigation/ScreenNavKeyRegistry.register|register(org.fuusio.kide.navigation.ScreenNavKey<*>){}[0]
+}
+
+final val org.fuusio.kide.navigation/org_fuusio_kide_navigation_ScreenContext$stableprop // org.fuusio.kide.navigation/org_fuusio_kide_navigation_ScreenContext$stableprop|#static{}org_fuusio_kide_navigation_ScreenContext$stableprop[0]
+final val org.fuusio.kide.navigation/org_fuusio_kide_navigation_ScreenNavKeyRegistry$stableprop // org.fuusio.kide.navigation/org_fuusio_kide_navigation_ScreenNavKeyRegistry$stableprop|#static{}org_fuusio_kide_navigation_ScreenNavKeyRegistry$stableprop[0]
+final val org.fuusio.kide.navigation/org_fuusio_kide_navigation_ViewModelHost$stableprop // org.fuusio.kide.navigation/org_fuusio_kide_navigation_ViewModelHost$stableprop|#static{}org_fuusio_kide_navigation_ViewModelHost$stableprop[0]
+
+final fun (androidx.navigation3.runtime/NavBackStack<androidx.navigation3.runtime/NavKey>).org.fuusio.kide.navigation/currentNavKey(): org.fuusio.kide.navigation/ScreenNavKey<*>? // org.fuusio.kide.navigation/currentNavKey|currentNavKey@androidx.navigation3.runtime.NavBackStack<androidx.navigation3.runtime.NavKey>(){}[0]
+final fun (androidx.navigation3.runtime/NavBackStack<androidx.navigation3.runtime/NavKey>).org.fuusio.kide.navigation/navigateTo(org.fuusio.kide.navigation/ScreenNavKey<*>) // org.fuusio.kide.navigation/navigateTo|navigateTo@androidx.navigation3.runtime.NavBackStack<androidx.navigation3.runtime.NavKey>(org.fuusio.kide.navigation.ScreenNavKey<*>){}[0]
+final fun (androidx.navigation3.runtime/NavBackStack<androidx.navigation3.runtime/NavKey>).org.fuusio.kide.navigation/pushTo(org.fuusio.kide.navigation/ScreenNavKey<*>) // org.fuusio.kide.navigation/pushTo|pushTo@androidx.navigation3.runtime.NavBackStack<androidx.navigation3.runtime.NavKey>(org.fuusio.kide.navigation.ScreenNavKey<*>){}[0]
+final fun org.fuusio.kide.navigation/AppNavigation(androidx.navigation3.runtime/NavBackStack<androidx.navigation3.runtime/NavKey>, kotlin.collections/Map<kotlin/String, kotlin/Function0<kotlin/Unit>>?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // org.fuusio.kide.navigation/AppNavigation|AppNavigation(androidx.navigation3.runtime.NavBackStack<androidx.navigation3.runtime.NavKey>;kotlin.collections.Map<kotlin.String,kotlin.Function0<kotlin.Unit>>?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun org.fuusio.kide.navigation/org_fuusio_kide_navigation_ScreenContext$stableprop_getter(): kotlin/Int // org.fuusio.kide.navigation/org_fuusio_kide_navigation_ScreenContext$stableprop_getter|org_fuusio_kide_navigation_ScreenContext$stableprop_getter(){}[0]
+final fun org.fuusio.kide.navigation/org_fuusio_kide_navigation_ScreenNavKeyRegistry$stableprop_getter(): kotlin/Int // org.fuusio.kide.navigation/org_fuusio_kide_navigation_ScreenNavKeyRegistry$stableprop_getter|org_fuusio_kide_navigation_ScreenNavKeyRegistry$stableprop_getter(){}[0]
+final fun org.fuusio.kide.navigation/org_fuusio_kide_navigation_ViewModelHost$stableprop_getter(): kotlin/Int // org.fuusio.kide.navigation/org_fuusio_kide_navigation_ViewModelHost$stableprop_getter|org_fuusio_kide_navigation_ViewModelHost$stableprop_getter(){}[0]
+final fun org.fuusio.kide.navigation/rememberAppNavBackStack(kotlin/Array<out org.fuusio.kide.navigation/ScreenNavKey<*>>..., androidx.compose.runtime/Composer?, kotlin/Int): androidx.navigation3.runtime/NavBackStack<androidx.navigation3.runtime/NavKey> // org.fuusio.kide.navigation/rememberAppNavBackStack|rememberAppNavBackStack(kotlin.Array<out|org.fuusio.kide.navigation.ScreenNavKey<*>>...;androidx.compose.runtime.Composer?;kotlin.Int){}[0]

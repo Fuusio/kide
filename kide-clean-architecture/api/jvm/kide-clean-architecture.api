@@ -1,0 +1,100 @@
+public abstract class org/fuusio/kide/adapter/AbstractRepository : org/fuusio/kide/adapter/Repository {
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected final fun dispatch (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
+public abstract class org/fuusio/kide/adapter/AbstractService : org/fuusio/kide/adapter/Service {
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected final fun dispatch (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
+public abstract interface class org/fuusio/kide/adapter/AdapterComponent : org/fuusio/kide/KideComponent {
+}
+
+public abstract interface class org/fuusio/kide/adapter/Repository : org/fuusio/kide/adapter/AdapterComponent {
+}
+
+public abstract interface class org/fuusio/kide/adapter/Service : org/fuusio/kide/adapter/AdapterComponent {
+}
+
+public abstract interface class org/fuusio/kide/domain/DomainComponent : org/fuusio/kide/KideComponent {
+}
+
+public abstract interface class org/fuusio/kide/domain/entity/State : org/fuusio/kide/domain/DomainComponent {
+}
+
+public abstract class org/fuusio/kide/domain/usecase/AbstractUseCaseLogic : org/fuusio/kide/domain/usecase/UseCaseLogic {
+	public fun <init> (Lorg/fuusio/kide/domain/entity/State;)V
+	public fun getState ()Lorg/fuusio/kide/domain/entity/State;
+	public fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	protected final fun updateState (Lkotlin/jvm/functions/Function1;)V
+	protected final fun updateState (Lorg/fuusio/kide/domain/entity/State;)V
+}
+
+public abstract interface class org/fuusio/kide/domain/usecase/UseCase : org/fuusio/kide/domain/usecase/UseCaseComponent {
+}
+
+public abstract interface class org/fuusio/kide/domain/usecase/UseCaseComponent : org/fuusio/kide/domain/DomainComponent {
+}
+
+public abstract interface class org/fuusio/kide/domain/usecase/UseCaseFunction : org/fuusio/kide/domain/usecase/UseCaseComponent {
+}
+
+public abstract interface class org/fuusio/kide/domain/usecase/UseCaseIntent : org/fuusio/kide/domain/DomainComponent {
+}
+
+public abstract interface class org/fuusio/kide/domain/usecase/UseCaseLogic : org/fuusio/kide/domain/usecase/UseCaseComponent {
+	public abstract fun getState ()Lorg/fuusio/kide/domain/entity/State;
+	public abstract fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun onIntent (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class org/fuusio/kide/feature/ApplicationFeature : org/fuusio/kide/feature/Feature {
+}
+
+public final class org/fuusio/kide/feature/ApplicationFeature$DefaultImpls {
+	public static fun initialize (Lorg/fuusio/kide/feature/ApplicationFeature;)V
+}
+
+public abstract interface class org/fuusio/kide/feature/Feature : org/fuusio/kide/feature/FeatureComponent {
+	public fun initialize ()V
+}
+
+public final class org/fuusio/kide/feature/Feature$DefaultImpls {
+	public static fun initialize (Lorg/fuusio/kide/feature/Feature;)V
+}
+
+public abstract interface class org/fuusio/kide/feature/FeatureComponent : org/fuusio/kide/KideComponent {
+}
+
+public abstract class org/fuusio/kide/framework/AbstractDataSource : org/fuusio/kide/framework/DataSource {
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected final fun dispatch (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
+public abstract class org/fuusio/kide/framework/AbstractManager : org/fuusio/kide/framework/Manager {
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected final fun dispatch (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
+public abstract interface class org/fuusio/kide/framework/DataSource : org/fuusio/kide/framework/FrameworkComponent {
+}
+
+public abstract interface class org/fuusio/kide/framework/FrameworkComponent : org/fuusio/kide/KideComponent {
+}
+
+public abstract interface class org/fuusio/kide/framework/Manager : org/fuusio/kide/framework/FrameworkComponent {
+}
+

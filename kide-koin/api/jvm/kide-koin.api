@@ -1,0 +1,9 @@
+public final class org/fuusio/kide/di/Injector : org/koin/core/component/KoinComponent {
+	public static final field INSTANCE Lorg/fuusio/kide/di/Injector;
+	public fun getKoin ()Lorg/koin/core/Koin;
+}
+
+public final class org/fuusio/kide/di/InjectorKt {
+	public static final fun params ([Ljava/lang/Object;)Lorg/koin/core/parameter/ParametersHolder;
+}
+

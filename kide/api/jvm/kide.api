@@ -1,0 +1,173 @@
+public abstract interface class org/fuusio/kide/KideComponent {
+}
+
+public final class org/fuusio/kide/log/KideLog {
+	public static final field INSTANCE Lorg/fuusio/kide/log/KideLog;
+	public final fun d (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public final fun e (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun e$default (Lorg/fuusio/kide/log/KideLog;Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public final fun getLogger ()Lorg/fuusio/kide/log/KideLogger;
+	public final fun getMinLevel ()Lorg/fuusio/kide/log/LogLevel;
+	public final fun i (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public final fun isLoggable (Lorg/fuusio/kide/log/LogLevel;)Z
+	public final fun log (Lorg/fuusio/kide/log/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public final fun log (Lorg/fuusio/kide/log/LogLevel;Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun log$default (Lorg/fuusio/kide/log/KideLog;Lorg/fuusio/kide/log/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static synthetic fun log$default (Lorg/fuusio/kide/log/KideLog;Lorg/fuusio/kide/log/LogLevel;Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public final fun setLogger (Lorg/fuusio/kide/log/KideLogger;)V
+	public final fun setMinLevel (Lorg/fuusio/kide/log/LogLevel;)V
+	public final fun v (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public final fun w (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun w$default (Lorg/fuusio/kide/log/KideLog;Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+}
+
+public final class org/fuusio/kide/log/KideLogKt {
+	public static final fun getLogTag (Ljava/lang/Object;)Ljava/lang/String;
+	public static final fun logD (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)V
+	public static final fun logE (Ljava/lang/Object;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun logE$default (Ljava/lang/Object;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public static final fun logI (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)V
+	public static final fun logV (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)V
+	public static final fun logW (Ljava/lang/Object;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun logW$default (Ljava/lang/Object;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+}
+
+public abstract interface class org/fuusio/kide/log/KideLogger {
+	public abstract fun log (Lorg/fuusio/kide/log/LogLevel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class org/fuusio/kide/log/LogLevel : java/lang/Enum {
+	public static final field Debug Lorg/fuusio/kide/log/LogLevel;
+	public static final field Error Lorg/fuusio/kide/log/LogLevel;
+	public static final field Info Lorg/fuusio/kide/log/LogLevel;
+	public static final field None Lorg/fuusio/kide/log/LogLevel;
+	public static final field Verbose Lorg/fuusio/kide/log/LogLevel;
+	public static final field Warning Lorg/fuusio/kide/log/LogLevel;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lorg/fuusio/kide/log/LogLevel;
+	public static fun values ()[Lorg/fuusio/kide/log/LogLevel;
+}
+
+public abstract interface class org/fuusio/kide/presentation/Action : org/fuusio/kide/presentation/PresentationComponent {
+}
+
+public class org/fuusio/kide/presentation/AsyncAction : org/fuusio/kide/presentation/Action {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCancellationKey ()Ljava/lang/String;
+	public fun invoke (Lorg/fuusio/kide/presentation/AsyncScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class org/fuusio/kide/presentation/AsyncScope {
+	public abstract fun getState ()Lorg/fuusio/kide/presentation/ViewState;
+	public abstract fun reduce (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class org/fuusio/kide/presentation/CompositeAction : org/fuusio/kide/presentation/Action {
+	public static final field Companion Lorg/fuusio/kide/presentation/CompositeAction$Companion;
+	public fun <init> (Ljava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;)Lorg/fuusio/kide/presentation/CompositeAction;
+	public static synthetic fun copy$default (Lorg/fuusio/kide/presentation/CompositeAction;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lorg/fuusio/kide/presentation/CompositeAction;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getActions ()Ljava/util/List;
+	public final fun getCancellationKey ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/fuusio/kide/presentation/CompositeAction$Companion {
+	public final fun create ([Lorg/fuusio/kide/presentation/Action;Ljava/lang/String;)Lorg/fuusio/kide/presentation/CompositeAction;
+	public static synthetic fun create$default (Lorg/fuusio/kide/presentation/CompositeAction$Companion;[Lorg/fuusio/kide/presentation/Action;Ljava/lang/String;ILjava/lang/Object;)Lorg/fuusio/kide/presentation/CompositeAction;
+}
+
+public abstract interface annotation class org/fuusio/kide/presentation/ExposedAction : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class org/fuusio/kide/presentation/ExposedIntent : java/lang/annotation/Annotation {
+}
+
+public abstract interface class org/fuusio/kide/presentation/KideInterceptor {
+	public fun onActionExecuting (Lorg/fuusio/kide/presentation/Action;)V
+	public fun onActionMapped (Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/Action;)V
+	public fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public fun onIntent (Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public fun onSideEffect (Lorg/fuusio/kide/presentation/SideEffect;)V
+	public fun onStateChanged (Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/ViewState;)V
+}
+
+public final class org/fuusio/kide/presentation/KideInterceptor$DefaultImpls {
+	public static fun onActionExecuting (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/Action;)V
+	public static fun onActionMapped (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/Action;)V
+	public static fun onError (Lorg/fuusio/kide/presentation/KideInterceptor;Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public static fun onIntent (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public static fun onSideEffect (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/SideEffect;)V
+	public static fun onStateChanged (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/ViewState;)V
+}
+
+public abstract interface class org/fuusio/kide/presentation/PresentationComponent : org/fuusio/kide/KideComponent {
+}
+
+public abstract class org/fuusio/kide/presentation/PresentationProcessor : java/lang/AutoCloseable, org/fuusio/kide/presentation/PresentationComponent {
+	public fun <init> (Lorg/fuusio/kide/presentation/ViewState;Lkotlinx/coroutines/CoroutineScope;Ljava/util/List;)V
+	public synthetic fun <init> (Lorg/fuusio/kide/presentation/ViewState;Lkotlinx/coroutines/CoroutineScope;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public final fun dispatch (Lorg/fuusio/kide/presentation/ViewIntent;)V
+	protected final fun getComponentProcessor (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function0;)Lorg/fuusio/kide/presentation/PresentationProcessor;
+	protected final fun getInterceptors ()Ljava/util/List;
+	public final fun getProcessorScope ()Lkotlinx/coroutines/CoroutineScope;
+	public final fun getSideEffects ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getState ()Lorg/fuusio/kide/presentation/ViewState;
+	public final fun getStates ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun getWasRestored ()Z
+	public final fun initializeWith (Lorg/fuusio/kide/presentation/ViewIntent;)V
+	protected abstract fun map (Lorg/fuusio/kide/presentation/ViewIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
+	protected fun onSaveState (Lorg/fuusio/kide/presentation/ViewState;)Lorg/fuusio/kide/presentation/ViewState;
+	protected fun reduceInitialIntent (Lorg/fuusio/kide/presentation/ViewIntent;)Lorg/fuusio/kide/presentation/ViewState;
+	public final fun restoreState (Lorg/fuusio/kide/presentation/ViewState;)V
+	public final fun stateToSave ()Lorg/fuusio/kide/presentation/ViewState;
+}
+
+public abstract interface class org/fuusio/kide/presentation/PresentationProcessorHost : org/fuusio/kide/presentation/PresentationComponent {
+	public abstract fun getProcessor ()Lorg/fuusio/kide/presentation/PresentationProcessor;
+}
+
+public final class org/fuusio/kide/presentation/PresentationProcessorKt {
+	public static final fun async (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)Lorg/fuusio/kide/presentation/AsyncAction;
+	public static synthetic fun async$default (Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lorg/fuusio/kide/presentation/AsyncAction;
+	public static final fun composite ([Lorg/fuusio/kide/presentation/Action;Ljava/lang/String;)Lorg/fuusio/kide/presentation/CompositeAction;
+	public static synthetic fun composite$default ([Lorg/fuusio/kide/presentation/Action;Ljava/lang/String;ILjava/lang/Object;)Lorg/fuusio/kide/presentation/CompositeAction;
+	public static final fun defaultProcessorScope ()Lkotlinx/coroutines/CoroutineScope;
+	public static final fun reduce (Lkotlin/jvm/functions/Function1;)Lorg/fuusio/kide/presentation/ReducerAction;
+	public static final fun sideEffect (Lkotlin/jvm/functions/Function1;)Lorg/fuusio/kide/presentation/SideEffectAction;
+	public static final fun useCase (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)Lorg/fuusio/kide/presentation/AsyncAction;
+	public static synthetic fun useCase$default (Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lorg/fuusio/kide/presentation/AsyncAction;
+}
+
+public class org/fuusio/kide/presentation/ReducerAction : org/fuusio/kide/presentation/Action {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun invoke (Lorg/fuusio/kide/presentation/ViewState;)Lorg/fuusio/kide/presentation/ViewState;
+}
+
+public abstract interface class org/fuusio/kide/presentation/SideEffect : org/fuusio/kide/presentation/PresentationComponent {
+}
+
+public class org/fuusio/kide/presentation/SideEffectAction : org/fuusio/kide/presentation/Action {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun invoke (Lorg/fuusio/kide/presentation/ViewState;)Lorg/fuusio/kide/presentation/SideEffect;
+}
+
+public abstract interface class org/fuusio/kide/presentation/ViewIntent : org/fuusio/kide/presentation/PresentationComponent {
+}
+
+public abstract interface class org/fuusio/kide/presentation/ViewState : org/fuusio/kide/presentation/PresentationComponent {
+}
+

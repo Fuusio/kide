@@ -1,0 +1,96 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-clean-architecture>
+abstract interface <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/UseCaseLogic : org.fuusio.kide.domain.usecase/UseCaseComponent { // org.fuusio.kide.domain.usecase/UseCaseLogic|null[0]
+    abstract val state // org.fuusio.kide.domain.usecase/UseCaseLogic.state|{}state[0]
+        abstract fun <get-state>(): #A // org.fuusio.kide.domain.usecase/UseCaseLogic.state.<get-state>|<get-state>(){}[0]
+    abstract val stateFlow // org.fuusio.kide.domain.usecase/UseCaseLogic.stateFlow|{}stateFlow[0]
+        abstract fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/UseCaseLogic.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
+
+    abstract suspend fun onIntent(#B) // org.fuusio.kide.domain.usecase/UseCaseLogic.onIntent|onIntent(1:1){}[0]
+}
+
+abstract interface <#A: org.fuusio.kide.domain.entity/State> org.fuusio.kide.domain.usecase/UseCaseIntent : org.fuusio.kide.domain/DomainComponent // org.fuusio.kide.domain.usecase/UseCaseIntent|null[0]
+
+abstract interface org.fuusio.kide.adapter/AdapterComponent : org.fuusio.kide/KideComponent // org.fuusio.kide.adapter/AdapterComponent|null[0]
+
+abstract interface org.fuusio.kide.adapter/Repository : org.fuusio.kide.adapter/AdapterComponent // org.fuusio.kide.adapter/Repository|null[0]
+
+abstract interface org.fuusio.kide.adapter/Service : org.fuusio.kide.adapter/AdapterComponent // org.fuusio.kide.adapter/Service|null[0]
+
+abstract interface org.fuusio.kide.domain.entity/State : org.fuusio.kide.domain/DomainComponent // org.fuusio.kide.domain.entity/State|null[0]
+
+abstract interface org.fuusio.kide.domain.usecase/UseCase : org.fuusio.kide.domain.usecase/UseCaseComponent // org.fuusio.kide.domain.usecase/UseCase|null[0]
+
+abstract interface org.fuusio.kide.domain.usecase/UseCaseComponent : org.fuusio.kide.domain/DomainComponent // org.fuusio.kide.domain.usecase/UseCaseComponent|null[0]
+
+abstract interface org.fuusio.kide.domain.usecase/UseCaseFunction : org.fuusio.kide.domain.usecase/UseCaseComponent // org.fuusio.kide.domain.usecase/UseCaseFunction|null[0]
+
+abstract interface org.fuusio.kide.domain/DomainComponent : org.fuusio.kide/KideComponent // org.fuusio.kide.domain/DomainComponent|null[0]
+
+abstract interface org.fuusio.kide.feature/ApplicationFeature : org.fuusio.kide.feature/Feature // org.fuusio.kide.feature/ApplicationFeature|null[0]
+
+abstract interface org.fuusio.kide.feature/Feature : org.fuusio.kide.feature/FeatureComponent { // org.fuusio.kide.feature/Feature|null[0]
+    open fun initialize() // org.fuusio.kide.feature/Feature.initialize|initialize(){}[0]
+}
+
+abstract interface org.fuusio.kide.feature/FeatureComponent : org.fuusio.kide/KideComponent // org.fuusio.kide.feature/FeatureComponent|null[0]
+
+abstract interface org.fuusio.kide.framework/DataSource : org.fuusio.kide.framework/FrameworkComponent // org.fuusio.kide.framework/DataSource|null[0]
+
+abstract interface org.fuusio.kide.framework/FrameworkComponent : org.fuusio.kide/KideComponent // org.fuusio.kide.framework/FrameworkComponent|null[0]
+
+abstract interface org.fuusio.kide.framework/Manager : org.fuusio.kide.framework/FrameworkComponent // org.fuusio.kide.framework/Manager|null[0]
+
+abstract class <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/AbstractUseCaseLogic : org.fuusio.kide.domain.usecase/UseCaseLogic<#A, #B> { // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic|null[0]
+    constructor <init>(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.<init>|<init>(1:0){}[0]
+
+    open val state // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.state|{}state[0]
+        open fun <get-state>(): #A // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.state.<get-state>|<get-state>(){}[0]
+    open val stateFlow // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.stateFlow|{}stateFlow[0]
+        open fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
+
+    final fun updateState(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.updateState|updateState(1:0){}[0]
+    final fun updateState(kotlin/Function1<#A, #A>) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.updateState|updateState(kotlin.Function1<1:0,1:0>){}[0]
+}
+
+abstract class org.fuusio.kide.adapter/AbstractRepository : org.fuusio.kide.adapter/Repository { // org.fuusio.kide.adapter/AbstractRepository|null[0]
+    constructor <init>(kotlinx.coroutines/CoroutineDispatcher = ...) // org.fuusio.kide.adapter/AbstractRepository.<init>|<init>(kotlinx.coroutines.CoroutineDispatcher){}[0]
+
+    final val dispatcher // org.fuusio.kide.adapter/AbstractRepository.dispatcher|{}dispatcher[0]
+        final fun <get-dispatcher>(): kotlinx.coroutines/CoroutineDispatcher // org.fuusio.kide.adapter/AbstractRepository.dispatcher.<get-dispatcher>|<get-dispatcher>(){}[0]
+
+    final suspend fun <#A1: kotlin/Any?> dispatch(kotlin.coroutines/SuspendFunction0<#A1>): #A1 // org.fuusio.kide.adapter/AbstractRepository.dispatch|dispatch(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
+}
+
+abstract class org.fuusio.kide.adapter/AbstractService : org.fuusio.kide.adapter/Service { // org.fuusio.kide.adapter/AbstractService|null[0]
+    constructor <init>(kotlinx.coroutines/CoroutineDispatcher = ...) // org.fuusio.kide.adapter/AbstractService.<init>|<init>(kotlinx.coroutines.CoroutineDispatcher){}[0]
+
+    final val dispatcher // org.fuusio.kide.adapter/AbstractService.dispatcher|{}dispatcher[0]
+        final fun <get-dispatcher>(): kotlinx.coroutines/CoroutineDispatcher // org.fuusio.kide.adapter/AbstractService.dispatcher.<get-dispatcher>|<get-dispatcher>(){}[0]
+
+    final suspend fun <#A1: kotlin/Any?> dispatch(kotlin.coroutines/SuspendFunction0<#A1>): #A1 // org.fuusio.kide.adapter/AbstractService.dispatch|dispatch(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
+}
+
+abstract class org.fuusio.kide.framework/AbstractDataSource : org.fuusio.kide.framework/DataSource { // org.fuusio.kide.framework/AbstractDataSource|null[0]
+    constructor <init>(kotlinx.coroutines/CoroutineDispatcher = ...) // org.fuusio.kide.framework/AbstractDataSource.<init>|<init>(kotlinx.coroutines.CoroutineDispatcher){}[0]
+
+    final val dispatcher // org.fuusio.kide.framework/AbstractDataSource.dispatcher|{}dispatcher[0]
+        final fun <get-dispatcher>(): kotlinx.coroutines/CoroutineDispatcher // org.fuusio.kide.framework/AbstractDataSource.dispatcher.<get-dispatcher>|<get-dispatcher>(){}[0]
+
+    final suspend fun <#A1: kotlin/Any?> dispatch(kotlin.coroutines/SuspendFunction0<#A1>): #A1 // org.fuusio.kide.framework/AbstractDataSource.dispatch|dispatch(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
+}
+
+abstract class org.fuusio.kide.framework/AbstractManager : org.fuusio.kide.framework/Manager { // org.fuusio.kide.framework/AbstractManager|null[0]
+    constructor <init>(kotlinx.coroutines/CoroutineDispatcher = ...) // org.fuusio.kide.framework/AbstractManager.<init>|<init>(kotlinx.coroutines.CoroutineDispatcher){}[0]
+
+    final val dispatcher // org.fuusio.kide.framework/AbstractManager.dispatcher|{}dispatcher[0]
+        final fun <get-dispatcher>(): kotlinx.coroutines/CoroutineDispatcher // org.fuusio.kide.framework/AbstractManager.dispatcher.<get-dispatcher>|<get-dispatcher>(){}[0]
+
+    final suspend fun <#A1: kotlin/Any?> dispatch(kotlin.coroutines/SuspendFunction0<#A1>): #A1 // org.fuusio.kide.framework/AbstractManager.dispatch|dispatch(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
+}

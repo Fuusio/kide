@@ -1,0 +1,142 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-devtools>
+final enum class org.fuusio.kide.devtools/TraceEventType : kotlin/Enum<org.fuusio.kide.devtools/TraceEventType> { // org.fuusio.kide.devtools/TraceEventType|null[0]
+    enum entry ActionExecuting // org.fuusio.kide.devtools/TraceEventType.ActionExecuting|null[0]
+    enum entry ActionMapped // org.fuusio.kide.devtools/TraceEventType.ActionMapped|null[0]
+    enum entry Error // org.fuusio.kide.devtools/TraceEventType.Error|null[0]
+    enum entry Intent // org.fuusio.kide.devtools/TraceEventType.Intent|null[0]
+    enum entry SideEffect // org.fuusio.kide.devtools/TraceEventType.SideEffect|null[0]
+    enum entry StateChanged // org.fuusio.kide.devtools/TraceEventType.StateChanged|null[0]
+
+    final val entries // org.fuusio.kide.devtools/TraceEventType.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<org.fuusio.kide.devtools/TraceEventType> // org.fuusio.kide.devtools/TraceEventType.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): org.fuusio.kide.devtools/TraceEventType // org.fuusio.kide.devtools/TraceEventType.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<org.fuusio.kide.devtools/TraceEventType> // org.fuusio.kide.devtools/TraceEventType.values|values#static(){}[0]
+
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // org.fuusio.kide.devtools/TraceEventType.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<org.fuusio.kide.devtools/TraceEventType> // org.fuusio.kide.devtools/TraceEventType.Companion.serializer|serializer(){}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // org.fuusio.kide.devtools/TraceEventType.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
+}
+
+abstract interface org.fuusio.kide.devtools/DevToolsClient { // org.fuusio.kide.devtools/DevToolsClient|null[0]
+    abstract fun close() // org.fuusio.kide.devtools/DevToolsClient.close|close(){}[0]
+    abstract fun send(kotlin/String) // org.fuusio.kide.devtools/DevToolsClient.send|send(kotlin.String){}[0]
+}
+
+final class <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide.presentation/ViewState, #C: org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.devtools/FlightRecorder : org.fuusio.kide.presentation/KideInterceptor<#A, #B, #C> { // org.fuusio.kide.devtools/FlightRecorder|null[0]
+    constructor <init>(kotlin/Int = ...) // org.fuusio.kide.devtools/FlightRecorder.<init>|<init>(kotlin.Int){}[0]
+
+    final val capacity // org.fuusio.kide.devtools/FlightRecorder.capacity|{}capacity[0]
+        final fun <get-capacity>(): kotlin/Int // org.fuusio.kide.devtools/FlightRecorder.capacity.<get-capacity>|<get-capacity>(){}[0]
+    final val events // org.fuusio.kide.devtools/FlightRecorder.events|{}events[0]
+        final fun <get-events>(): kotlin.collections/List<org.fuusio.kide.devtools/TraceEvent> // org.fuusio.kide.devtools/FlightRecorder.events.<get-events>|<get-events>(){}[0]
+
+    final fun clear() // org.fuusio.kide.devtools/FlightRecorder.clear|clear(){}[0]
+    final fun onActionExecuting(org.fuusio.kide.presentation/Action<#B, #C>) // org.fuusio.kide.devtools/FlightRecorder.onActionExecuting|onActionExecuting(org.fuusio.kide.presentation.Action<1:1,1:2>){}[0]
+    final fun onActionMapped(#A, org.fuusio.kide.presentation/Action<#B, #C>?) // org.fuusio.kide.devtools/FlightRecorder.onActionMapped|onActionMapped(1:0;org.fuusio.kide.presentation.Action<1:1,1:2>?){}[0]
+    final fun onError(kotlin/Throwable, #A) // org.fuusio.kide.devtools/FlightRecorder.onError|onError(kotlin.Throwable;1:0){}[0]
+    final fun onIntent(#A) // org.fuusio.kide.devtools/FlightRecorder.onIntent|onIntent(1:0){}[0]
+    final fun onSideEffect(#C) // org.fuusio.kide.devtools/FlightRecorder.onSideEffect|onSideEffect(1:2){}[0]
+    final fun onStateChanged(#B, #B) // org.fuusio.kide.devtools/FlightRecorder.onStateChanged|onStateChanged(1:1;1:1){}[0]
+    final fun toJson(kotlin/Int = ...): kotlin/String // org.fuusio.kide.devtools/FlightRecorder.toJson|toJson(kotlin.Int){}[0]
+
+    final object Companion { // org.fuusio.kide.devtools/FlightRecorder.Companion|null[0]
+        final const val DEFAULT_CAPACITY // org.fuusio.kide.devtools/FlightRecorder.Companion.DEFAULT_CAPACITY|{}DEFAULT_CAPACITY[0]
+            final fun <get-DEFAULT_CAPACITY>(): kotlin/Int // org.fuusio.kide.devtools/FlightRecorder.Companion.DEFAULT_CAPACITY.<get-DEFAULT_CAPACITY>|<get-DEFAULT_CAPACITY>(){}[0]
+    }
+}
+
+final class <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide.presentation/ViewState, #C: org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.devtools/KideDevToolsInterceptor : org.fuusio.kide.presentation/KideInterceptor<#A, #B, #C> { // org.fuusio.kide.devtools/KideDevToolsInterceptor|null[0]
+    constructor <init>(kotlin/String, kotlin/String = ..., kotlin/Int = ..., kotlinx.serialization/KSerializer<#A>? = ..., kotlinx.serialization/KSerializer<#B>? = ..., kotlinx.serialization/KSerializer<#C>? = ..., kotlinx.serialization.json/Json = ...) // org.fuusio.kide.devtools/KideDevToolsInterceptor.<init>|<init>(kotlin.String;kotlin.String;kotlin.Int;kotlinx.serialization.KSerializer<1:0>?;kotlinx.serialization.KSerializer<1:1>?;kotlinx.serialization.KSerializer<1:2>?;kotlinx.serialization.json.Json){}[0]
+
+    final fun close() // org.fuusio.kide.devtools/KideDevToolsInterceptor.close|close(){}[0]
+    final fun onActionExecuting(org.fuusio.kide.presentation/Action<#B, #C>) // org.fuusio.kide.devtools/KideDevToolsInterceptor.onActionExecuting|onActionExecuting(org.fuusio.kide.presentation.Action<1:1,1:2>){}[0]
+    final fun onActionMapped(#A, org.fuusio.kide.presentation/Action<#B, #C>?) // org.fuusio.kide.devtools/KideDevToolsInterceptor.onActionMapped|onActionMapped(1:0;org.fuusio.kide.presentation.Action<1:1,1:2>?){}[0]
+    final fun onIntent(#A) // org.fuusio.kide.devtools/KideDevToolsInterceptor.onIntent|onIntent(1:0){}[0]
+    final fun onSideEffect(#C) // org.fuusio.kide.devtools/KideDevToolsInterceptor.onSideEffect|onSideEffect(1:2){}[0]
+    final fun onStateChanged(#B, #B) // org.fuusio.kide.devtools/KideDevToolsInterceptor.onStateChanged|onStateChanged(1:1;1:1){}[0]
+}
+
+final class org.fuusio.kide.devtools/DebugHandle { // org.fuusio.kide.devtools/DebugHandle|null[0]
+    final val name // org.fuusio.kide.devtools/DebugHandle.name|{}name[0]
+        final fun <get-name>(): kotlin/String // org.fuusio.kide.devtools/DebugHandle.name.<get-name>|<get-name>(){}[0]
+    final val processorClassName // org.fuusio.kide.devtools/DebugHandle.processorClassName|{}processorClassName[0]
+        final fun <get-processorClassName>(): kotlin/String // org.fuusio.kide.devtools/DebugHandle.processorClassName.<get-processorClassName>|<get-processorClassName>(){}[0]
+    final val recorder // org.fuusio.kide.devtools/DebugHandle.recorder|{}recorder[0]
+        final fun <get-recorder>(): org.fuusio.kide.devtools/FlightRecorder<*, *, *> // org.fuusio.kide.devtools/DebugHandle.recorder.<get-recorder>|<get-recorder>(){}[0]
+
+    final fun currentState(): kotlin/String // org.fuusio.kide.devtools/DebugHandle.currentState|currentState(){}[0]
+    final fun dispatch(kotlin/Any) // org.fuusio.kide.devtools/DebugHandle.dispatch|dispatch(kotlin.Any){}[0]
+}
+
+final class org.fuusio.kide.devtools/IosDevToolsClient : org.fuusio.kide.devtools/DevToolsClient { // org.fuusio.kide.devtools/IosDevToolsClient|null[0]
+    constructor <init>() // org.fuusio.kide.devtools/IosDevToolsClient.<init>|<init>(){}[0]
+
+    final fun close() // org.fuusio.kide.devtools/IosDevToolsClient.close|close(){}[0]
+    final fun send(kotlin/String) // org.fuusio.kide.devtools/IosDevToolsClient.send|send(kotlin.String){}[0]
+}
+
+final class org.fuusio.kide.devtools/TraceEvent { // org.fuusio.kide.devtools/TraceEvent|null[0]
+    constructor <init>(kotlin/Long, kotlin/Long, org.fuusio.kide.devtools/TraceEventType, kotlin/String, kotlin/String? = ..., kotlin/String? = ...) // org.fuusio.kide.devtools/TraceEvent.<init>|<init>(kotlin.Long;kotlin.Long;org.fuusio.kide.devtools.TraceEventType;kotlin.String;kotlin.String?;kotlin.String?){}[0]
+
+    final val payload // org.fuusio.kide.devtools/TraceEvent.payload|{}payload[0]
+        final fun <get-payload>(): kotlin/String // org.fuusio.kide.devtools/TraceEvent.payload.<get-payload>|<get-payload>(){}[0]
+    final val payloadClass // org.fuusio.kide.devtools/TraceEvent.payloadClass|{}payloadClass[0]
+        final fun <get-payloadClass>(): kotlin/String? // org.fuusio.kide.devtools/TraceEvent.payloadClass.<get-payloadClass>|<get-payloadClass>(){}[0]
+    final val previousState // org.fuusio.kide.devtools/TraceEvent.previousState|{}previousState[0]
+        final fun <get-previousState>(): kotlin/String? // org.fuusio.kide.devtools/TraceEvent.previousState.<get-previousState>|<get-previousState>(){}[0]
+    final val seq // org.fuusio.kide.devtools/TraceEvent.seq|{}seq[0]
+        final fun <get-seq>(): kotlin/Long // org.fuusio.kide.devtools/TraceEvent.seq.<get-seq>|<get-seq>(){}[0]
+    final val timestamp // org.fuusio.kide.devtools/TraceEvent.timestamp|{}timestamp[0]
+        final fun <get-timestamp>(): kotlin/Long // org.fuusio.kide.devtools/TraceEvent.timestamp.<get-timestamp>|<get-timestamp>(){}[0]
+    final val type // org.fuusio.kide.devtools/TraceEvent.type|{}type[0]
+        final fun <get-type>(): org.fuusio.kide.devtools/TraceEventType // org.fuusio.kide.devtools/TraceEvent.type.<get-type>|<get-type>(){}[0]
+
+    final fun component1(): kotlin/Long // org.fuusio.kide.devtools/TraceEvent.component1|component1(){}[0]
+    final fun component2(): kotlin/Long // org.fuusio.kide.devtools/TraceEvent.component2|component2(){}[0]
+    final fun component3(): org.fuusio.kide.devtools/TraceEventType // org.fuusio.kide.devtools/TraceEvent.component3|component3(){}[0]
+    final fun component4(): kotlin/String // org.fuusio.kide.devtools/TraceEvent.component4|component4(){}[0]
+    final fun component5(): kotlin/String? // org.fuusio.kide.devtools/TraceEvent.component5|component5(){}[0]
+    final fun component6(): kotlin/String? // org.fuusio.kide.devtools/TraceEvent.component6|component6(){}[0]
+    final fun copy(kotlin/Long = ..., kotlin/Long = ..., org.fuusio.kide.devtools/TraceEventType = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ...): org.fuusio.kide.devtools/TraceEvent // org.fuusio.kide.devtools/TraceEvent.copy|copy(kotlin.Long;kotlin.Long;org.fuusio.kide.devtools.TraceEventType;kotlin.String;kotlin.String?;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // org.fuusio.kide.devtools/TraceEvent.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // org.fuusio.kide.devtools/TraceEvent.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // org.fuusio.kide.devtools/TraceEvent.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<org.fuusio.kide.devtools/TraceEvent> { // org.fuusio.kide.devtools/TraceEvent.$serializer|null[0]
+        final val descriptor // org.fuusio.kide.devtools/TraceEvent.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // org.fuusio.kide.devtools/TraceEvent.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // org.fuusio.kide.devtools/TraceEvent.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): org.fuusio.kide.devtools/TraceEvent // org.fuusio.kide.devtools/TraceEvent.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, org.fuusio.kide.devtools/TraceEvent) // org.fuusio.kide.devtools/TraceEvent.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;org.fuusio.kide.devtools.TraceEvent){}[0]
+    }
+
+    final object Companion { // org.fuusio.kide.devtools/TraceEvent.Companion|null[0]
+        final val $childSerializers // org.fuusio.kide.devtools/TraceEvent.Companion.$childSerializers|{}$childSerializers[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<org.fuusio.kide.devtools/TraceEvent> // org.fuusio.kide.devtools/TraceEvent.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final object org.fuusio.kide.devtools/KideDebug { // org.fuusio.kide.devtools/KideDebug|null[0]
+    final fun <#A1: org.fuusio.kide.presentation/ViewIntent, #B1: org.fuusio.kide.presentation/ViewState, #C1: org.fuusio.kide.presentation/SideEffect> attach(kotlin/String, org.fuusio.kide.presentation/PresentationProcessor<#A1, #B1, #C1>, org.fuusio.kide.devtools/FlightRecorder<#A1, #B1, #C1>): org.fuusio.kide.devtools/DebugHandle // org.fuusio.kide.devtools/KideDebug.attach|attach(kotlin.String;org.fuusio.kide.presentation.PresentationProcessor<0:0,0:1,0:2>;org.fuusio.kide.devtools.FlightRecorder<0:0,0:1,0:2>){0§<org.fuusio.kide.presentation.ViewIntent>;1§<org.fuusio.kide.presentation.ViewState>;2§<org.fuusio.kide.presentation.SideEffect>}[0]
+    final fun detach(kotlin/String) // org.fuusio.kide.devtools/KideDebug.detach|detach(kotlin.String){}[0]
+    final fun handle(kotlin/String): org.fuusio.kide.devtools/DebugHandle? // org.fuusio.kide.devtools/KideDebug.handle|handle(kotlin.String){}[0]
+    final fun handles(): kotlin.collections/Map<kotlin/String, org.fuusio.kide.devtools/DebugHandle> // org.fuusio.kide.devtools/KideDebug.handles|handles(){}[0]
+}
+
+final object org.fuusio.kide.devtools/TraceTestGenerator { // org.fuusio.kide.devtools/TraceTestGenerator|null[0]
+    final fun generate(org.fuusio.kide.devtools/DebugHandle): kotlin/String // org.fuusio.kide.devtools/TraceTestGenerator.generate|generate(org.fuusio.kide.devtools.DebugHandle){}[0]
+}
+
+final fun org.fuusio.kide.devtools/createDevToolsClient(kotlin/String, kotlin/Int): org.fuusio.kide.devtools/DevToolsClient // org.fuusio.kide.devtools/createDevToolsClient|createDevToolsClient(kotlin.String;kotlin.Int){}[0]
+final fun org.fuusio.kide.devtools/getEpochMillis(): kotlin/Long // org.fuusio.kide.devtools/getEpochMillis|getEpochMillis(){}[0]

@@ -1,0 +1,23 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-test>
+final class <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide.presentation/ViewState, #C: org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.test/ProcessorTestContext { // org.fuusio.kide.test/ProcessorTestContext|null[0]
+    constructor <init>(org.fuusio.kide.presentation/PresentationProcessor<#A, #B, #C>, app.cash.turbine/TurbineTestContext<#B>, app.cash.turbine/TurbineTestContext<#C>) // org.fuusio.kide.test/ProcessorTestContext.<init>|<init>(org.fuusio.kide.presentation.PresentationProcessor<1:0,1:1,1:2>;app.cash.turbine.TurbineTestContext<1:1>;app.cash.turbine.TurbineTestContext<1:2>){}[0]
+
+    final val processor // org.fuusio.kide.test/ProcessorTestContext.processor|{}processor[0]
+        final fun <get-processor>(): org.fuusio.kide.presentation/PresentationProcessor<#A, #B, #C> // org.fuusio.kide.test/ProcessorTestContext.processor.<get-processor>|<get-processor>(){}[0]
+
+    final fun dispatch(#A) // org.fuusio.kide.test/ProcessorTestContext.dispatch|dispatch(1:0){}[0]
+    final suspend fun expectSideEffect(#C) // org.fuusio.kide.test/ProcessorTestContext.expectSideEffect|expectSideEffect(1:2){}[0]
+    final suspend fun expectSideEffect(kotlin/Function1<#C, kotlin/Unit>) // org.fuusio.kide.test/ProcessorTestContext.expectSideEffect|expectSideEffect(kotlin.Function1<1:2,kotlin.Unit>){}[0]
+    final suspend fun expectState(#B) // org.fuusio.kide.test/ProcessorTestContext.expectState|expectState(1:1){}[0]
+    final suspend fun expectState(kotlin/Function1<#B, kotlin/Unit>) // org.fuusio.kide.test/ProcessorTestContext.expectState|expectState(kotlin.Function1<1:1,kotlin.Unit>){}[0]
+    final suspend fun skipInitialState() // org.fuusio.kide.test/ProcessorTestContext.skipInitialState|skipInitialState(){}[0]
+}
+
+final suspend fun <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide.presentation/ViewState, #C: org.fuusio.kide.presentation/SideEffect> (org.fuusio.kide.presentation/PresentationProcessor<#A, #B, #C>).org.fuusio.kide.test/test(kotlin.coroutines/SuspendFunction1<org.fuusio.kide.test/ProcessorTestContext<#A, #B, #C>, kotlin/Unit>) // org.fuusio.kide.test/test|test@org.fuusio.kide.presentation.PresentationProcessor<0:0,0:1,0:2>(kotlin.coroutines.SuspendFunction1<org.fuusio.kide.test.ProcessorTestContext<0:0,0:1,0:2>,kotlin.Unit>){0§<org.fuusio.kide.presentation.ViewIntent>;1§<org.fuusio.kide.presentation.ViewState>;2§<org.fuusio.kide.presentation.SideEffect>}[0]

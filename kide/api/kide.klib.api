@@ -1,0 +1,170 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide>
+open annotation class org.fuusio.kide.presentation/ExposedAction : kotlin/Annotation { // org.fuusio.kide.presentation/ExposedAction|null[0]
+    constructor <init>() // org.fuusio.kide.presentation/ExposedAction.<init>|<init>(){}[0]
+}
+
+open annotation class org.fuusio.kide.presentation/ExposedIntent : kotlin/Annotation { // org.fuusio.kide.presentation/ExposedIntent|null[0]
+    constructor <init>() // org.fuusio.kide.presentation/ExposedIntent.<init>|<init>(){}[0]
+}
+
+final enum class org.fuusio.kide.log/LogLevel : kotlin/Enum<org.fuusio.kide.log/LogLevel> { // org.fuusio.kide.log/LogLevel|null[0]
+    enum entry Debug // org.fuusio.kide.log/LogLevel.Debug|null[0]
+    enum entry Error // org.fuusio.kide.log/LogLevel.Error|null[0]
+    enum entry Info // org.fuusio.kide.log/LogLevel.Info|null[0]
+    enum entry None // org.fuusio.kide.log/LogLevel.None|null[0]
+    enum entry Verbose // org.fuusio.kide.log/LogLevel.Verbose|null[0]
+    enum entry Warning // org.fuusio.kide.log/LogLevel.Warning|null[0]
+
+    final val entries // org.fuusio.kide.log/LogLevel.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<org.fuusio.kide.log/LogLevel> // org.fuusio.kide.log/LogLevel.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): org.fuusio.kide.log/LogLevel // org.fuusio.kide.log/LogLevel.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<org.fuusio.kide.log/LogLevel> // org.fuusio.kide.log/LogLevel.values|values#static(){}[0]
+}
+
+abstract fun interface org.fuusio.kide.log/KideLogger { // org.fuusio.kide.log/KideLogger|null[0]
+    abstract fun log(org.fuusio.kide.log/LogLevel, kotlin/String, kotlin/String, kotlin/Throwable?) // org.fuusio.kide.log/KideLogger.log|log(org.fuusio.kide.log.LogLevel;kotlin.String;kotlin.String;kotlin.Throwable?){}[0]
+}
+
+abstract interface <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> org.fuusio.kide.presentation/PresentationProcessorHost : org.fuusio.kide.presentation/PresentationComponent { // org.fuusio.kide.presentation/PresentationProcessorHost|null[0]
+    abstract val processor // org.fuusio.kide.presentation/PresentationProcessorHost.processor|{}processor[0]
+        abstract fun <get-processor>(): #A // org.fuusio.kide.presentation/PresentationProcessorHost.processor.<get-processor>|<get-processor>(){}[0]
+}
+
+abstract interface <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide.presentation/ViewState, #C: org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/KideInterceptor { // org.fuusio.kide.presentation/KideInterceptor|null[0]
+    open fun onActionExecuting(org.fuusio.kide.presentation/Action<#B, #C>) // org.fuusio.kide.presentation/KideInterceptor.onActionExecuting|onActionExecuting(org.fuusio.kide.presentation.Action<1:1,1:2>){}[0]
+    open fun onActionMapped(#A, org.fuusio.kide.presentation/Action<#B, #C>?) // org.fuusio.kide.presentation/KideInterceptor.onActionMapped|onActionMapped(1:0;org.fuusio.kide.presentation.Action<1:1,1:2>?){}[0]
+    open fun onError(kotlin/Throwable, #A) // org.fuusio.kide.presentation/KideInterceptor.onError|onError(kotlin.Throwable;1:0){}[0]
+    open fun onIntent(#A) // org.fuusio.kide.presentation/KideInterceptor.onIntent|onIntent(1:0){}[0]
+    open fun onSideEffect(#C) // org.fuusio.kide.presentation/KideInterceptor.onSideEffect|onSideEffect(1:2){}[0]
+    open fun onStateChanged(#B, #B) // org.fuusio.kide.presentation/KideInterceptor.onStateChanged|onStateChanged(1:1;1:1){}[0]
+}
+
+abstract interface <#A: org.fuusio.kide.presentation/ViewState> org.fuusio.kide.presentation/AsyncScope { // org.fuusio.kide.presentation/AsyncScope|null[0]
+    abstract val state // org.fuusio.kide.presentation/AsyncScope.state|{}state[0]
+        abstract fun <get-state>(): #A // org.fuusio.kide.presentation/AsyncScope.state.<get-state>|<get-state>(){}[0]
+
+    abstract fun reduce(kotlin/Function1<#A, #A>) // org.fuusio.kide.presentation/AsyncScope.reduce|reduce(kotlin.Function1<1:0,1:0>){}[0]
+}
+
+abstract interface org.fuusio.kide.presentation/PresentationComponent : org.fuusio.kide/KideComponent // org.fuusio.kide.presentation/PresentationComponent|null[0]
+
+abstract interface org.fuusio.kide.presentation/SideEffect : org.fuusio.kide.presentation/PresentationComponent // org.fuusio.kide.presentation/SideEffect|null[0]
+
+abstract interface org.fuusio.kide.presentation/ViewIntent : org.fuusio.kide.presentation/PresentationComponent // org.fuusio.kide.presentation/ViewIntent|null[0]
+
+abstract interface org.fuusio.kide.presentation/ViewState : org.fuusio.kide.presentation/PresentationComponent // org.fuusio.kide.presentation/ViewState|null[0]
+
+abstract interface org.fuusio.kide/KideComponent // org.fuusio.kide/KideComponent|null[0]
+
+sealed interface <#A: org.fuusio.kide.presentation/ViewState, #B: out org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/Action : org.fuusio.kide.presentation/PresentationComponent // org.fuusio.kide.presentation/Action|null[0]
+
+abstract class <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide.presentation/ViewState, #C: org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/PresentationProcessor : kotlin/AutoCloseable, org.fuusio.kide.presentation/PresentationComponent { // org.fuusio.kide.presentation/PresentationProcessor|null[0]
+    constructor <init>(#B, kotlinx.coroutines/CoroutineScope = ..., kotlin.collections/List<org.fuusio.kide.presentation/KideInterceptor<#A, #B, #C>> = ...) // org.fuusio.kide.presentation/PresentationProcessor.<init>|<init>(1:1;kotlinx.coroutines.CoroutineScope;kotlin.collections.List<org.fuusio.kide.presentation.KideInterceptor<1:0,1:1,1:2>>){}[0]
+
+    final val interceptors // org.fuusio.kide.presentation/PresentationProcessor.interceptors|{}interceptors[0]
+        final fun <get-interceptors>(): kotlin.collections/List<org.fuusio.kide.presentation/KideInterceptor<#A, #B, #C>> // org.fuusio.kide.presentation/PresentationProcessor.interceptors.<get-interceptors>|<get-interceptors>(){}[0]
+    final val processorScope // org.fuusio.kide.presentation/PresentationProcessor.processorScope|{}processorScope[0]
+        final fun <get-processorScope>(): kotlinx.coroutines/CoroutineScope // org.fuusio.kide.presentation/PresentationProcessor.processorScope.<get-processorScope>|<get-processorScope>(){}[0]
+    final val sideEffects // org.fuusio.kide.presentation/PresentationProcessor.sideEffects|{}sideEffects[0]
+        final fun <get-sideEffects>(): kotlinx.coroutines.flow/Flow<#C> // org.fuusio.kide.presentation/PresentationProcessor.sideEffects.<get-sideEffects>|<get-sideEffects>(){}[0]
+    final val state // org.fuusio.kide.presentation/PresentationProcessor.state|{}state[0]
+        final fun <get-state>(): #B // org.fuusio.kide.presentation/PresentationProcessor.state.<get-state>|<get-state>(){}[0]
+    final val states // org.fuusio.kide.presentation/PresentationProcessor.states|{}states[0]
+        final fun <get-states>(): kotlinx.coroutines.flow/StateFlow<#B> // org.fuusio.kide.presentation/PresentationProcessor.states.<get-states>|<get-states>(){}[0]
+
+    final var wasRestored // org.fuusio.kide.presentation/PresentationProcessor.wasRestored|{}wasRestored[0]
+        final fun <get-wasRestored>(): kotlin/Boolean // org.fuusio.kide.presentation/PresentationProcessor.wasRestored.<get-wasRestored>|<get-wasRestored>(){}[0]
+
+    abstract suspend fun map(#A): org.fuusio.kide.presentation/Action<#B, #C>? // org.fuusio.kide.presentation/PresentationProcessor.map|map(1:0){}[0]
+    final fun <#A1: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> getComponentProcessor(kotlin.reflect/KClass<#A1>, kotlin/Function0<#A1>): #A1 // org.fuusio.kide.presentation/PresentationProcessor.getComponentProcessor|getComponentProcessor(kotlin.reflect.KClass<0:0>;kotlin.Function0<0:0>){0§<org.fuusio.kide.presentation.PresentationProcessor<*,*,*>>}[0]
+    final fun dispatch(#A) // org.fuusio.kide.presentation/PresentationProcessor.dispatch|dispatch(1:0){}[0]
+    final fun initializeWith(#A) // org.fuusio.kide.presentation/PresentationProcessor.initializeWith|initializeWith(1:0){}[0]
+    final fun restoreState(#B) // org.fuusio.kide.presentation/PresentationProcessor.restoreState|restoreState(1:1){}[0]
+    final fun stateToSave(): #B? // org.fuusio.kide.presentation/PresentationProcessor.stateToSave|stateToSave(){}[0]
+    open fun close() // org.fuusio.kide.presentation/PresentationProcessor.close|close(){}[0]
+    open fun onError(kotlin/Throwable, #A) // org.fuusio.kide.presentation/PresentationProcessor.onError|onError(kotlin.Throwable;1:0){}[0]
+    open fun onSaveState(#B): #B? // org.fuusio.kide.presentation/PresentationProcessor.onSaveState|onSaveState(1:1){}[0]
+    open fun reduceInitialIntent(#A): #B // org.fuusio.kide.presentation/PresentationProcessor.reduceInitialIntent|reduceInitialIntent(1:0){}[0]
+}
+
+final class <#A: org.fuusio.kide.presentation/ViewState, #B: out org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/CompositeAction : org.fuusio.kide.presentation/Action<#A, #B> { // org.fuusio.kide.presentation/CompositeAction|null[0]
+    constructor <init>(kotlin.collections/List<org.fuusio.kide.presentation/Action<#A, #B>>, kotlin/String? = ...) // org.fuusio.kide.presentation/CompositeAction.<init>|<init>(kotlin.collections.List<org.fuusio.kide.presentation.Action<1:0,1:1>>;kotlin.String?){}[0]
+
+    final val actions // org.fuusio.kide.presentation/CompositeAction.actions|{}actions[0]
+        final fun <get-actions>(): kotlin.collections/List<org.fuusio.kide.presentation/Action<#A, #B>> // org.fuusio.kide.presentation/CompositeAction.actions.<get-actions>|<get-actions>(){}[0]
+    final val cancellationKey // org.fuusio.kide.presentation/CompositeAction.cancellationKey|{}cancellationKey[0]
+        final fun <get-cancellationKey>(): kotlin/String? // org.fuusio.kide.presentation/CompositeAction.cancellationKey.<get-cancellationKey>|<get-cancellationKey>(){}[0]
+
+    final fun component1(): kotlin.collections/List<org.fuusio.kide.presentation/Action<#A, #B>> // org.fuusio.kide.presentation/CompositeAction.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // org.fuusio.kide.presentation/CompositeAction.component2|component2(){}[0]
+    final fun copy(kotlin.collections/List<org.fuusio.kide.presentation/Action<#A, #B>> = ..., kotlin/String? = ...): org.fuusio.kide.presentation/CompositeAction<#A, #B> // org.fuusio.kide.presentation/CompositeAction.copy|copy(kotlin.collections.List<org.fuusio.kide.presentation.Action<1:0,1:1>>;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // org.fuusio.kide.presentation/CompositeAction.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // org.fuusio.kide.presentation/CompositeAction.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // org.fuusio.kide.presentation/CompositeAction.toString|toString(){}[0]
+
+    final object Companion { // org.fuusio.kide.presentation/CompositeAction.Companion|null[0]
+        final fun <#A2: org.fuusio.kide.presentation/ViewState, #B2: org.fuusio.kide.presentation/SideEffect> create(kotlin/Array<out org.fuusio.kide.presentation/Action<#A2, #B2>>..., kotlin/String? = ...): org.fuusio.kide.presentation/CompositeAction<#A2, #B2> // org.fuusio.kide.presentation/CompositeAction.Companion.create|create(kotlin.Array<out|org.fuusio.kide.presentation.Action<0:0,0:1>>...;kotlin.String?){0§<org.fuusio.kide.presentation.ViewState>;1§<org.fuusio.kide.presentation.SideEffect>}[0]
+    }
+}
+
+open class <#A: org.fuusio.kide.presentation/ViewState, #B: out org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/SideEffectAction : org.fuusio.kide.presentation/Action<#A, #B> { // org.fuusio.kide.presentation/SideEffectAction|null[0]
+    constructor <init>(kotlin/Function1<#A, #B>? = ...) // org.fuusio.kide.presentation/SideEffectAction.<init>|<init>(kotlin.Function1<1:0,1:1>?){}[0]
+
+    open fun invoke(#A): #B // org.fuusio.kide.presentation/SideEffectAction.invoke|invoke(1:0){}[0]
+}
+
+open class <#A: org.fuusio.kide.presentation/ViewState> org.fuusio.kide.presentation/AsyncAction : org.fuusio.kide.presentation/Action<#A, kotlin/Nothing> { // org.fuusio.kide.presentation/AsyncAction|null[0]
+    constructor <init>(kotlin/String? = ..., kotlin.coroutines/SuspendFunction1<org.fuusio.kide.presentation/AsyncScope<#A>, kotlin/Unit>? = ...) // org.fuusio.kide.presentation/AsyncAction.<init>|<init>(kotlin.String?;kotlin.coroutines.SuspendFunction1<org.fuusio.kide.presentation.AsyncScope<1:0>,kotlin.Unit>?){}[0]
+
+    final val cancellationKey // org.fuusio.kide.presentation/AsyncAction.cancellationKey|{}cancellationKey[0]
+        final fun <get-cancellationKey>(): kotlin/String? // org.fuusio.kide.presentation/AsyncAction.cancellationKey.<get-cancellationKey>|<get-cancellationKey>(){}[0]
+
+    open suspend fun invoke(org.fuusio.kide.presentation/AsyncScope<#A>) // org.fuusio.kide.presentation/AsyncAction.invoke|invoke(org.fuusio.kide.presentation.AsyncScope<1:0>){}[0]
+}
+
+open class <#A: org.fuusio.kide.presentation/ViewState> org.fuusio.kide.presentation/ReducerAction : org.fuusio.kide.presentation/Action<#A, kotlin/Nothing> { // org.fuusio.kide.presentation/ReducerAction|null[0]
+    constructor <init>(kotlin/Function1<#A, #A>? = ...) // org.fuusio.kide.presentation/ReducerAction.<init>|<init>(kotlin.Function1<1:0,1:0>?){}[0]
+
+    open fun invoke(#A): #A // org.fuusio.kide.presentation/ReducerAction.invoke|invoke(1:0){}[0]
+}
+
+final object org.fuusio.kide.log/KideLog { // org.fuusio.kide.log/KideLog|null[0]
+    final var logger // org.fuusio.kide.log/KideLog.logger|{}logger[0]
+        final fun <get-logger>(): org.fuusio.kide.log/KideLogger? // org.fuusio.kide.log/KideLog.logger.<get-logger>|<get-logger>(){}[0]
+        final fun <set-logger>(org.fuusio.kide.log/KideLogger?) // org.fuusio.kide.log/KideLog.logger.<set-logger>|<set-logger>(org.fuusio.kide.log.KideLogger?){}[0]
+    final var minLevel // org.fuusio.kide.log/KideLog.minLevel|{}minLevel[0]
+        final fun <get-minLevel>(): org.fuusio.kide.log/LogLevel // org.fuusio.kide.log/KideLog.minLevel.<get-minLevel>|<get-minLevel>(){}[0]
+        final fun <set-minLevel>(org.fuusio.kide.log/LogLevel) // org.fuusio.kide.log/KideLog.minLevel.<set-minLevel>|<set-minLevel>(org.fuusio.kide.log.LogLevel){}[0]
+
+    final fun isLoggable(org.fuusio.kide.log/LogLevel): kotlin/Boolean // org.fuusio.kide.log/KideLog.isLoggable|isLoggable(org.fuusio.kide.log.LogLevel){}[0]
+    final fun log(org.fuusio.kide.log/LogLevel, kotlin/String, kotlin/String, kotlin/Throwable? = ...) // org.fuusio.kide.log/KideLog.log|log(org.fuusio.kide.log.LogLevel;kotlin.String;kotlin.String;kotlin.Throwable?){}[0]
+    final inline fun d(kotlin/String, kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/KideLog.d|d(kotlin.String;kotlin.Function0<kotlin.String>){}[0]
+    final inline fun e(kotlin/String, kotlin/Throwable? = ..., kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/KideLog.e|e(kotlin.String;kotlin.Throwable?;kotlin.Function0<kotlin.String>){}[0]
+    final inline fun i(kotlin/String, kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/KideLog.i|i(kotlin.String;kotlin.Function0<kotlin.String>){}[0]
+    final inline fun log(org.fuusio.kide.log/LogLevel, kotlin/String, kotlin/Throwable? = ..., kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/KideLog.log|log(org.fuusio.kide.log.LogLevel;kotlin.String;kotlin.Throwable?;kotlin.Function0<kotlin.String>){}[0]
+    final inline fun v(kotlin/String, kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/KideLog.v|v(kotlin.String;kotlin.Function0<kotlin.String>){}[0]
+    final inline fun w(kotlin/String, kotlin/Throwable? = ..., kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/KideLog.w|w(kotlin.String;kotlin.Throwable?;kotlin.Function0<kotlin.String>){}[0]
+}
+
+final val org.fuusio.kide.log/logTag // org.fuusio.kide.log/logTag|@kotlin.Any{}logTag[0]
+    final fun (kotlin/Any).<get-logTag>(): kotlin/String // org.fuusio.kide.log/logTag.<get-logTag>|<get-logTag>@kotlin.Any(){}[0]
+
+final fun <#A: org.fuusio.kide.presentation/ViewState, #B: org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/composite(kotlin/Array<out org.fuusio.kide.presentation/Action<#A, #B>>..., kotlin/String? = ...): org.fuusio.kide.presentation/CompositeAction<#A, #B> // org.fuusio.kide.presentation/composite|composite(kotlin.Array<out|org.fuusio.kide.presentation.Action<0:0,0:1>>...;kotlin.String?){0§<org.fuusio.kide.presentation.ViewState>;1§<org.fuusio.kide.presentation.SideEffect>}[0]
+final fun <#A: org.fuusio.kide.presentation/ViewState, #B: org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/sideEffect(kotlin/Function1<#A, #B>): org.fuusio.kide.presentation/SideEffectAction<#A, #B> // org.fuusio.kide.presentation/sideEffect|sideEffect(kotlin.Function1<0:0,0:1>){0§<org.fuusio.kide.presentation.ViewState>;1§<org.fuusio.kide.presentation.SideEffect>}[0]
+final fun <#A: org.fuusio.kide.presentation/ViewState> org.fuusio.kide.presentation/async(kotlin/String? = ..., kotlin.coroutines/SuspendFunction1<org.fuusio.kide.presentation/AsyncScope<#A>, kotlin/Unit>): org.fuusio.kide.presentation/AsyncAction<#A> // org.fuusio.kide.presentation/async|async(kotlin.String?;kotlin.coroutines.SuspendFunction1<org.fuusio.kide.presentation.AsyncScope<0:0>,kotlin.Unit>){0§<org.fuusio.kide.presentation.ViewState>}[0]
+final fun <#A: org.fuusio.kide.presentation/ViewState> org.fuusio.kide.presentation/reduce(kotlin/Function1<#A, #A>): org.fuusio.kide.presentation/ReducerAction<#A> // org.fuusio.kide.presentation/reduce|reduce(kotlin.Function1<0:0,0:0>){0§<org.fuusio.kide.presentation.ViewState>}[0]
+final fun <#A: org.fuusio.kide.presentation/ViewState> org.fuusio.kide.presentation/useCase(kotlin/String? = ..., kotlin.coroutines/SuspendFunction1<org.fuusio.kide.presentation/AsyncScope<#A>, kotlin/Unit>): org.fuusio.kide.presentation/AsyncAction<#A> // org.fuusio.kide.presentation/useCase|useCase(kotlin.String?;kotlin.coroutines.SuspendFunction1<org.fuusio.kide.presentation.AsyncScope<0:0>,kotlin.Unit>){0§<org.fuusio.kide.presentation.ViewState>}[0]
+final fun org.fuusio.kide.presentation/defaultProcessorScope(): kotlinx.coroutines/CoroutineScope // org.fuusio.kide.presentation/defaultProcessorScope|defaultProcessorScope(){}[0]
+final inline fun (kotlin/Any).org.fuusio.kide.log/logD(kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/logD|logD@kotlin.Any(kotlin.Function0<kotlin.String>){}[0]
+final inline fun (kotlin/Any).org.fuusio.kide.log/logE(kotlin/Throwable? = ..., kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/logE|logE@kotlin.Any(kotlin.Throwable?;kotlin.Function0<kotlin.String>){}[0]
+final inline fun (kotlin/Any).org.fuusio.kide.log/logI(kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/logI|logI@kotlin.Any(kotlin.Function0<kotlin.String>){}[0]
+final inline fun (kotlin/Any).org.fuusio.kide.log/logV(kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/logV|logV@kotlin.Any(kotlin.Function0<kotlin.String>){}[0]
+final inline fun (kotlin/Any).org.fuusio.kide.log/logW(kotlin/Throwable? = ..., kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/logW|logW@kotlin.Any(kotlin.Throwable?;kotlin.Function0<kotlin.String>){}[0]

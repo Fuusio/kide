@@ -1,0 +1,21 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-decompose>
+final class <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> org.fuusio.kide.decompose/InstanceKeeperHost : com.arkivanov.essenty.instancekeeper/InstanceKeeper.Instance, org.fuusio.kide.presentation/PresentationProcessorHost<#A> { // org.fuusio.kide.decompose/InstanceKeeperHost|null[0]
+    constructor <init>(#A) // org.fuusio.kide.decompose/InstanceKeeperHost.<init>|<init>(1:0){}[0]
+
+    final val processor // org.fuusio.kide.decompose/InstanceKeeperHost.processor|{}processor[0]
+        final fun <get-processor>(): #A // org.fuusio.kide.decompose/InstanceKeeperHost.processor.<get-processor>|<get-processor>(){}[0]
+
+    final fun onDestroy() // org.fuusio.kide.decompose/InstanceKeeperHost.onDestroy|onDestroy(){}[0]
+}
+
+final fun <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> (com.arkivanov.essenty.instancekeeper/InstanceKeeper).org.fuusio.kide.decompose/retainedProcessor(kotlin/Any, com.arkivanov.essenty.statekeeper/StateKeeper, kotlinx.serialization/KSerializer<out org.fuusio.kide.presentation/ViewState>, kotlin/Function0<#A>): #A // org.fuusio.kide.decompose/retainedProcessor|retainedProcessor@com.arkivanov.essenty.instancekeeper.InstanceKeeper(kotlin.Any;com.arkivanov.essenty.statekeeper.StateKeeper;kotlinx.serialization.KSerializer<out|org.fuusio.kide.presentation.ViewState>;kotlin.Function0<0:0>){0§<org.fuusio.kide.presentation.PresentationProcessor<*,*,*>>}[0]
+final fun <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> (com.arkivanov.essenty.instancekeeper/InstanceKeeper).org.fuusio.kide.decompose/retainedProcessor(kotlin/Any, kotlin/Function0<#A>): #A // org.fuusio.kide.decompose/retainedProcessor|retainedProcessor@com.arkivanov.essenty.instancekeeper.InstanceKeeper(kotlin.Any;kotlin.Function0<0:0>){0§<org.fuusio.kide.presentation.PresentationProcessor<*,*,*>>}[0]
+final fun <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> (com.arkivanov.essenty.instancekeeper/InstanceKeeperOwner).org.fuusio.kide.decompose/retainedProcessor(kotlin/Any, com.arkivanov.essenty.statekeeper/StateKeeper, kotlinx.serialization/KSerializer<out org.fuusio.kide.presentation/ViewState>, kotlin/Function0<#A>): #A // org.fuusio.kide.decompose/retainedProcessor|retainedProcessor@com.arkivanov.essenty.instancekeeper.InstanceKeeperOwner(kotlin.Any;com.arkivanov.essenty.statekeeper.StateKeeper;kotlinx.serialization.KSerializer<out|org.fuusio.kide.presentation.ViewState>;kotlin.Function0<0:0>){0§<org.fuusio.kide.presentation.PresentationProcessor<*,*,*>>}[0]
+final fun <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> (com.arkivanov.essenty.instancekeeper/InstanceKeeperOwner).org.fuusio.kide.decompose/retainedProcessor(kotlin/Any, kotlin/Function0<#A>): #A // org.fuusio.kide.decompose/retainedProcessor|retainedProcessor@com.arkivanov.essenty.instancekeeper.InstanceKeeperOwner(kotlin.Any;kotlin.Function0<0:0>){0§<org.fuusio.kide.presentation.PresentationProcessor<*,*,*>>}[0]

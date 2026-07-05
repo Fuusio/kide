@@ -1,0 +1,15 @@
+public final class org/fuusio/kide/test/PresentationProcessorExtKt {
+	public static final fun test (Lorg/fuusio/kide/presentation/PresentationProcessor;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class org/fuusio/kide/test/ProcessorTestContext {
+	public fun <init> (Lorg/fuusio/kide/presentation/PresentationProcessor;Lapp/cash/turbine/TurbineTestContext;Lapp/cash/turbine/TurbineTestContext;)V
+	public final fun dispatch (Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public final fun expectSideEffect (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectSideEffect (Lorg/fuusio/kide/presentation/SideEffect;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectState (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectState (Lorg/fuusio/kide/presentation/ViewState;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getProcessor ()Lorg/fuusio/kide/presentation/PresentationProcessor;
+	public final fun skipInitialState (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
