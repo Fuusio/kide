@@ -20,6 +20,8 @@ import android.content.Context
 import org.fuusio.kide.app.feature.settings.navigation.SettingsNavKey
 import org.fuusio.kide.app.feature.settings.presentation.SettingsProcessor
 import org.fuusio.kide.app.FuusioApplicationFeature
+import org.fuusio.kide.app.domain.adapter.settings.SettingsRepository
+import org.fuusio.kide.app.domain.usecase.GetSettingsUseCase
 import org.fuusio.kide.feature.KoinFeature
 import org.fuusio.kide.navigation.ScreenNavKeyRegistry
 import org.koin.dsl.module
@@ -32,6 +34,11 @@ object SettingsFeature : KoinFeature {
 
     override fun koinModule(applicationContext: Context) = module {
         includes(FuusioApplicationFeature.koinModule(applicationContext))
-        factory { SettingsProcessor(get(), get()) }
+
+        factory<GetSettingsUseCase> {
+            GetSettingsUseCase { get<SettingsRepository>().getSettings()}
+        }
+
+        factory { SettingsProcessor(get(), get(), get(), get()) }
     }
 }

@@ -16,21 +16,8 @@
  */
 package org.fuusio.kide.app.domain.usecase
 
-import org.fuusio.kide.app.domain.adapter.settings.SettingsRepository
-import org.fuusio.kide.app.domain.entity.DarkMode
+import org.fuusio.kide.domain.usecase.UseCaseFunction
 
-class SaveSettingsUseCaseImpl(
-    private val repository: SettingsRepository
-) : SaveSettingsUseCase {
-    override suspend fun updateDarkMode(darkMode: DarkMode) {
-        repository.updateDarkMode(darkMode)
-    }
-
-    override suspend fun updateDefaultLanguage(language: String) {
-        repository.updateDefaultLanguage(language)
-    }
-
-    override suspend fun updateResultsLimit(limit: Int) {
-        repository.updateResultsLimit(limit)
-    }
+fun interface UpdateDefaultLanguageUseCase : UseCaseFunction {
+    suspend fun execute(language: String)
 }

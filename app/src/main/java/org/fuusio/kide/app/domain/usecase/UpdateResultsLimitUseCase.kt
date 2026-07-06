@@ -16,19 +16,8 @@
  */
 package org.fuusio.kide.app.domain.usecase
 
-import org.fuusio.kide.app.domain.adapter.project.ProjectRepository
-import org.fuusio.kide.app.domain.entity.Project
+import org.fuusio.kide.domain.usecase.UseCaseFunction
 
-class SearchGitHubProjectsUseCaseImpl(
-    private val repository: ProjectRepository
-) : SearchGitHubProjectsUseCase {
-    override suspend fun execute(
-        query: String,
-        language: String?,
-        license: String?
-    ): Result<List<Project>> = try {
-        Result.success(repository.searchProjects(query, language, license))
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
+fun interface UpdateResultsLimitUseCase : UseCaseFunction {
+    suspend fun execute(limit: Int)
 }

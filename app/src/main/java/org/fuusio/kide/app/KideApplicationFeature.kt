@@ -72,13 +72,33 @@ object FuusioApplicationFeature : KoinApplicationFeature {
         }
         single { org.fuusio.kide.app.domain.usecase.SavedProjectsUseCaseLogic(get()) }
         factory<org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase> {
-            org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCaseImpl(get())
+            val repository = get<org.fuusio.kide.app.domain.adapter.project.ProjectRepository>()
+            org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase { query, language, license ->
+                try {
+                    Result.success(repository.searchProjects(query, language, license))
+                } catch (e: Exception) {
+                    Result.failure(e)
+                }
+            }
         }
-        factory<org.fuusio.kide.app.domain.usecase.GetSettingsUseCase> {
-            org.fuusio.kide.app.domain.usecase.GetSettingsUseCaseImpl(get())
+
+        factory<org.fuusio.kide.app.domain.usecase.UpdateDarkModeUseCase> {
+            val repository = get<org.fuusio.kide.app.domain.adapter.settings.SettingsRepository>()
+            org.fuusio.kide.app.domain.usecase.UpdateDarkModeUseCase { darkMode ->
+                repository.updateDarkMode(darkMode)
+            }
         }
-        factory<org.fuusio.kide.app.domain.usecase.SaveSettingsUseCase> {
-            org.fuusio.kide.app.domain.usecase.SaveSettingsUseCaseImpl(get())
+        factory<org.fuusio.kide.app.domain.usecase.UpdateDefaultLanguageUseCase> {
+            val repository = get<org.fuusio.kide.app.domain.adapter.settings.SettingsRepository>()
+            org.fuusio.kide.app.domain.usecase.UpdateDefaultLanguageUseCase { language ->
+                repository.updateDefaultLanguage(language)
+            }
+        }
+        factory<org.fuusio.kide.app.domain.usecase.UpdateResultsLimitUseCase> {
+            val repository = get<org.fuusio.kide.app.domain.adapter.settings.SettingsRepository>()
+            org.fuusio.kide.app.domain.usecase.UpdateResultsLimitUseCase { limit ->
+                repository.updateResultsLimit(limit)
+            }
         }
     }
 

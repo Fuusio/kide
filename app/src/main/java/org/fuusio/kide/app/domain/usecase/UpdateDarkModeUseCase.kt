@@ -19,8 +19,6 @@ package org.fuusio.kide.app.domain.usecase
 import org.fuusio.kide.app.domain.entity.DarkMode
 import org.fuusio.kide.domain.usecase.UseCaseFunction
 
-interface SaveSettingsUseCase : UseCaseFunction {
-    suspend fun updateDarkMode(darkMode: DarkMode)
-    suspend fun updateDefaultLanguage(language: String)
-    suspend fun updateResultsLimit(limit: Int)
+fun interface UpdateDarkModeUseCase : UseCaseFunction {
+    suspend fun execute(darkMode: DarkMode)
 }

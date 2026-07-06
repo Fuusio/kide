@@ -12,6 +12,10 @@ Targeting **Android**, **JVM (desktop)**, and **iOS**, it integrates seamlessly 
 
 The library takes its name and logo from the Finnish word for "crystal": *kide*, reflecting its transparent, predictable, and indestructible architecture.
 
+## Documentation
+
+For a comprehensive overview of core concepts, architecture diagrams, and practical instructions for development, debugging, and testing, check out the [Kide Developer Guide](docs/kide_guide.md).
+
 
 ## Why Kide?
 

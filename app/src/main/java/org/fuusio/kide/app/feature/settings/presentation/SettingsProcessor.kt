@@ -19,12 +19,16 @@ package org.fuusio.kide.app.feature.settings.presentation
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.fuusio.kide.app.domain.usecase.GetSettingsUseCase
-import org.fuusio.kide.app.domain.usecase.SaveSettingsUseCase
+import org.fuusio.kide.app.domain.usecase.UpdateDarkModeUseCase
+import org.fuusio.kide.app.domain.usecase.UpdateDefaultLanguageUseCase
+import org.fuusio.kide.app.domain.usecase.UpdateResultsLimitUseCase
 import org.fuusio.kide.presentation.*
 
 class SettingsProcessor(
     private val getSettingsUseCase: GetSettingsUseCase,
-    private val saveSettingsUseCase: SaveSettingsUseCase,
+    private val updateDarkModeUseCase: UpdateDarkModeUseCase,
+    private val updateDefaultLanguageUseCase: UpdateDefaultLanguageUseCase,
+    private val updateResultsLimitUseCase: UpdateResultsLimitUseCase,
 ) : PresentationProcessor<SettingsIntent, SettingsViewState, SettingsSideEffect>(
     SettingsViewState(),
 ) {
@@ -48,13 +52,13 @@ class SettingsProcessor(
                 )
             }
             is UpdateDarkMode -> useCase {
-                saveSettingsUseCase.updateDarkMode(intent.darkMode)
+                updateDarkModeUseCase.execute(intent.darkMode)
             }
             is UpdateDefaultLanguage -> useCase {
-                saveSettingsUseCase.updateDefaultLanguage(intent.language)
+                updateDefaultLanguageUseCase.execute(intent.language)
             }
             is UpdateResultsLimit -> useCase {
-                saveSettingsUseCase.updateResultsLimit(intent.limit)
+                updateResultsLimitUseCase.execute(intent.limit)
             }
         }
 }
