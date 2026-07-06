@@ -397,6 +397,8 @@ class SearchProcessor : PresentationProcessor<…> {
 
 ## Agent-native debugging (kide-devtools)
 
+> 📺 **Watch the demo video:** [See how an AI agent uses the embedded Kide MCP server](https://youtu.be/1ItfzP5UspA)
+
 Classic MVI debug tooling renders a GUI for human eyes. Kide's `kide-devtools` module
 additionally targets the entity that increasingly does the debugging: **your AI coding
 agent**. A `FlightRecorder` interceptor keeps a queryable, causally ordered trace of a
