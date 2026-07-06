@@ -61,6 +61,97 @@ Kide is highly decoupled. Use only what you need:
 | `kide-voyager` | `ScreenModelHost` for hosting processors in Voyager | `kide`, Voyager |
 | `app` | Sample Android application exercising the full stack | all of the above |
 
+## Installation
+
+Kide is published to **Maven Central** under the group `org.fuusio.kide`. The latest
+release is **1.0.0**.
+
+[![Maven Central](https://img.shields.io/maven-central/v/org.fuusio.kide/kide.svg?label=Maven%20Central)](https://central.sonatype.com/search?q=org.fuusio.kide)
+
+### 1. Add Maven Central
+
+Make sure `mavenCentral()` is in your repositories (in `settings.gradle.kts`):
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+```
+
+### 2. Declare the dependencies
+
+Add only the modules you need. In a Kotlin Multiplatform project, put the shared modules
+in `commonMain`:
+
+```kotlin
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("org.fuusio.kide:kide:1.0.0")                     // Core MVI engine
+            implementation("org.fuusio.kide:kide-navigation:1.0.0")          // Navigation 3
+            implementation("org.fuusio.kide:kide-clean-architecture:1.0.0")  // Clean Architecture
+            implementation("org.fuusio.kide:kide-koin:1.0.0")                // Koin DI helpers
+            implementation("org.fuusio.kide:kide-decompose:1.0.0")           // Decompose host
+            implementation("org.fuusio.kide:kide-voyager:1.0.0")             // Voyager host
+        }
+        commonTest.dependencies {
+            implementation("org.fuusio.kide:kide-test:1.0.0")                // Testing DSL
+        }
+    }
+}
+```
+
+For debug builds only, add the agent-native debug tooling:
+
+```kotlin
+// e.g. an androidMain / debug source set
+implementation("org.fuusio.kide:kide-devtools:1.0.0")
+```
+
+For a single-platform (e.g. Android-only) project, declare them in the regular
+`dependencies { }` block instead:
+
+```kotlin
+dependencies {
+    implementation("org.fuusio.kide:kide:1.0.0")
+    testImplementation("org.fuusio.kide:kide-test:1.0.0")
+}
+```
+
+### Using the Gradle version catalog
+
+If you use a `libs.versions.toml` catalog, declare a shared version and the artifacts:
+
+```toml
+[versions]
+kide = "1.0.0"
+
+[libraries]
+kide = { module = "org.fuusio.kide:kide", version.ref = "kide" }
+kide-navigation = { module = "org.fuusio.kide:kide-navigation", version.ref = "kide" }
+kide-clean-architecture = { module = "org.fuusio.kide:kide-clean-architecture", version.ref = "kide" }
+kide-koin = { module = "org.fuusio.kide:kide-koin", version.ref = "kide" }
+kide-decompose = { module = "org.fuusio.kide:kide-decompose", version.ref = "kide" }
+kide-voyager = { module = "org.fuusio.kide:kide-voyager", version.ref = "kide" }
+kide-test = { module = "org.fuusio.kide:kide-test", version.ref = "kide" }
+kide-devtools = { module = "org.fuusio.kide:kide-devtools", version.ref = "kide" }
+```
+
+Then reference them from your build script:
+
+```kotlin
+commonMain.dependencies {
+    implementation(libs.kide)
+    implementation(libs.kide.navigation)
+}
+commonTest.dependencies {
+    implementation(libs.kide.test)
+}
+```
+
 ## Core concepts
 
 Kide's presentation layer is a unidirectional data flow built around one class,
