@@ -403,6 +403,18 @@ agent**. A `FlightRecorder` interceptor keeps a queryable, causally ordered trac
 processor's life (intent → mapped action → state diff → side effect → error), and an
 embedded MCP server exposes the *running app* as agent tools:
 
+```mermaid
+flowchart TD
+    Agent[AI Agent\nClaude / Antigravity] <-->|MCP Protocol\nHTTP| MCP[KideMcpServer]
+    
+    subgraph Running Application
+        MCP <-->|Tools:\nget_trace, get_state,\ndispatch_intent| FR[FlightRecorder]
+        FR -.->|Intercepts Intent, Action,\nState, SideEffect, Error| PP[PresentationProcessor]
+        UI[App UI] -->|dispatch| PP
+        PP -->|stateFlow| UI
+    end
+```
+
 ```kotlin
 // Wiring (debug builds):
 val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>()
@@ -495,10 +507,16 @@ with coordinates `org.fuusio.kide:<module>` (see `gradle.properties`).
 
 ## For AI agents
 
-Kide ships first-class instructions for AI coding agents. Working **on** this repo:
-[AGENTS.md](AGENTS.md). Building an app **with** Kide: install the agent skill from
+Kide ships first-class instructions for AI coding agents.
+
+*   **Working on this repo**:
+[AGENTS.md](AGENTS.md). 
+
+*   **Building an app with Kide**: install the agent skill from
 [`skills/kide/`](skills/kide/SKILL.md) (SKILL.md + reference.md — Claude Code:
-`/plugin` or copy the directory into `.claude/skills/`). Debug builds can additionally
+`/plugin` or copy the directory into `.claude/skills/`). 
+
+*   **Debugging support**: Debug builds can additionally
 expose the running app to agents via the MCP agent port (see *Agent-native debugging*).
 
 ## Sample application
@@ -507,6 +525,16 @@ The `app` module is a complete Android application built with Kide: feature modu
 their own Koin modules and nav keys, Room and DataStore data sources, a GitHub project
 search, and MVI processors for every screen. It is the best reference for how the
 pieces fit together.
+
+### Screenshots
+
+<p align="center">
+  <img src="images/Screenshot_Landing_Screen.png" width="18%" />
+  <img src="images/Screenshot_Search_Projects.png" width="18%" />
+  <img src="images/Screenshot_Saved_Libraries.png" width="18%" />
+  <img src="images/Screenshot_Navigation_Drawer.png" width="18%" />
+  <img src="images/Screenshot_Settings.png" width="18%" />
+</p>
 
 ## License
 
