@@ -5,10 +5,10 @@
 [![Build](https://github.com/Fuusio/kide/actions/workflows/build.yml/badge.svg)](https://github.com/Fuusio/kide/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/license/apache-2-0)
 
-**The First AI-Agent Native MVI Architecture for Kotlin Multiplatform.**
+**The First AI-Agent Native MVI Architecture for Kotlin Multiplatform (KMP).**
 
 Kide is a modern, strict MVI (Model–View–Intent) and Clean Architecture library built specifically for the era of AI-assisted development. 
-Targeting **Android**, **JVM (desktop)**, and **iOS**, it integrates seamlessly with Compose Multiplatform, Navigation 3, Koin, Decompose, and Voyager.
+Targeting **Android**, **iOS**, and **JVM (desktop)**, it integrates seamlessly with Compose Multiplatform, Navigation 3, Koin, Decompose, and Voyager.
 
 The library takes its name and logo from the Finnish word for "crystal": *kide*, reflecting its transparent, predictable, and indestructible architecture.
 
@@ -16,13 +16,13 @@ The library takes its name and logo from the Finnish word for "crystal": *kide*,
 
 For a comprehensive overview of core concepts, architecture diagrams, and practical instructions for development, debugging, and testing, check out the [Kide Developer Guide](docs/kide_guide.md).
 
-
 ## Why Kide?
 
 *   **Built for AI Agents:** Kide is the first architecture that ships with an embedded Model Context Protocol (MCP) server and a causal `FlightRecorder`. Your AI agent can connect directly to your running app, dispatch intents, read state traces, find bugs, and instantly generate regression tests.
 *   **Bulletproof Execution:** Say goodbye to dropped UI events. Kide guarantees lossless intent queues, deterministic synchronous reductions, and exactly-once side-effect delivery. The core processor is guarded; errors won't crash your intent loop.
 *   **Pure Kotlin Multiplatform:** Written entirely in Kotlin without Android-specific UI dependencies in its core, ensuring 100% logic sharing across iOS, Android, and Desktop.
 *   **(Optional) Clean Architecture Included:** Comes with out-of-the-box scaffolding for domain-driven design, bridging your UI cleanly to asynchronous use cases.
+*   **(Optional) Modern Compose Navigation:** Ships optional Compose Multiplatform integration built on the modern Navigation 3 API. Its modular, `ScreenNavKey`-based design keeps each destination self-contained — a type-safe key ties a screen to its processor, so features register their own destinations independently, arguments and back stack survive process death, and navigation stays decoupled and testable without a central navigation graph.
 
 Kide's AI-first debugging approach (`FlightRecorder`, interceptors, and MCP agent ports) is something none of the other current MVI libraries offer. As AI coding assistants become mandatory tools for development teams, an architecture built specifically to be understood and debugged by AI is a massive strategic advantage.
 
@@ -161,14 +161,17 @@ commonTest.dependencies {
 Kide's presentation layer is a unidirectional data flow built around one class,
 `PresentationProcessor<I, S, E>`:
 
-```
-UI ──dispatch(ViewIntent)──▶ PresentationProcessor ──map()──▶ Action
-                                                                 │
-     ┌───────────────────────────────────────────────────────────┤
-     ▼                                                           ▼
- StateFlow<ViewState> ◀──reduce──  ReducerAction   SideEffectAction ──▶ Flow<SideEffect>
-                                   AsyncAction
-                                   CompositeAction
+```mermaid
+flowchart TD
+    UI[Compose UI] -- dispatch(ViewIntent) --> PP[PresentationProcessor]
+    PP -- map() --> Action[Action]
+    
+    Action -- reduce --> VS[ViewState]
+    Action -- async work --> VS
+    Action -- sideEffect --> SE[SideEffect]
+    
+    VS -- collectAsState --> UI
+    SE -- collect --> UI
 ```
 
 - A **`ViewIntent`** describes a user interaction or UI event.
@@ -449,6 +452,7 @@ class SavedProjectsUseCaseLogic(
                 repository.save(intent.project)
                 updateState { it.copy(projects = it.projects + intent.project) }
             }
+            // Mappings of other intents ...
         }
     }
 }
