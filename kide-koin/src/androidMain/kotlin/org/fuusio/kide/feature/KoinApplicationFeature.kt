@@ -21,4 +21,4 @@ package org.fuusio.kide.feature
  * Implementations of this interface define how Koin modules are configured and
  * initialized within the scope of a specific application feature.
  */
-interface KoinApplicationFeature : ApplicationFeature, KoinFeature
+public interface KoinApplicationFeature : ApplicationFeature, KoinFeature

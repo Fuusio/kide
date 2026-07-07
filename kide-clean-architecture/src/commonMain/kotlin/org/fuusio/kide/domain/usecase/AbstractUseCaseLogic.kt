@@ -50,6 +50,7 @@ import org.fuusio.kide.log.logD
     "To align with Kide MVI API, this abstract class is deprecated",
     ReplaceWith("AbstractUseCaseProcessor"),
 )
+@Suppress("DEPRECATION") // Intentionally implements the deprecated UseCaseLogic interface.
 public abstract class AbstractUseCaseLogic<S : State, I : UseCaseIntent<S>>(initialState: S)
     : UseCaseLogic<S, I> {
 

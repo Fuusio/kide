@@ -25,7 +25,7 @@ import org.koin.core.module.Module
  * Extends the base [Feature] interface to allow modular components to provide their own
  * [Module] definitions, facilitating decentralized and feature-specific dependency management.
  */
-interface KoinFeature : Feature {
+public interface KoinFeature : Feature {
 
     /**
      * Provides the Koin [Module] for this feature, containing its dependency injection definitions.
@@ -33,5 +33,5 @@ interface KoinFeature : Feature {
      * @param applicationContext The Android [Context] used to resolve dependencies that require it.
      * @return The KOIN [Module] specific to this feature.
      */
-    fun koinModule(applicationContext: Context): Module
+    public fun koinModule(applicationContext: Context): Module
 }

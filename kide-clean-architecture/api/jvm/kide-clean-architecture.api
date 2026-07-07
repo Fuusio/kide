@@ -33,8 +33,18 @@ public abstract class org/fuusio/kide/domain/usecase/AbstractUseCaseLogic : org/
 	public fun <init> (Lorg/fuusio/kide/domain/entity/State;)V
 	public fun getState ()Lorg/fuusio/kide/domain/entity/State;
 	public fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
-	protected final fun updateState (Lkotlin/jvm/functions/Function1;)V
-	protected final fun updateState (Lorg/fuusio/kide/domain/entity/State;)V
+	protected final fun reduce (Lkotlin/jvm/functions/Function1;)V
+	protected final fun reduce (Lorg/fuusio/kide/domain/entity/State;)V
+}
+
+public abstract class org/fuusio/kide/domain/usecase/AbstractUseCaseProcessor : org/fuusio/kide/domain/usecase/UseCaseProcessor {
+	public fun <init> (Lorg/fuusio/kide/domain/entity/State;)V
+	public fun dispatch (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getState ()Lorg/fuusio/kide/domain/entity/State;
+	public fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	protected abstract fun map (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun reduce (Lkotlin/jvm/functions/Function1;)V
+	protected final fun reduce (Lorg/fuusio/kide/domain/entity/State;)V
 }
 
 public abstract interface class org/fuusio/kide/domain/usecase/UseCase : org/fuusio/kide/domain/usecase/UseCaseComponent {
@@ -53,6 +63,12 @@ public abstract interface class org/fuusio/kide/domain/usecase/UseCaseLogic : or
 	public abstract fun getState ()Lorg/fuusio/kide/domain/entity/State;
 	public abstract fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun onIntent (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class org/fuusio/kide/domain/usecase/UseCaseProcessor : org/fuusio/kide/domain/usecase/UseCaseComponent {
+	public abstract fun dispatch (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getState ()Lorg/fuusio/kide/domain/entity/State;
+	public abstract fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
 }
 
 public abstract interface class org/fuusio/kide/feature/ApplicationFeature : org/fuusio/kide/feature/Feature {

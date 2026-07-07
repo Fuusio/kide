@@ -34,7 +34,7 @@ import android.content.Context
  * Implementations of this interface should ensure they provide the appropriate type of context
  * for their use case, considering concerns such as lifecycle and memory leaks.
  */
-interface ContextProvider {
+public interface ContextProvider {
 
     /**
      * The Android [Context] provided by this implementation.
@@ -43,5 +43,5 @@ interface ContextProvider {
      * or another type of [Context]. Clients should not make assumptions about the specific type
      * of [Context] provided unless documented by the specific implementation.
      */
-    val context: Context
+    public val context: Context
 }

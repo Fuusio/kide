@@ -1,0 +1,23 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-clean-architecture-test>
+final class <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext { // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext|null[0]
+    constructor <init>(org.fuusio.kide.domain.usecase/UseCaseProcessor<#A, #B>, app.cash.turbine/TurbineTestContext<#A>) // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.<init>|<init>(org.fuusio.kide.domain.usecase.UseCaseProcessor<1:0,1:1>;app.cash.turbine.TurbineTestContext<1:0>){}[0]
+
+    final val processor // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.processor|{}processor[0]
+        final fun <get-processor>(): org.fuusio.kide.domain.usecase/UseCaseProcessor<#A, #B> // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.processor.<get-processor>|<get-processor>(){}[0]
+    final val state // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.state|{}state[0]
+        final fun <get-state>(): #A // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.state.<get-state>|<get-state>(){}[0]
+
+    final suspend fun dispatch(#B) // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.dispatch|dispatch(1:1){}[0]
+    final suspend fun expectState(#A) // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.expectState|expectState(1:0){}[0]
+    final suspend fun expectState(kotlin/Function1<#A, kotlin/Unit>) // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.expectState|expectState(kotlin.Function1<1:0,kotlin.Unit>){}[0]
+    final suspend fun skipInitialState() // org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext.skipInitialState|skipInitialState(){}[0]
+}
+
+final suspend fun <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> (org.fuusio.kide.domain.usecase/UseCaseProcessor<#A, #B>).org.fuusio.kide.domain.usecase.test/test(kotlin.coroutines/SuspendFunction1<org.fuusio.kide.domain.usecase.test/UseCaseProcessorTestContext<#A, #B>, kotlin/Unit>) // org.fuusio.kide.domain.usecase.test/test|test@org.fuusio.kide.domain.usecase.UseCaseProcessor<0:0,0:1>(kotlin.coroutines.SuspendFunction1<org.fuusio.kide.domain.usecase.test.UseCaseProcessorTestContext<0:0,0:1>,kotlin.Unit>){0§<org.fuusio.kide.domain.entity.State>;1§<org.fuusio.kide.domain.usecase.UseCaseIntent<0:0>>}[0]

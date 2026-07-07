@@ -1,0 +1,14 @@
+public final class org/fuusio/kide/domain/usecase/test/UseCaseProcessorTestContext {
+	public fun <init> (Lorg/fuusio/kide/domain/usecase/UseCaseProcessor;Lapp/cash/turbine/TurbineTestContext;)V
+	public final fun dispatch (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectState (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun expectState (Lorg/fuusio/kide/domain/entity/State;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getProcessor ()Lorg/fuusio/kide/domain/usecase/UseCaseProcessor;
+	public final fun getState ()Lorg/fuusio/kide/domain/entity/State;
+	public final fun skipInitialState (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class org/fuusio/kide/domain/usecase/test/UseCaseProcessorTestKt {
+	public static final fun test (Lorg/fuusio/kide/domain/usecase/UseCaseProcessor;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

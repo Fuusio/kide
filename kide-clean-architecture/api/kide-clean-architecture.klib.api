@@ -15,6 +15,15 @@ abstract interface <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide
     abstract suspend fun onIntent(#B) // org.fuusio.kide.domain.usecase/UseCaseLogic.onIntent|onIntent(1:1){}[0]
 }
 
+abstract interface <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/UseCaseProcessor : org.fuusio.kide.domain.usecase/UseCaseComponent { // org.fuusio.kide.domain.usecase/UseCaseProcessor|null[0]
+    abstract val state // org.fuusio.kide.domain.usecase/UseCaseProcessor.state|{}state[0]
+        abstract fun <get-state>(): #A // org.fuusio.kide.domain.usecase/UseCaseProcessor.state.<get-state>|<get-state>(){}[0]
+    abstract val stateFlow // org.fuusio.kide.domain.usecase/UseCaseProcessor.stateFlow|{}stateFlow[0]
+        abstract fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/UseCaseProcessor.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
+
+    abstract suspend fun dispatch(#B) // org.fuusio.kide.domain.usecase/UseCaseProcessor.dispatch|dispatch(1:1){}[0]
+}
+
 abstract interface <#A: org.fuusio.kide.domain.entity/State> org.fuusio.kide.domain.usecase/UseCaseIntent : org.fuusio.kide.domain/DomainComponent // org.fuusio.kide.domain.usecase/UseCaseIntent|null[0]
 
 abstract interface org.fuusio.kide.adapter/AdapterComponent : org.fuusio.kide/KideComponent // org.fuusio.kide.adapter/AdapterComponent|null[0]
@@ -55,8 +64,22 @@ abstract class <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.dom
     open val stateFlow // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.stateFlow|{}stateFlow[0]
         open fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
 
-    final fun updateState(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.updateState|updateState(1:0){}[0]
-    final fun updateState(kotlin/Function1<#A, #A>) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.updateState|updateState(kotlin.Function1<1:0,1:0>){}[0]
+    final fun reduce(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.reduce|reduce(1:0){}[0]
+    final fun reduce(kotlin/Function1<#A, #A>) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.reduce|reduce(kotlin.Function1<1:0,1:0>){}[0]
+}
+
+abstract class <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor : org.fuusio.kide.domain.usecase/UseCaseProcessor<#A, #B> { // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor|null[0]
+    constructor <init>(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.<init>|<init>(1:0){}[0]
+
+    open val state // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.state|{}state[0]
+        open fun <get-state>(): #A // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.state.<get-state>|<get-state>(){}[0]
+    open val stateFlow // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.stateFlow|{}stateFlow[0]
+        open fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
+
+    abstract suspend fun map(#B) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.map|map(1:1){}[0]
+    final fun reduce(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.reduce|reduce(1:0){}[0]
+    final fun reduce(kotlin/Function1<#A, #A>) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.reduce|reduce(kotlin.Function1<1:0,1:0>){}[0]
+    open suspend fun dispatch(#B) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.dispatch|dispatch(1:1){}[0]
 }
 
 abstract class org.fuusio.kide.adapter/AbstractRepository : org.fuusio.kide.adapter/Repository { // org.fuusio.kide.adapter/AbstractRepository|null[0]
