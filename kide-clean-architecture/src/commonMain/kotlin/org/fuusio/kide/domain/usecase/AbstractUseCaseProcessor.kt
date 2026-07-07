@@ -25,7 +25,7 @@ import org.fuusio.kide.domain.entity.State
 import org.fuusio.kide.log.logD
 
 /**
- * An abstract base implementation of the [UseCaseLogic] interface that provides state management
+ * An abstract base implementation of the [UseCaseProcessor] interface that provides state management
  * functionality for use cases in the application's domain layer.
  *
  * This class is a key component of the application's clean architecture pattern, implementing
@@ -39,19 +39,15 @@ import org.fuusio.kide.log.logD
  * 3. Observers (typically in the presentation layer) react to state changes
  *
  * Subclasses must implement:
- * - [onIntent] (from the [UseCaseLogic] interface) to handle specific intent types
+ * - [map] function to handle specific intent types
  * and can use [reduce] to modify the state during business operations.
  *
  * @param initialState The initial domain state for the use case
  * @param S The type of state that this use case logic works with
  * @param I The type of intent that this use case logic handles
  */
-@Deprecated(
-    "To align with Kide MVI API, this abstract class is deprecated",
-    ReplaceWith("AbstractUseCaseProcessor"),
-)
-public abstract class AbstractUseCaseLogic<S : State, I : UseCaseIntent<S>>(initialState: S)
-    : UseCaseLogic<S, I> {
+public abstract class AbstractUseCaseProcessor<S : State, I : UseCaseIntent<S>>(initialState: S)
+    : UseCaseProcessor<S, I> {
 
     private val _stateFlow = MutableStateFlow(initialState)
 
@@ -65,6 +61,24 @@ public abstract class AbstractUseCaseLogic<S : State, I : UseCaseIntent<S>>(init
      * This flow can be collected by components that need to react to state changes.
      */
     override val stateFlow: StateFlow<S> = _stateFlow.asStateFlow()
+
+    /**
+     * Dispatches the given [intent] to be processed by [map].
+     */
+    public override suspend fun dispatch(intent: I) {
+        logD { "Dispatched use case intent ${intent::class.simpleName}" }
+        map(intent)
+    }
+
+    /**
+     * Processes the given [intent].
+     *
+     * Subclasses must implement this method to define the business logic for each specific intent.
+     * This typically involves performing operations and updating the state using the [reduce] methods.
+     *
+     * @param intent The intent to be processed.
+     */
+    protected abstract suspend fun map(intent: I)
 
     /**
      * Updates the current domain state with a new state.

@@ -100,8 +100,10 @@ small (Android transaction limits) — persist inputs, not result lists.
 Markers: `Repository`, `Service`, `DataSource`, `Manager`, layer `*Component` interfaces.
 Bases with a `dispatch { }` coroutine helper: `AbstractRepository`, `AbstractService`,
 `AbstractManager`, `AbstractDataSource`. Use cases: `UseCaseIntent<S>`,
-`UseCaseLogic<S, I>` with `state`/`stateFlow`/`suspend onIntent(intent)`, base
-`AbstractUseCaseLogic(initialState)` with `updateState(state)` / `updateState { }`.
+`UseCaseProcessor<S, I>` with `state`/`stateFlow`/`suspend dispatch(intent)`, base
+`AbstractUseCaseProcessor(initialState)` implementing `suspend map(intent)` with
+`reduce(state)` / `reduce { }`. (The former `UseCaseLogic`/`AbstractUseCaseLogic` and
+their `onIntent(intent)` are deprecated aliases.)
 `Feature`/`ApplicationFeature` (+ `KoinFeature` in `kide-koin`) structure app assembly:
 each feature registers nav keys in `initialize()` and provides a Koin module.
 

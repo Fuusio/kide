@@ -32,12 +32,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SavedProjectsUseCaseLogicTest {
+class SavedProjectsProcessorTest {
 
     private val repository: ProjectRepository = mockk()
 
     @Test
-    fun testSavedProjectsUseCaseLogicFlowCollectionAndIntents() = runTest {
+    fun testSavedProjectsProcessorFlowCollectionAndIntents() = runTest {
         val testDispatcher = UnconfinedTestDispatcher(testScheduler)
         val testScope = TestScope(testDispatcher)
 
@@ -68,23 +68,23 @@ class SavedProjectsUseCaseLogicTest {
         coEvery { repository.saveProject(any()) } returns Unit
         coEvery { repository.deleteProject(any()) } returns Unit
 
-        val useCaseLogic = SavedProjectsUseCaseLogic(
+        val processor = SavedProjectsProcessor(
             repository = repository,
             scope = testScope
         )
 
-        assertEquals(projectList, useCaseLogic.state.projects)
-        assertEquals(labelList, useCaseLogic.state.labels)
+        assertEquals(projectList, processor.state.projects)
+        assertEquals(labelList, processor.state.labels)
 
         val newProject = projectList[0].copy(id = 2L, name = "NewProject")
-        useCaseLogic.onIntent(SaveProject(newProject))
+        processor.dispatch(SaveProject(newProject))
         coVerify(exactly = 1) { repository.saveProject(newProject) }
 
         val selected = Label("Architecture", "#FF0000")
-        useCaseLogic.onIntent(SelectLabel(selected))
-        assertEquals(selected, useCaseLogic.state.selectedLabel)
+        processor.dispatch(SelectLabel(selected))
+        assertEquals(selected, processor.state.selectedLabel)
 
-        useCaseLogic.onIntent(SetSearchQuery("search-term"))
-        assertEquals("search-term", useCaseLogic.state.searchQuery)
+        processor.dispatch(SetSearchQuery("search-term"))
+        assertEquals("search-term", processor.state.searchQuery)
     }
 }

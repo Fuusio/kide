@@ -70,7 +70,7 @@ object FuusioApplicationFeature : KoinApplicationFeature {
         factory<GetAppVersionUseCase> {
             GetAppVersionUseCase { get<AppInfoRepository>().getVersion() }
         }
-        single { org.fuusio.kide.app.domain.usecase.SavedProjectsUseCaseLogic(get()) }
+        single { org.fuusio.kide.app.domain.usecase.SavedProjectsProcessor(get()) }
         factory<org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase> {
             val repository = get<org.fuusio.kide.app.domain.adapter.project.ProjectRepository>()
             org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase { query, language, license ->

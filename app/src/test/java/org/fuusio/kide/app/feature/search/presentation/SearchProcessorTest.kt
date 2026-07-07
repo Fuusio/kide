@@ -24,7 +24,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.fuusio.kide.app.domain.entity.Project
-import org.fuusio.kide.app.domain.usecase.SavedProjectsUseCaseLogic
+import org.fuusio.kide.app.domain.usecase.SavedProjectsProcessor
 import org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test
 class SearchProcessorTest {
 
     private val searchUseCase: SearchGitHubProjectsUseCase = mockk()
-    private val savedProjectsUseCase: SavedProjectsUseCaseLogic = mockk()
+    private val savedProjectsUseCase: SavedProjectsProcessor = mockk()
 
     @Test
     fun testSearchCancellationWhenMultipleIntentsDispatched() = runTest {

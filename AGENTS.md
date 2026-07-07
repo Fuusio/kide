@@ -19,6 +19,7 @@ loop that must never die.
 | `kide` | MVI core | **coroutines-only dependency — never add another** |
 | `kide-navigation` | Navigation 3 integration | rides pre-stable Nav3/lifecycle alphas |
 | `kide-clean-architecture` | domain/adapter/framework layer vocabulary | |
+| `kide-test`, `kide-clean-architecture-test` | Turbine-based testing DSLs for `PresentationProcessor` / `UseCaseProcessor` | published test artifacts |
 | `kide-koin` | Koin DI helpers | |
 | `kide-devtools` | FlightRecorder, MCP agent port, console streaming | server code in `src/jvmShared` (shared jvm+android source set) |
 | `kide-decompose`, `kide-voyager` | host adapters | |

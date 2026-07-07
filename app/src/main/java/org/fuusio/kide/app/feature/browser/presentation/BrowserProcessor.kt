@@ -24,7 +24,7 @@ import org.fuusio.kide.app.domain.usecase.*
 import org.fuusio.kide.presentation.*
 
 class BrowserProcessor(
-    private val savedProjectsUseCase: SavedProjectsUseCaseLogic
+    private val savedProjectsUseCase: SavedProjectsProcessor
 ) : PresentationProcessor<BrowserIntent, BrowserViewState, BrowserSideEffect>(BrowserViewState()) {
 
     init {
@@ -70,14 +70,14 @@ class BrowserProcessor(
                 )
             }
             is UpdateLocalSearchQuery -> useCase {
-                savedProjectsUseCase.onIntent(SetSearchQuery(intent.query))
+                savedProjectsUseCase.dispatch(SetSearchQuery(intent.query))
             }
             is SelectLocalLabel -> useCase {
-                savedProjectsUseCase.onIntent(SelectLabel(intent.label))
+                savedProjectsUseCase.dispatch(SelectLabel(intent.label))
             }
             is RemoveLocalProject -> composite<BrowserViewState, BrowserSideEffect>(
                 useCase {
-                    savedProjectsUseCase.onIntent(DeleteProject(intent.project.id))
+                    savedProjectsUseCase.dispatch(DeleteProject(intent.project.id))
                 },
                 sideEffect { ShowBrowserToast("Removed ${intent.project.name} from saved libraries") }
             )

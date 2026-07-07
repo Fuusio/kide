@@ -20,29 +20,29 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.fuusio.kide.domain.usecase.AbstractUseCaseLogic
 import org.fuusio.kide.app.domain.entity.SavedProjectsState
 import org.fuusio.kide.app.domain.adapter.project.ProjectRepository
+import org.fuusio.kide.domain.usecase.AbstractUseCaseProcessor
 
-class SavedProjectsUseCaseLogic(
+class SavedProjectsProcessor(
     private val repository: ProjectRepository,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
-) : AbstractUseCaseLogic<SavedProjectsState, SavedProjectsUseCaseIntent>(SavedProjectsState()) {
+) : AbstractUseCaseProcessor<SavedProjectsState, SavedProjectsUseCaseIntent>(SavedProjectsState()) {
 
     init {
         scope.launch {
             repository.getSavedProjects().collectLatest { projects ->
-                updateState { it.copy(projects = projects) }
+                reduce { it.copy(projects = projects) }
             }
         }
         scope.launch {
             repository.getLabels().collectLatest { labels ->
-                updateState { it.copy(labels = labels) }
+                reduce { it.copy(labels = labels) }
             }
         }
     }
 
-    override suspend fun onIntent(intent: SavedProjectsUseCaseIntent) {
+    override suspend fun map(intent: SavedProjectsUseCaseIntent) {
         when (intent) {
             is LoadSavedProjects -> {
                 // Reactive loading via flows in init block
@@ -54,10 +54,10 @@ class SavedProjectsUseCaseLogic(
                 repository.deleteProject(intent.projectId)
             }
             is SetSearchQuery -> {
-                updateState { it.copy(searchQuery = intent.query) }
+                reduce { it.copy(searchQuery = intent.query) }
             }
             is SelectLabel -> {
-                updateState { it.copy(selectedLabel = intent.label) }
+                reduce { it.copy(selectedLabel = intent.label) }
             }
             is AddLabel -> {
                 repository.saveLabel(intent.label)

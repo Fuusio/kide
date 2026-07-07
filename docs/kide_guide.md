@@ -169,11 +169,11 @@ val searchModule = module {
 
 ## 5. Clean Architecture Integration
 
-For large applications, use the `kide-clean-architecture` module. The UI layers interact with Domain use cases which are themselves intent-driven (`UseCaseLogic`).
+For large applications, use the `kide-clean-architecture` module. The UI layers interact with Domain use cases which are themselves intent-driven (`UseCaseProcessor`).
 
 ```mermaid
 flowchart LR
-    PP[PresentationProcessor] -- execute/dispatch --> UC[UseCaseLogic]
+    PP[PresentationProcessor] -- execute/dispatch --> UC[UseCaseProcessor]
     UC -- read/write --> R[Repository]
     R -- API/DB --> DS[DataSource]
 ```
@@ -181,7 +181,7 @@ flowchart LR
 | Component | Description |
 |-----------|-------------|
 | **`Feature`** | The highest-level logical module grouping related presentation, domain, and data components. |
-| **`UseCaseLogic` / `UseCaseFunction`** | Encapsulates specific business rules or flows. |
+| **`UseCaseProcessor` / `UseCaseFunction`** | Encapsulates specific business rules or flows. |
 | **`Repository`** | Mediates between the domain and data layers, providing domain entities from underlying sources. |
 | **`DataSource`** | Abstraction for underlying data storage mechanisms (e.g., REST APIs, local databases). |
 | **`Service`** | A generic component to perform operations that don't naturally fit into an entity or repository. |
@@ -189,16 +189,16 @@ flowchart LR
 
 ### Heavyweight vs Lightweight Use Cases
 
-**Heavyweight Use Cases (`UseCaseLogic`)**
+**Heavyweight Use Cases (`UseCaseProcessor`)**
 These act as a middle layer capable of retaining and emitting their own domain states, functioning much like an MVI processor for the domain layer:
 
 ```kotlin
-class SavedProjectsUseCaseLogic(
+class SavedProjectsProcessor(
     private val repository: ProjectRepository
-) : AbstractUseCaseLogic<SavedProjectsState, SavedProjectsIntent>(SavedProjectsState()) {
+) : AbstractUseCaseProcessor<SavedProjectsState, SavedProjectsIntent>(SavedProjectsState()) {
     
-    override suspend fun onIntent(intent: SavedProjectsIntent) {
-        // Handle logic, interact with repo, and updateState
+    override suspend fun map(intent: SavedProjectsIntent) {
+        // Handle logic, interact with repo, and reduce the state
     }
 }
 ```

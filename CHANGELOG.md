@@ -4,6 +4,26 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — 1.1.0
+
+### Added
+
+- **`kide-clean-architecture-test`** — a new module providing a Turbine-based testing DSL
+  for exercising `UseCaseProcessor` implementations: `UseCaseProcessor.test { }` with a
+  `UseCaseProcessorTestContext` exposing `dispatch(intent)`, `expectState(...)`, and
+  `skipInitialState()`. Shipping it as a separate artifact (mirroring `kide-test`) keeps
+  test-only dependencies out of the `kide-clean-architecture` main artifact.
+
+### Deprecated
+
+- **`kide-clean-architecture`** — the use-case processing types `UseCaseLogic` and
+  `AbstractUseCaseLogic` are deprecated in favour of `UseCaseProcessor` and
+  `AbstractUseCaseProcessor`, aligning the domain layer's naming with the MVI vocabulary
+  used elsewhere in Kide. The abstract base's overridable `onIntent(intent)` is replaced by
+  `map(intent)`. The deprecated types remain as `@Deprecated(ReplaceWith(...))` aliases and
+  will be removed in a future major release; migrate by renaming the type and the overridden
+  method.
+
 ## [1.0.0] - 2026-07-05
 
 Initial public release, comprising:

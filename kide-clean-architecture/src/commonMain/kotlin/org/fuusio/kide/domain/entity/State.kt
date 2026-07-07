@@ -28,7 +28,7 @@ import org.fuusio.kide.domain.DomainComponent
  *
  * In the context of the application's architecture:
  * - States are typically immutable data objects
- * - They are managed and updated by use cases ([org.fuusio.kide.domain.usecase.UseCaseLogic])
+ * - They are managed and updated by use cases ([org.fuusio.kide.domain.usecase.UseCaseProcessor])
  * - They are often exposed as flows to allow reactive updates in the presentation layer
  * - They represent the single source of truth for the domain layer
  *

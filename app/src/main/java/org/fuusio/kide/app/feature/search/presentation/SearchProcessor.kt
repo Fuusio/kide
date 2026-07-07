@@ -17,16 +17,15 @@
 package org.fuusio.kide.app.feature.search.presentation
 
 import kotlinx.coroutines.CoroutineScope
-import org.fuusio.kide.app.domain.entity.Project
 import org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase
-import org.fuusio.kide.app.domain.usecase.SavedProjectsUseCaseLogic
+import org.fuusio.kide.app.domain.usecase.SavedProjectsProcessor
 import org.fuusio.kide.app.domain.usecase.SaveProject
 import org.fuusio.kide.app.domain.usecase.DeleteProject
 import org.fuusio.kide.presentation.*
 
 class SearchProcessor(
     private val searchUseCase: SearchGitHubProjectsUseCase,
-    private val savedProjectsUseCase: SavedProjectsUseCaseLogic,
+    private val savedProjectsUseCase: SavedProjectsProcessor,
     processorScope: CoroutineScope = defaultProcessorScope(),
     interceptors: List<KideInterceptor<SearchIntent, SearchViewState, SearchSideEffect>> = emptyList(),
 ) : PresentationProcessor<SearchIntent, SearchViewState, SearchSideEffect>(
@@ -75,9 +74,9 @@ class SearchProcessor(
                 composite<SearchViewState, SearchSideEffect>(
                     useCase {
                         if (updatedProject.isSaved) {
-                            savedProjectsUseCase.onIntent(SaveProject(updatedProject))
+                            savedProjectsUseCase.dispatch(SaveProject(updatedProject))
                         } else {
-                            savedProjectsUseCase.onIntent(DeleteProject(updatedProject.id))
+                            savedProjectsUseCase.dispatch(DeleteProject(updatedProject.id))
                         }
                         reduce {
                             copy(

@@ -60,6 +60,7 @@ Kide is highly decoupled. Use only what you need:
 | `kide-clean-architecture` | Clean Architecture building blocks: use cases, repositories, services, features | kotlinx-coroutines |
 | `kide-koin` | Koin dependency-injection helpers | Koin |
 | `kide-test` | Fluent testing DSL for `PresentationProcessor` | `kide`, Turbine, kotlinx-coroutines-test |
+| `kide-clean-architecture-test` | Testing DSL for `UseCaseProcessor` | `kide-clean-architecture`, Turbine, kotlinx-coroutines-test |
 | `kide-devtools` | Debug tooling: `FlightRecorder`, MCP agent port, console event streaming | `kide`, kotlinx-serialization |
 | `kide-decompose` | `InstanceKeeperHost` for hosting processors in Decompose | `kide`, Essenty |
 | `kide-voyager` | `ScreenModelHost` for hosting processors in Voyager | `kide`, Voyager |
@@ -196,7 +197,7 @@ flowchart TD
 
 *   **ViewState Persistence:** Opt-in, schema-safe state restoration across process death using `kotlinx.serialization`. No custom saver abstractions required!
 *   **Interceptors:** Hook into the MVI lifecycle for analytics, logging (`KideLog`), or custom monitoring.
-*   **Clean Architecture:** Scale massive apps with structured `UseCaseLogic` that can emit domain-state changes directly to your processors.
+*   **Clean Architecture:** Scale massive apps with structured `UseCaseProcessor`s that can emit domain-state changes directly to your processors.
 
 ## Quick start
 
@@ -456,15 +457,15 @@ data class SavedProjectsState(val projects: List<Project> = emptyList()) : State
 sealed interface SavedProjectsIntent : UseCaseIntent<SavedProjectsState>
 data class SaveProject(val project: Project) : SavedProjectsIntent
 
-class SavedProjectsUseCaseLogic(
+class SavedProjectsProcessor(
     private val repository: ProjectRepository,
-) : AbstractUseCaseLogic<SavedProjectsState, SavedProjectsIntent>(SavedProjectsState()) {
+) : AbstractUseCaseProcessor<SavedProjectsState, SavedProjectsIntent>(SavedProjectsState()) {
 
-    override suspend fun onIntent(intent: SavedProjectsIntent) {
+    override suspend fun map(intent: SavedProjectsIntent) {
         when (intent) {
             is SaveProject -> {
                 repository.save(intent.project)
-                updateState { it.copy(projects = it.projects + intent.project) }
+                reduce { it.copy(projects = it.projects + intent.project) }
             }
             // Mappings of other intents ...
         }
@@ -472,7 +473,7 @@ class SavedProjectsUseCaseLogic(
 }
 ```
 
-The presentation layer talks to `UseCaseLogic` from `AsyncAction`s and can collect its
+The presentation layer talks to `UseCaseProcessor` from `AsyncAction`s and can collect its
 `stateFlow` to react to domain-state changes.
 
 ## Testing
@@ -489,6 +490,19 @@ processor.test {
     
     expectState { it.query == "kotlin" }
     expectSideEffect { it is SearchSideEffect.ShowToast }
+}
+```
+
+Domain use cases get the same treatment. The `kide-clean-architecture-test` module ships a
+matching `UseCaseProcessor.test { }` DSL for asserting on domain-state emissions:
+
+```kotlin
+runTest {
+    SavedProjectsProcessor(FakeProjectRepository()).test {
+        skipInitialState()
+        dispatch(SaveProject(project))
+        expectState { state -> assertTrue(project in state.projects) }
+    }
 }
 ```
 

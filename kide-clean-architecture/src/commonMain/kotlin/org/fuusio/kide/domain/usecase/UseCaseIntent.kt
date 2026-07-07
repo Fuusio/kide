@@ -28,7 +28,7 @@ import org.fuusio.kide.domain.entity.State
  * as a transporter of information from the presentation layer to the domain layer.
  *
  * This interface is part of the application's intent-driven architecture, where business
- * operations are triggered by sending intents to [UseCaseLogic] implementations. This pattern
+ * operations are triggered by sending intents to [UseCaseProcessor] implementations. This pattern
  * promotes a clear separation between the initiator of an action (typically a processor in
  * the presentation layer) and the executor of the action (a use case in the domain layer).
  *

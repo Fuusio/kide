@@ -27,7 +27,7 @@ import org.fuusio.kide.domain.entity.State
  * the business rules and application-specific logic. A use case represents a specific action,
  * process, or operation that the application can perform, independent of any UI or external concerns.
  *
- * UseCaseLogic implementations receive [UseCaseIntent]s that represent commands or requests to
+ * `UseCaseProcessor` implementations receive [UseCaseIntent]s that represent commands or requests to
  * perform some business operation. The implementation processes these intents according to business
  * rules, typically updating some domain [State] as a result. This follows an intent-driven
  * architecture pattern that promotes clear separation of concerns and testability.
@@ -38,11 +38,7 @@ import org.fuusio.kide.domain.entity.State
  * @param S The type of state that this use case logic works with
  * @param I The type of intent that this use case logic handles
  */
-@Deprecated(
-    "To align with Kide MVI API, this interface is deprecated",
-    ReplaceWith("UseCaseProcessor"),
-)
-public interface UseCaseLogic<S : State, I : UseCaseIntent<S>> : UseCaseComponent {
+public interface UseCaseProcessor<S : State, I : UseCaseIntent<S>> : UseCaseComponent {
     /**
      * The current state managed by this use case logic.
      */
@@ -54,7 +50,7 @@ public interface UseCaseLogic<S : State, I : UseCaseIntent<S>> : UseCaseComponen
     public val stateFlow: StateFlow<S>
 
     /**
-     * Processes the given [intent] to perform a specific business operation.
+     * Dispatches the given [intent] to be processed by this [UseCaseProcessor].
      */
-    public suspend fun onIntent(intent: I)
+    public suspend fun dispatch(intent: I)
 }
