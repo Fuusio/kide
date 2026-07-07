@@ -12,6 +12,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify tag matches VERSION_NAME
+        run: |
+          version_name="$(grep -E '^VERSION_NAME=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+          expected_tag="v${version_name}"
+          echo "Tag:          ${GITHUB_REF_NAME}"
+          echo "VERSION_NAME: ${version_name}"
+          if [ "${version_name}" != "${version_name%-SNAPSHOT}" ]; then
+            echo "::error::Refusing to publish a release from a -SNAPSHOT version (VERSION_NAME=${version_name})."
+            exit 1
+          fi
+          if [ "${GITHUB_REF_NAME}" != "${expected_tag}" ]; then
+            echo "::error::Tag '${GITHUB_REF_NAME}' does not match VERSION_NAME '${version_name}' (expected tag '${expected_tag}'). Re-tag the release commit."
+            exit 1
+          fi
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
