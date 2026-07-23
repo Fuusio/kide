@@ -69,7 +69,7 @@ Kide is highly decoupled. Use only what you need:
 ## Installation
 
 Kide is published to **Maven Central** under the group `org.fuusio.kide`. The latest
-release is **1.1.0**.
+release is **1.1.1**.
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.fuusio.kide/kide.svg?label=Maven%20Central)](https://central.sonatype.com/search?q=org.fuusio.kide)
 
@@ -95,16 +95,16 @@ in `commonMain`:
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("org.fuusio.kide:kide:1.1.0")                     // Core MVI engine
-            implementation("org.fuusio.kide:kide-navigation:1.1.0")          // Navigation 3
-            implementation("org.fuusio.kide:kide-clean-architecture:1.1.0")  // Clean Architecture
-            implementation("org.fuusio.kide:kide-koin:1.1.0")                // Koin DI helpers
-            implementation("org.fuusio.kide:kide-decompose:1.1.0")           // Decompose host
-            implementation("org.fuusio.kide:kide-voyager:1.1.0")             // Voyager host
+            implementation("org.fuusio.kide:kide:1.1.1")                     // Core MVI engine
+            implementation("org.fuusio.kide:kide-navigation:1.1.1")          // Navigation 3
+            implementation("org.fuusio.kide:kide-clean-architecture:1.1.1")  // Clean Architecture
+            implementation("org.fuusio.kide:kide-koin:1.1.1")                // Koin DI helpers
+            implementation("org.fuusio.kide:kide-decompose:1.1.1")           // Decompose host
+            implementation("org.fuusio.kide:kide-voyager:1.1.1")             // Voyager host
         }
         commonTest.dependencies {
-            implementation("org.fuusio.kide:kide-test:1.1.0")                     // Presentation testing DSL
-            implementation("org.fuusio.kide:kide-clean-architecture-test:1.1.0")  // Use-case testing DSL
+            implementation("org.fuusio.kide:kide-test:1.1.1")                     // Presentation testing DSL
+            implementation("org.fuusio.kide:kide-clean-architecture-test:1.1.1")  // Use-case testing DSL
         }
     }
 }
@@ -114,7 +114,7 @@ For debug builds only, add the agent-native debug tooling:
 
 ```kotlin
 // e.g. an androidMain / debug source set
-implementation("org.fuusio.kide:kide-devtools:1.1.0")
+implementation("org.fuusio.kide:kide-devtools:1.1.1")
 ```
 
 For a single-platform (e.g. Android-only) project, declare them in the regular
@@ -122,8 +122,8 @@ For a single-platform (e.g. Android-only) project, declare them in the regular
 
 ```kotlin
 dependencies {
-    implementation("org.fuusio.kide:kide:1.1.0")
-    testImplementation("org.fuusio.kide:kide-test:1.1.0")
+    implementation("org.fuusio.kide:kide:1.1.1")
+    testImplementation("org.fuusio.kide:kide-test:1.1.1")
 }
 ```
 
@@ -133,7 +133,7 @@ If you use a `libs.versions.toml` catalog, declare a shared version and the arti
 
 ```toml
 [versions]
-kide = "1.1.0"
+kide = "1.1.1"
 
 [libraries]
 kide = { module = "org.fuusio.kide:kide", version.ref = "kide" }

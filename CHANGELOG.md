@@ -4,6 +4,15 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-07-23
+
+### Fixed
+
+- **`kide-devtools`** — `KideMcpServer.start()` now binds explicitly to the IPv4 loopback
+  (`127.0.0.1`) instead of `InetAddress.getLoopbackAddress()`, which could resolve to the
+  IPv6 loopback (`::1`) on some Android devices. `adb forward` only ever reaches the
+  device's IPv4 loopback, so the agent port was unreachable in that case.
+
 ## [1.1.0] - 2026-07-07
 
 ### Added
