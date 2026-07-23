@@ -66,7 +66,9 @@ a public API change without regenerated dumps fails the build.
    `StateKeeper` on Decompose). There is deliberately **no** saver abstraction — a
    previous `ViewStateSaver` was removed; do not reintroduce one.
 6. The MCP agent port binds to loopback and must never start in release builds; on
-   Android the guarded `start(context)` variant enforces this.
+   Android the guarded `start(context)` variant enforces this. It binds explicitly to
+   the IPv4 loopback (`127.0.0.1`), not `InetAddress.getLoopbackAddress()` — see the
+   comment at `KideMcpServer.kt:95-97` for why (`adb forward` can't reach `::1`).
 
 ## Debugging the sample app
 
