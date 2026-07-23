@@ -92,7 +92,10 @@ public object KideMcpServer {
      */
     public fun start(port: Int = 8765) {
         if (serverSocket != null) return
-        val socket = ServerSocket(port, 8, java.net.InetAddress.getLoopbackAddress())
+        // Bind explicitly to the IPv4 loopback: `adb forward` always connects to the
+        // device's 127.0.0.1, but InetAddress.getLoopbackAddress() can resolve to the
+        // IPv6 loopback (::1) on some Android devices, which `adb forward` can't reach.
+        val socket = ServerSocket(port, 8, java.net.InetAddress.getByName("127.0.0.1"))
         serverSocket = socket
         KideLog.i(TAG) { "Kide agent port (MCP) listening on 127.0.0.1:$port" }
         KideLog.w(TAG) {
