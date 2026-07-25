@@ -38,7 +38,7 @@ Using the `kide-devtools` module, Kide keeps a queryable, causally ordered trace
 // In your debug builds:
 val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>()
 val processor = SearchProcessor(useCase, interceptors = listOf(recorder))
-KideDebug.attachTyped("search", processor, recorder)
+KideDebug.attach("search", processor, recorder)
 KideMcpServer.start(context) 
 ```
 
@@ -61,7 +61,8 @@ Kide is highly decoupled. Use only what you need:
 | `kide-koin` | Koin dependency-injection helpers | Koin |
 | `kide-test` | Fluent testing DSL for `PresentationProcessor` | `kide`, Turbine, kotlinx-coroutines-test |
 | `kide-clean-architecture-test` | Testing DSL for `UseCaseProcessor` | `kide-clean-architecture`, Turbine, kotlinx-coroutines-test |
-| `kide-devtools` | Debug tooling: `FlightRecorder`, MCP agent port, console event streaming | `kide`, kotlinx-serialization |
+| `kide-devtools` | Debug tooling: `TraceBuffer`, `FlightRecorder`, MCP agent port, console event streaming | `kide`, kotlinx-serialization |
+| `kide-clean-architecture-devtools` | `UseCaseFlightRecorder` — records domain events into the same `TraceBuffer` as the UI | `kide-clean-architecture`, `kide-devtools` |
 | `kide-decompose` | `InstanceKeeperHost` for hosting processors in Decompose | `kide`, Essenty |
 | `kide-voyager` | `ScreenModelHost` for hosting processors in Voyager | `kide`, Voyager |
 | `app` | Sample Android application exercising the full stack | all of the above |
@@ -115,6 +116,10 @@ For debug builds only, add the agent-native debug tooling:
 ```kotlin
 // e.g. an androidMain / debug source set
 implementation("org.fuusio.kide:kide-devtools:1.3.0")
+
+// Add this too if you use kide-clean-architecture and want domain-layer events
+// in the same trace as the UI events that caused them:
+implementation("org.fuusio.kide:kide-clean-architecture-devtools:1.3.0")
 ```
 
 For a single-platform (e.g. Android-only) project, declare them in the regular
@@ -145,6 +150,7 @@ kide-voyager = { module = "org.fuusio.kide:kide-voyager", version.ref = "kide" }
 kide-test = { module = "org.fuusio.kide:kide-test", version.ref = "kide" }
 kide-clean-architecture-test = { module = "org.fuusio.kide:kide-clean-architecture-test", version.ref = "kide" }
 kide-devtools = { module = "org.fuusio.kide:kide-devtools", version.ref = "kide" }
+kide-clean-architecture-devtools = { module = "org.fuusio.kide:kide-clean-architecture-devtools", version.ref = "kide" }
 ```
 
 Then reference them from your build script:
@@ -424,7 +430,7 @@ flowchart TD
 // Wiring (debug builds):
 val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>()
 val processor = SearchProcessor(useCase, interceptors = listOf(recorder))
-KideDebug.attachTyped("search", processor, recorder)
+KideDebug.attach("search", processor, recorder)
 KideMcpServer.start(context) // Android: guarded — refuses to start unless debuggable
 ```
 

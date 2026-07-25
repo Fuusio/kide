@@ -4,6 +4,132 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — 2.0.0
+
+A consolidated major that collects every known breaking change while adoption is still small
+enough for the cost to be near zero, and leaves no deprecated surface behind. See
+[docs/proposal-2.0.0.md](docs/proposal-2.0.0.md) for the full plan and
+[docs/migration-1.x-to-2.0.md](docs/migration-1.x-to-2.0.md) for step-by-step migration.
+
+*In progress — the domain-layer tracing work (changes 1, 2 and 6) is not yet implemented.*
+
+### Added
+
+- **`kide-devtools`** — `TraceBuffer`, the ordered capacity-bounded event log extracted from
+  `FlightRecorder`. Several recorders can share one buffer and produce a single causally
+  ordered stream — the mechanism by which domain-layer events will join the presentation trace
+  instead of forming a second one that has to be merged by timestamp.
+  `FlightRecorder(capacity = n)` still works and now means "a buffer of my own, that big";
+  `FlightRecorder(buffer)` joins an existing trace. `events`, `clear()`, `toJson()` and
+  `capacity` are unchanged and delegate.
+
+- **`kide`** — `TraceContext`, a `CoroutineContext.Element` identifying the intent whose
+  processing is in flight, and `currentTraceContext()` for reading it. A processor creates one
+  per intent and installs it for the whole of that intent's processing, so work an
+  `AsyncAction` goes on to do carries it automatically — including across a
+  `withContext(Dispatchers.IO)` — without any call site having to thread it by hand.
+- **`kide-clean-architecture`** — `UseCaseInterceptor`, the domain-layer counterpart of
+  `KideInterceptor`, and `UseCaseProcessor.interceptors` to attach them. Three callbacks rather
+  than six: the domain has no actions to map and no side effects to emit.
+
+  This closes the trace's blind spot. Domain state changes previously reached no
+  `FlightRecorder`, no `kide_get_trace` and nothing `TraceTestGenerator` produced, even though
+  the module's own documentation places the real business logic there — so an agent asked *"why
+  did the saved list not update?"* could only answer if the answer happened to live in the
+  presentation layer. Because the correlation rides the coroutine context, a domain event
+  carries the id of the `ViewIntent` that caused it without anything passing it by hand,
+  including across a `withContext(Dispatchers.IO)`.
+- **`kide-clean-architecture-devtools`** — a new module, containing `UseCaseFlightRecorder`.
+  Give it the same `TraceBuffer` as a screen's `FlightRecorder` and both layers write one
+  causally ordered trace. It is its own artifact because it bridges two optional modules:
+  `kide-devtools` must not drag the Clean Architecture layer into every debug build, and
+  `kide-clean-architecture` must not depend on debug tooling — the same split
+  `kide-clean-architecture-test` already makes for test-only dependencies.
+- **`kide-devtools`** — `TraceEventSource` (`Presentation` / `Domain`) and `TraceEvent.source`.
+  Kept orthogonal to `TraceEventType` rather than adding `UseCaseIntent` and
+  `UseCaseStateChanged` constants to it: an intent is an intent whichever layer dispatched it,
+  and a parallel set of constants would have needed a third the moment domain errors mattered.
+- **`kide-devtools`** — `TraceEvent.correlationId`, letting a recorded trace group everything
+  produced by one interaction. `null` when an event had no originating intent, which is
+  legitimate rather than a gap. The field is defaulted, so traces persisted by an older build
+  still decode.
+
+### Fixed
+
+- **`kide-devtools`** — `KideMcpServer.start` no longer crashes the application when the port
+  cannot be bound. Called from `Application.onCreate`, a `BindException` took the whole app
+  down before it drew a frame — and the trigger is mundane: reinstalling over a running build,
+  or a previous process whose socket is still in `TIME_WAIT`, leaves the port occupied. A
+  debugging tool that can kill the application it exists to debug is worse than no tool. The
+  failure is now logged with the likely cause, `SO_REUSEADDR` is set so a restart can reclaim
+  a lingering port, and `start` returns `Boolean` rather than `Unit` so a caller can tell.
+
+### Changed
+
+- **`kide`** — **every `KideInterceptor` callback now takes a trailing
+  `context: TraceContext?`.** This is what allows a trace to answer *"which tap caused this
+  state change?"* rather than only *"these happened near each other"* — the distinction that
+  matters precisely when a trace is being read, because concurrency is usually why it is being
+  read. Passing a type rather than a bare id leaves room to record spans or dispatch depth
+  later without changing these signatures again.
+  **Migration:** add `context: TraceContext?` to each overridden callback and ignore it if
+  unused. The compiler finds every site.
+- **`kide-clean-architecture`** — `AbstractUseCaseProcessor.reduce` is now `suspend`, in both
+  overloads. A non-suspending function cannot read the coroutine context, and reading it is how
+  a reduction learns which intent it belongs to. In practice this breaks nothing: `reduce` is
+  called from `map`, which is already `suspend`.
+  **Migration:** none for the usual case. A `reduce` called from a non-suspending helper needs
+  that helper marked `suspend` too.
+- **`kide-clean-architecture`** — domain reductions now run through a compare-and-set loop that
+  logs and notifies once, for the transition that won, after it is published — the same shape
+  `PresentationProcessor` adopted in 1.2.0. Previously `MutableStateFlow.update` re-evaluated
+  its lambda when it lost a race, logging states that were computed and discarded, and
+  `reduce(state)` overwrote the flow directly with no compare-and-set at all. *(Findings C2 and
+  C4.)*
+- **`kide`** — **`onIntent` is now reported by the intent loop rather than by `dispatch`.**
+  It could not carry a `TraceContext` otherwise: the context belongs to an intent's
+  *processing*, and `dispatch` runs before the loop has seen anything, so the first event of
+  every causal chain would have been the one event with no correlation.
+
+  Three long-standing warts went with it. `dispatch` no longer needs a `closed` guard — that
+  existed only to stop interceptors being told about an intent that would never be processed.
+  The narrow race where `close()` landed between the guard and the send is gone. And the
+  ordering constraint that `onIntent` *must* precede `trySend` — because under an unconfined
+  dispatcher `trySend` can synchronously resume the loop — no longer exists, since every
+  notification now originates in the same coroutine.
+
+  **Behavioural consequence:** `onIntent` fires when the loop picks an intent up, not when the
+  caller dispatched it. Under concurrent dispatch from several threads those orders differ, and
+  the loop's is the one that describes what actually happened. An interceptor used for click
+  analytics sees a negligible delay. `dispatch`'s signature is unchanged.
+
+### Removed
+
+- **`kide-devtools`** — the deprecated non-inline `KideDebug.attach`. The reified
+  `attachTyped`, introduced in 1.2.0 solely because renaming would have broken binary
+  compatibility, takes the `attach` name back. Handles now always carry a real intent type, so
+  `intentClassName` is never `"unknown"`.
+  **Migration:** rename `KideDebug.attachTyped(...)` to `KideDebug.attach(...)`.
+- **`kide-clean-architecture`** — `UseCaseLogic` and `AbstractUseCaseLogic`, deprecated since
+  1.1.0. They also held a byte-for-byte copy of `AbstractUseCaseProcessor`'s state-management
+  code, which would otherwise have to be fixed twice.
+  **Migration:** `UseCaseLogic` → `UseCaseProcessor`, `AbstractUseCaseLogic` →
+  `AbstractUseCaseProcessor`, `onIntent(intent)` → `map(intent)` — as the `ReplaceWith` has
+  been advising for two minor releases.
+
+### Changed
+
+- **`kide`** — **`CompositeAction` now rejects a `cancellationKey` when none of its actions is
+  asynchronous, from every construction path** — the constructor, `create()`, the `composite()`
+  builder and `copy()`. 1.2.0 checked only the builder, because validating in the data class
+  makes `copy()` throw.
+
+  This is the one change in this release that the compiler cannot find for you: it fails at
+  runtime, inside `map()`, where the intent loop catches it and reports it through `onError`, so
+  the screen degrades rather than crashing. Code that hits it is already broken — such a key is
+  silently ignored by the processor and always has been — but the failure is now audible.
+  **Migration:** drop the key, or include an `async { }` / `useCase { }` action in the composite.
+
 ## [1.3.0] - 2026-07-25
 
 An audit of `kide-navigation`, focused on the **process-death restore path** — where failures

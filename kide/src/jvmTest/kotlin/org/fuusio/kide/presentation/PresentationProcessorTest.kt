@@ -63,6 +63,8 @@ private class TestProcessor(
 
     val errors = mutableListOf<Pair<TestIntent, Throwable>>()
 
+    // PresentationProcessor.onError is the processor's own hook for application code, not a
+    // KideInterceptor callback — it deliberately keeps its two-parameter shape.
     override fun onError(throwable: Throwable, intent: TestIntent) {
         errors.add(intent to throwable)
     }
@@ -613,7 +615,7 @@ class PresentationProcessorTest : DescribeSpec({
             it("notifies interceptors via onError") {
                 val reported = mutableListOf<Pair<Throwable, TestIntent>>()
                 val interceptor = object : KideInterceptor<TestIntent, TestViewState, TestSideEffect> {
-                    override fun onError(throwable: Throwable, intent: TestIntent) {
+                    override fun onError(throwable: Throwable, intent: TestIntent, context: TraceContext?) {
                         reported.add(throwable to intent)
                     }
                 }
@@ -629,19 +631,19 @@ class PresentationProcessorTest : DescribeSpec({
             it("triggers interceptor callbacks for MVI events") {
                 val events = mutableListOf<String>()
                 val interceptor = object : KideInterceptor<TestIntent, TestViewState, TestSideEffect> {
-                    override fun onIntent(intent: TestIntent) {
+                    override fun onIntent(intent: TestIntent, context: TraceContext?) {
                         events.add("onIntent:$intent")
                     }
-                    override fun onActionMapped(intent: TestIntent, action: Action<TestViewState, TestSideEffect>?) {
+                    override fun onActionMapped(intent: TestIntent, action: Action<TestViewState, TestSideEffect>?, context: TraceContext?) {
                         events.add("onActionMapped:$intent")
                     }
-                    override fun onActionExecuting(action: Action<TestViewState, TestSideEffect>) {
+                    override fun onActionExecuting(action: Action<TestViewState, TestSideEffect>, context: TraceContext?) {
                         events.add("onActionExecuting")
                     }
-                    override fun onStateChanged(oldState: TestViewState, newState: TestViewState) {
+                    override fun onStateChanged(oldState: TestViewState, newState: TestViewState, context: TraceContext?) {
                         events.add("onStateChanged:${oldState.value}->${newState.value}")
                     }
-                    override fun onSideEffect(sideEffect: TestSideEffect) {
+                    override fun onSideEffect(sideEffect: TestSideEffect, context: TraceContext?) {
                         events.add("onSideEffect:$sideEffect")
                     }
                 }

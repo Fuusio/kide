@@ -21,7 +21,8 @@ loop that must never die.
 | `kide-clean-architecture` | domain/adapter/framework layer vocabulary | |
 | `kide-test`, `kide-clean-architecture-test` | Turbine-based testing DSLs for `PresentationProcessor` / `UseCaseProcessor` | published test artifacts |
 | `kide-koin` | Koin DI helpers | |
-| `kide-devtools` | FlightRecorder, MCP agent port, console streaming | server code in `src/jvmShared` (shared jvm+android source set) |
+| `kide-devtools` | TraceBuffer, FlightRecorder, MCP agent port, console streaming | server code in `src/jvmShared` (shared jvm+android source set) |
+| `kide-clean-architecture-devtools` | `UseCaseFlightRecorder` — domain events into a shared `TraceBuffer` | bridges two optional modules, which is why it is its own artifact |
 | `kide-decompose`, `kide-voyager` | host adapters | |
 | `app` | Android sample app (not published) | reference for all patterns |
 
@@ -79,15 +80,23 @@ a public API change without regenerated dumps fails the build.
    `AsyncScope.reduce` is explicitly safe to call after a `withContext(Dispatchers.IO)`, which
    is why `reduceState` uses a compare-and-set rather than relying on confinement.
 8. **Trace fidelity is a public contract.** Every applied state transition is reported to
-   `KideInterceptor.onStateChanged` exactly once, after the new state is published — from
-   *both* reduction paths (`ReducerAction` on the intent loop, and `AsyncScope.reduce`
-   inside an `AsyncAction`). Transitions that changed nothing, or that lost a
+   `KideInterceptor.onStateChanged` (or `UseCaseInterceptor.onStateChanged`) exactly once,
+   after the new state is published — from *every* reduction path: `ReducerAction` on the
+   intent loop, `AsyncScope.reduce` inside an `AsyncAction`, and both `reduce` overloads on
+   `AbstractUseCaseProcessor`. Transitions that changed nothing, or that lost a
    compare-and-set race and were discarded, are never reported. `kide-devtools` —
-   `FlightRecorder`, the agent port, `TraceTestGenerator` — is only as correct as this, so
-   all reductions go through `PresentationProcessor.reduceState`. Do not "simplify" it back
+   `TraceBuffer`, `FlightRecorder`, the agent port, `TraceTestGenerator` — is only as correct
+   as this, so all reductions go through a `reduceState` helper. Do not "simplify" those back
    to `MutableStateFlow.update`: that lambda re-runs when it loses a race, which reports
-   phantom transitions. `InterceptorFidelityTest` and `PresentationProcessorConcurrencyTest`
-   pin this down.
+   phantom transitions. `InterceptorFidelityTest`, `PresentationProcessorConcurrencyTest`,
+   `UseCaseTracingTest` and `UseCaseFlightRecorderTest` pin this down.
+9. **Correlation is carried by the coroutine context, never by hand.** The intent loop creates
+   a `TraceContext` per intent and installs it for that intent's whole processing; every
+   interceptor callback in both layers receives it. Two consequences to preserve: interceptors
+   are notified *from the loop* (not from `dispatch`, which cannot see the context and would
+   report intents the processor never processes), and `processorScope.launch(context)` passes
+   it explicitly because `launch` builds on the scope's context, not the caller's. Drop either
+   and correlation silently becomes null for the asynchronous half of every interaction.
 
 ## Debugging the sample app
 

@@ -27,3 +27,19 @@ package org.fuusio.kide.presentation
  * implement `Action<S, Nothing>`, which is a subtype of `Action<S, E>` for any [E].
  */
 public sealed interface Action<S : ViewState, out E : SideEffect> : PresentationComponent
+
+/**
+ * `true` if this action — including, for a [CompositeAction], all of its children — executes
+ * without suspension and can therefore run inline on the intent-processing loop.
+ *
+ * Internal rather than private to the processor because [CompositeAction] validates its own
+ * [CompositeAction.cancellationKey] against it: a key is meaningless on an all-synchronous
+ * composite, which never becomes a cancellable job.
+ */
+internal val Action<*, *>.isSynchronous: Boolean
+    get() = when (this) {
+        is ReducerAction<*> -> true
+        is SideEffectAction<*, *> -> true
+        is AsyncAction -> false
+        is CompositeAction<*, *> -> actions.all { it.isSynchronous }
+    }

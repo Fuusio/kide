@@ -70,7 +70,21 @@ object FuusioApplicationFeature : KoinApplicationFeature {
         factory<GetAppVersionUseCase> {
             GetAppVersionUseCase { get<AppInfoRepository>().getVersion() }
         }
-        single { org.fuusio.kide.app.domain.usecase.SavedProjectsProcessor(get()) }
+        // One trace buffer for the whole application, so the presentation and domain layers
+        // write into a single causally ordered stream and `kide_get_trace` shows a complete
+        // interaction rather than half of one. A per-screen buffer would not work here:
+        // SavedProjectsProcessor is a singleton shared by Search and Browser, and it has to be
+        // given its recorder at construction, long before any screen exists.
+        single { org.fuusio.kide.devtools.TraceBuffer() }
+
+        single {
+            org.fuusio.kide.app.domain.usecase.SavedProjectsProcessor(
+                get(),
+                interceptors = listOf(
+                    org.fuusio.kide.domain.usecase.devtools.UseCaseFlightRecorder(get()),
+                ),
+            )
+        }
         factory<org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase> {
             val repository = get<org.fuusio.kide.app.domain.adapter.project.ProjectRepository>()
             org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase { query, language, license ->

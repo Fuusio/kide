@@ -32,8 +32,9 @@ package org.fuusio.kide.presentation
  *
  * A [cancellationKey] is only meaningful when at least one contained action is asynchronous:
  * an all-synchronous composite executes inline on the intent-processing loop and is never
- * launched as a cancellable job, so its key has no effect. The [composite] builder rejects
- * that combination; this constructor and [create] do not check it, so prefer the builder.
+ * launched as a cancellable job, so its key would have no effect. Every construction path —
+ * this constructor, [create], the [composite] builder, and `copy()` — rejects that
+ * combination.
  *
  * @param S The type of the [ViewState] the actions operate on.
  * @param E The type of the [SideEffect] the actions can produce.
@@ -44,6 +45,15 @@ public data class CompositeAction<S : ViewState, out E : SideEffect>(
     val actions: List<Action<S, E>>,
     val cancellationKey: String? = null,
 ) : Action<S, E> {
+
+    init {
+        require(cancellationKey == null || actions.any { !it.isSynchronous }) {
+            "cancellationKey '$cancellationKey' would be ignored: a composite of only " +
+                "synchronous actions executes inline on the intent loop and is never launched " +
+                "as a cancellable job. Either drop the key, or include an async { } / " +
+                "useCase { } action."
+        }
+    }
 
     public companion object {
         public fun <S : ViewState, E : SideEffect> create(

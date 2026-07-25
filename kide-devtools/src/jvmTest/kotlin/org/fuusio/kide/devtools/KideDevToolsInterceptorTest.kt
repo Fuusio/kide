@@ -22,6 +22,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.serialization.Serializable
 import org.fuusio.kide.presentation.SideEffect
+import org.fuusio.kide.presentation.TraceContext
 import org.fuusio.kide.presentation.ViewIntent
 import org.fuusio.kide.presentation.ViewState
 import java.io.BufferedReader
@@ -69,8 +70,9 @@ class KideDevToolsInterceptorTest : DescribeSpec({
                 stateSerializer = TestState.serializer()
             )
 
-            interceptor.onIntent(TestIntent.Reload)
-            interceptor.onStateChanged(TestState("old"), TestState("new"))
+            val context = TraceContext(correlationId = 0L)
+            interceptor.onIntent(TestIntent.Reload, context)
+            interceptor.onStateChanged(TestState("old"), TestState("new"), context)
 
             val firstPacket = packets.poll(3, TimeUnit.SECONDS)
             firstPacket shouldNotBe null

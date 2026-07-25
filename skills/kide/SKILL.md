@@ -110,6 +110,26 @@ class FooProcessorTest : DescribeSpec({
 })
 ```
 
+## Tracing the domain layer (optional)
+
+By default a trace covers the presentation layer only. To have `UseCaseProcessor` events land
+in the *same* trace, give both layers one `TraceBuffer` (module
+`kide-clean-architecture-devtools`):
+
+```kotlin
+val buffer = TraceBuffer()                       // one per application is fine
+val savedProjects = SavedProjectsProcessor(
+    repository,
+    interceptors = listOf(UseCaseFlightRecorder(buffer)),
+)
+val recorder = FlightRecorder<FooIntent, FooViewState, FooSideEffect>(buffer)
+val processor = FooProcessor(savedProjects, interceptors = listOf(recorder))
+KideDebug.attach("foo", processor, recorder)
+```
+
+A use-case singleton shared by several screens needs its recorder at construction, so an
+application-wide buffer is usually simpler than one per screen.
+
 ## Debugging a running Kide app (agent port)
 
 Debug builds may expose an MCP server (`kide-devtools`). If the project wires it
@@ -124,16 +144,41 @@ Tools available to you: `kide_list_processors`, `kide_get_state`, `kide_get_trac
 `kide_dispatch_intent` (inject a `@Serializable` intent; get the class name from the
 trace's `payloadClass`), `kide_export_regression_test` (recorded session → kotest scaffold).
 
+**Reading a trace.** Every event carries `correlationId` — everything one user interaction
+caused shares one — and `source`, either `Presentation` or `Domain`. To work out why something
+did not happen, group by `correlationId` and find the layer where the chain stops:
+
+- stops after `Intent` → `map()` returned `null`, or the intent matched no branch
+- stops after `ActionExecuting`, no `Domain` events → the use case was never dispatched to
+- `Domain Intent` but no `Domain StateChanged` → the use case ran and reduced nothing
+- `Domain StateChanged` but no `Presentation StateChanged` → the domain updated and the UI
+  never reflected it
+
+`"correlationId": null` is legitimate, not a gap: work with no originating intent, such as a
+repository flow collected at startup.
+
 ## Common mistakes to avoid
 
+- **Forgetting `import org.fuusio.kide.presentation.reduce`.** `reduce` means two different
+  things: inside `async { }` / `useCase { }` it is `AsyncScope.reduce`, a member that resolves
+  by itself; at the top level of `map()` it is the action *builder*, a top-level function that
+  needs importing. Omit the import and Kotlin does not suggest the builder — it falls through
+  to `Iterable.reduce` and emits a page of errors about `UByteArray`. Same for `sideEffect`,
+  `async`, `useCase` and `composite`.
 - Blocking or long-running work in `map()` or in `reduce { }` — it stalls the intent loop.
   Suspend work belongs inside `async { }` / `useCase { }`.
 - Passing a multi-threaded `processorScope` (`Dispatchers.Default`, a thread pool). It must be
   single-threaded; the default is correct. Inside `async { }` you may still
   `withContext(Dispatchers.IO) { ... }` and `reduce { }` from there.
 - A `cancellationKey` on a `composite(...)` whose actions are all synchronous — such a
-  composite runs inline and is never a cancellable job, so the key would do nothing. The
-  builder rejects it.
+  composite runs inline and is never a cancellable job, so the key would do nothing. Every
+  construction path rejects it, `copy()` included.
+- Calling `AbstractUseCaseProcessor.reduce` from a non-suspending helper — both overloads are
+  `suspend`, because reading the coroutine context is how a reduction learns which intent it
+  belongs to. Mark the helper `suspend`.
+- Using `reduce(state)` rather than `reduce { … }` on a use-case processor. The absolute
+  overload overwrites instead of transforming, so a processor shared between screens can
+  discard a concurrent change. `reduce { newState }` is the same thing, safely.
 - Collecting `sideEffects` from more than one place — delivery is exactly-once to a
   single collector.
 - Deriving `serialKey` from a class name — breaks saved state under R8/renames.

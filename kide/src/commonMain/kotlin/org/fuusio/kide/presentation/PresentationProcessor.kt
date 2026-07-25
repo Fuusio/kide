@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.fuusio.kide.log.logD
 import org.fuusio.kide.log.logE
 import org.fuusio.kide.log.logW
@@ -58,6 +59,11 @@ import kotlin.reflect.KClass
  *   executing an action (synchronous or asynchronous) is caught, logged, reported to the
  *   [interceptors] via [KideInterceptor.onError] and to [onError], and the intent loop
  *   continues with the next intent. [CancellationException]s are rethrown as usual.
+ * - **Every event is attributable:** each intent is given a [TraceContext] when the loop picks
+ *   it up, installed into the coroutine context for the whole of its processing and passed to
+ *   every [KideInterceptor] callback. Work an [AsyncAction] goes on to do carries it
+ *   automatically, including across a `withContext`, so a recorded trace can say which
+ *   interaction caused a given state change rather than only that the two happened nearby.
  * - **State changes are reported exactly once:** every transition that is actually applied —
  *   whether by a [ReducerAction] on the intent loop or by [AsyncScope.reduce] inside an
  *   [AsyncAction] — is reported to [KideInterceptor.onStateChanged] exactly once, after the
@@ -116,6 +122,14 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
 
     private val activeJobs = mutableMapOf<String, Job>()
 
+    /**
+     * Source of [TraceContext.correlationId]. A plain `var` because it is read and written only
+     * from the intent loop, which is single-threaded by contract — see *Threading*. Allocating
+     * in [dispatch] instead would make this shared mutable state and force an atomic into a
+     * module that has none.
+     */
+    private var nextCorrelationId = 0L
+
     @Volatile
     private var intentDispatched = false
     private val intents = Channel<I>(Channel.UNLIMITED)
@@ -152,33 +166,45 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
      */
     public val state: S get() = states.value
 
-    private val asyncScope = object : AsyncScope<S> {
+    /**
+     * The [AsyncScope] handed to one [AsyncAction], carrying the [TraceContext] of the intent
+     * that produced it. Per-invocation rather than shared, because [AsyncScope.reduce] is not a
+     * suspending function and so cannot read the context it is running in.
+     */
+    private inner class ActionScope(private val context: TraceContext?) : AsyncScope<S> {
         override val state: S get() = states.value
         override fun reduce(transform: S.() -> S) {
-            reduceState { currentState -> currentState.transform() }
+            reduceState(context) { currentState -> currentState.transform() }
         }
     }
 
     init {
         processorScope.launch {
             for (intent in intents) {
+                // Allocated here, not in dispatch: the loop is single-threaded by contract, and
+                // reporting from here means the trace records the order intents were *processed*
+                // in — which is the order that actually happened — and never reports an intent
+                // that the processor went on to discard.
+                val context = TraceContext(correlationId = nextCorrelationId++)
+                interceptors.forEach { it.onIntent(intent, context) }
                 try {
-                    this@PresentationProcessor.logD { "Processing intent: $intent" }
-                    val action = map(intent)
-                    interceptors.forEach { it.onActionMapped(intent, action) }
-                    if (action == null) {
-                        this@PresentationProcessor.logD { "Intent mapped to null action (no-op)" }
-                        continue
-                    }
-                    if (action.isSynchronous) {
-                        execute(action)
-                    } else {
-                        launchAsync(intent, action)
+                    // Installed for the whole of this intent's processing, so that anything the
+                    // work goes on to do — including across a withContext — carries it.
+                    withContext(context) {
+                        this@PresentationProcessor.logD { "Processing intent: $intent" }
+                        val action = map(intent)
+                        interceptors.forEach { it.onActionMapped(intent, action, context) }
+                        when {
+                            action == null ->
+                                this@PresentationProcessor.logD { "Intent mapped to null action (no-op)" }
+                            action.isSynchronous -> execute(action, context)
+                            else -> launchAsync(intent, action, context)
+                        }
                     }
                 } catch (exception: CancellationException) {
                     throw exception
                 } catch (throwable: Throwable) {
-                    handleError(throwable, intent)
+                    handleError(throwable, intent, context)
                 }
             }
         }
@@ -188,23 +214,20 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
      * Processes the given [intent]. An [ViewIntent] is first mapped to an [Action] which is then
      * executed to either reduce the [ViewState] or to post a [SideEffect].
      *
-     * Intents are queued without loss and processed sequentially in dispatch order.
+     * Intents are queued without loss and processed sequentially in dispatch order. Safe to
+     * call from any thread — the single-thread requirement applies to [processorScope], not to
+     * callers.
      *
-     * Dispatching after [close] is a no-op, and the [interceptors] are *not* notified: an
-     * intent that will never be mapped must not appear in a recorded trace, where it would be
-     * indistinguishable from an intent that was mapped to `null` or from a stalled loop.
+     * Dispatching after [close] is a no-op. The [interceptors] are notified by the intent loop
+     * when it picks an intent up, not here, so an intent that will never be processed never
+     * appears in a recorded trace — where it would be indistinguishable from one mapped to
+     * `null`, or from a loop that had stalled.
      */
     public fun dispatch(intent: I) {
-        if (closed) {
+        if (intents.trySend(intent).isSuccess) {
+            intentDispatched = true
+        } else {
             logW { "Intent dispatched to a closed processor; ignoring: $intent" }
-            return
-        }
-        interceptors.forEach { it.onIntent(intent) }
-        intentDispatched = true
-        if (intents.trySend(intent).isFailure) {
-            // Narrow race: close() ran between the guard above and here. The intent is lost;
-            // say so rather than leaving a dangling entry in the trace unexplained.
-            logW { "Intent could not be queued, processor closed concurrently: $intent" }
         }
     }
 
@@ -221,7 +244,7 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
      */
     protected abstract suspend fun map(intent: I): Action<S, E>?
 
-    private fun launchAsync(intent: I, action: Action<S, E>) {
+    private fun launchAsync(intent: I, action: Action<S, E>, context: TraceContext) {
         val key = action.cancellationKeyOrNull
         if (key != null) {
             // [activeJobs] is a plain map and is only ever touched from here — that is, from
@@ -236,19 +259,22 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
                 logD { "Cancelling previous job for key: $key" }
                 previous.cancel()
             }
-            activeJobs[key] = processorScope.launch { executeGuarded(intent, action) }
+            // The context is passed explicitly rather than inherited: processorScope.launch
+            // builds on the *scope's* context, not the calling coroutine's, so without this the
+            // asynchronous half of an intent's work would lose its correlation.
+            activeJobs[key] = processorScope.launch(context) { executeGuarded(intent, action, context) }
         } else {
-            processorScope.launch { executeGuarded(intent, action) }
+            processorScope.launch(context) { executeGuarded(intent, action, context) }
         }
     }
 
-    private suspend fun executeGuarded(intent: I, action: Action<S, E>) {
+    private suspend fun executeGuarded(intent: I, action: Action<S, E>, context: TraceContext) {
         try {
-            execute(action)
+            execute(action, context)
         } catch (exception: CancellationException) {
             throw exception
         } catch (throwable: Throwable) {
-            handleError(throwable, intent)
+            handleError(throwable, intent, context)
         }
     }
 
@@ -258,9 +284,9 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
      * finally invokes [onError]. Never lets the exception escape, so the intent-processing
      * loop keeps running.
      */
-    private fun handleError(throwable: Throwable, intent: I) {
+    private fun handleError(throwable: Throwable, intent: I, context: TraceContext?) {
         logE(throwable) { "Error while processing intent: $intent" }
-        interceptors.forEach { it.onError(throwable, intent) }
+        interceptors.forEach { it.onError(throwable, intent, context) }
         onError(throwable, intent)
     }
 
@@ -291,40 +317,40 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
      * [transform] must be pure and fast; it can be evaluated more than once when another
      * coroutine wins the race.
      */
-    private fun reduceState(transform: (S) -> S) {
+    private fun reduceState(context: TraceContext?, transform: (S) -> S) {
         while (true) {
             val currentState = _states.value
             val newState = transform(currentState)
             if (_states.compareAndSet(currentState, newState)) {
                 if (newState != currentState) {
                     logD { "State updated: $newState" }
-                    interceptors.forEach { it.onStateChanged(currentState, newState) }
+                    interceptors.forEach { it.onStateChanged(currentState, newState, context) }
                 }
                 return
             }
         }
     }
 
-    private suspend fun execute(action: Action<S, E>) {
-        interceptors.forEach { it.onActionExecuting(action) }
+    private suspend fun execute(action: Action<S, E>, context: TraceContext?) {
+        interceptors.forEach { it.onActionExecuting(action, context) }
         when (action) {
             is AsyncAction -> {
                 logD { "Executing AsyncAction${action.cancellationKeyOrNull?.let { " (key: $it)" } ?: ""}" }
-                action(asyncScope)
+                action(ActionScope(context))
             }
             is CompositeAction -> {
                 logD { "Executing CompositeAction with ${action.actions.size} actions" }
-                action.actions.forEach { elementAction -> execute(elementAction) }
+                action.actions.forEach { elementAction -> execute(elementAction, context) }
             }
             is ReducerAction -> {
                 logD { "Executing ReducerAction" }
-                reduceState { currentState -> action(currentState) }
+                reduceState(context) { currentState -> action(currentState) }
             }
             is SideEffectAction -> {
                 val effect = action(state)
                 if (sideEffectChannel.trySend(effect).isSuccess) {
                     logD { "Sent SideEffect: $effect" }
-                    interceptors.forEach { it.onSideEffect(effect) }
+                    interceptors.forEach { it.onSideEffect(effect, context) }
                 } else {
                     // Only reachable once the processor is closed. Reporting the effect anyway
                     // would put a delivery in the trace that never happened.
@@ -466,18 +492,6 @@ public fun defaultProcessorScope(): CoroutineScope =
     CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
 /**
- * `true` if this action — including, for a [CompositeAction], all of its children — executes
- * without suspension and can therefore run inline on the intent-processing loop.
- */
-private val Action<*, *>.isSynchronous: Boolean
-    get() = when (this) {
-        is ReducerAction<*> -> true
-        is SideEffectAction<*, *> -> true
-        is AsyncAction -> false
-        is CompositeAction<*, *> -> actions.all { it.isSynchronous }
-    }
-
-/**
  * The cancellation key of this action, or `null` if the action does not participate in
  * keyed cancellation. Only the outermost key of a [CompositeAction] is considered.
  */
@@ -509,14 +523,7 @@ private val Action<*, *>.cancellationKeyOrNull: String?
 public fun <S : ViewState, E : SideEffect> composite(
     vararg actions: Action<S, E>,
     cancellationKey: String? = null,
-): CompositeAction<S, E> {
-    require(cancellationKey == null || actions.any { !it.isSynchronous }) {
-        "cancellationKey '$cancellationKey' would be ignored: a composite of only synchronous " +
-            "actions executes inline on the intent loop and is never launched as a cancellable " +
-            "job. Either drop the key, or include an async { } / useCase { } action."
-    }
-    return CompositeAction(actions.toList(), cancellationKey)
-}
+): CompositeAction<S, E> = CompositeAction(actions.toList(), cancellationKey)
 
 /**
  * Creates a [ReducerAction] that encapsulates a state transformation.

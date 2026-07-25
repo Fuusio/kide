@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":kide-clean-architecture"))
     implementation(project(":kide-koin"))
     implementation(project(":kide-devtools"))
+    implementation(project(":kide-clean-architecture-devtools"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

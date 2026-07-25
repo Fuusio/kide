@@ -32,8 +32,11 @@ import org.fuusio.kide.log.KideLog
  * KideMcpServer.start(this)
  * ```
  *
- * @return `true` if the server was started (or already running), `false` if it was
- * refused because the application is not debuggable.
+ * Never throws: a failure to bind the port leaves the application running normally, just
+ * undebuggable through the agent port.
+ *
+ * @return `true` if the port is listening, `false` if the application is not debuggable or
+ * the port could not be bound.
  */
 public fun KideMcpServer.start(context: Context, port: Int = 8765): Boolean {
     val isDebuggable =
@@ -45,6 +48,5 @@ public fun KideMcpServer.start(context: Context, port: Int = 8765): Boolean {
         }
         return false
     }
-    start(port)
-    return true
+    return start(port)
 }

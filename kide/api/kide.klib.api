@@ -39,12 +39,12 @@ abstract interface <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *,
 }
 
 abstract interface <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide.presentation/ViewState, #C: org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/KideInterceptor { // org.fuusio.kide.presentation/KideInterceptor|null[0]
-    open fun onActionExecuting(org.fuusio.kide.presentation/Action<#B, #C>) // org.fuusio.kide.presentation/KideInterceptor.onActionExecuting|onActionExecuting(org.fuusio.kide.presentation.Action<1:1,1:2>){}[0]
-    open fun onActionMapped(#A, org.fuusio.kide.presentation/Action<#B, #C>?) // org.fuusio.kide.presentation/KideInterceptor.onActionMapped|onActionMapped(1:0;org.fuusio.kide.presentation.Action<1:1,1:2>?){}[0]
-    open fun onError(kotlin/Throwable, #A) // org.fuusio.kide.presentation/KideInterceptor.onError|onError(kotlin.Throwable;1:0){}[0]
-    open fun onIntent(#A) // org.fuusio.kide.presentation/KideInterceptor.onIntent|onIntent(1:0){}[0]
-    open fun onSideEffect(#C) // org.fuusio.kide.presentation/KideInterceptor.onSideEffect|onSideEffect(1:2){}[0]
-    open fun onStateChanged(#B, #B) // org.fuusio.kide.presentation/KideInterceptor.onStateChanged|onStateChanged(1:1;1:1){}[0]
+    open fun onActionExecuting(org.fuusio.kide.presentation/Action<#B, #C>, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.presentation/KideInterceptor.onActionExecuting|onActionExecuting(org.fuusio.kide.presentation.Action<1:1,1:2>;org.fuusio.kide.presentation.TraceContext?){}[0]
+    open fun onActionMapped(#A, org.fuusio.kide.presentation/Action<#B, #C>?, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.presentation/KideInterceptor.onActionMapped|onActionMapped(1:0;org.fuusio.kide.presentation.Action<1:1,1:2>?;org.fuusio.kide.presentation.TraceContext?){}[0]
+    open fun onError(kotlin/Throwable, #A, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.presentation/KideInterceptor.onError|onError(kotlin.Throwable;1:0;org.fuusio.kide.presentation.TraceContext?){}[0]
+    open fun onIntent(#A, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.presentation/KideInterceptor.onIntent|onIntent(1:0;org.fuusio.kide.presentation.TraceContext?){}[0]
+    open fun onSideEffect(#C, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.presentation/KideInterceptor.onSideEffect|onSideEffect(1:2;org.fuusio.kide.presentation.TraceContext?){}[0]
+    open fun onStateChanged(#B, #B, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.presentation/KideInterceptor.onStateChanged|onStateChanged(1:1;1:1;org.fuusio.kide.presentation.TraceContext?){}[0]
 }
 
 abstract interface <#A: org.fuusio.kide.presentation/ViewState> org.fuusio.kide.presentation/AsyncScope { // org.fuusio.kide.presentation/AsyncScope|null[0]
@@ -117,6 +117,21 @@ final class <#A: org.fuusio.kide.presentation/ViewState, #B: out org.fuusio.kide
     }
 }
 
+final class org.fuusio.kide.presentation/TraceContext : kotlin.coroutines/AbstractCoroutineContextElement { // org.fuusio.kide.presentation/TraceContext|null[0]
+    constructor <init>(kotlin/Long) // org.fuusio.kide.presentation/TraceContext.<init>|<init>(kotlin.Long){}[0]
+
+    final val correlationId // org.fuusio.kide.presentation/TraceContext.correlationId|{}correlationId[0]
+        final fun <get-correlationId>(): kotlin/Long // org.fuusio.kide.presentation/TraceContext.correlationId.<get-correlationId>|<get-correlationId>(){}[0]
+
+    final fun component1(): kotlin/Long // org.fuusio.kide.presentation/TraceContext.component1|component1(){}[0]
+    final fun copy(kotlin/Long = ...): org.fuusio.kide.presentation/TraceContext // org.fuusio.kide.presentation/TraceContext.copy|copy(kotlin.Long){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // org.fuusio.kide.presentation/TraceContext.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // org.fuusio.kide.presentation/TraceContext.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // org.fuusio.kide.presentation/TraceContext.toString|toString(){}[0]
+
+    final object Key : kotlin.coroutines/CoroutineContext.Key<org.fuusio.kide.presentation/TraceContext> // org.fuusio.kide.presentation/TraceContext.Key|null[0]
+}
+
 open class <#A: org.fuusio.kide.presentation/ViewState, #B: out org.fuusio.kide.presentation/SideEffect> org.fuusio.kide.presentation/SideEffectAction : org.fuusio.kide.presentation/Action<#A, #B> { // org.fuusio.kide.presentation/SideEffectAction|null[0]
     constructor <init>(kotlin/Function1<#A, #B>? = ...) // org.fuusio.kide.presentation/SideEffectAction.<init>|<init>(kotlin.Function1<1:0,1:1>?){}[0]
 
@@ -170,3 +185,4 @@ final inline fun (kotlin/Any).org.fuusio.kide.log/logE(kotlin/Throwable? = ..., 
 final inline fun (kotlin/Any).org.fuusio.kide.log/logI(kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/logI|logI@kotlin.Any(kotlin.Function0<kotlin.String>){}[0]
 final inline fun (kotlin/Any).org.fuusio.kide.log/logV(kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/logV|logV@kotlin.Any(kotlin.Function0<kotlin.String>){}[0]
 final inline fun (kotlin/Any).org.fuusio.kide.log/logW(kotlin/Throwable? = ..., kotlin/Function0<kotlin/String>) // org.fuusio.kide.log/logW|logW@kotlin.Any(kotlin.Throwable?;kotlin.Function0<kotlin.String>){}[0]
+final suspend fun org.fuusio.kide.presentation/currentTraceContext(): org.fuusio.kide.presentation/TraceContext? // org.fuusio.kide.presentation/currentTraceContext|currentTraceContext(){}[0]

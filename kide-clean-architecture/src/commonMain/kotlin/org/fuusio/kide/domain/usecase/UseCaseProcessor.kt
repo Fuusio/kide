@@ -50,7 +50,29 @@ public interface UseCaseProcessor<S : State, I : UseCaseIntent<S>> : UseCaseComp
     public val stateFlow: StateFlow<S>
 
     /**
+     * Interceptors observing this processor. Empty unless tracing is attached.
+     *
+     * Declared here rather than only on [AbstractUseCaseProcessor] so that tooling can observe
+     * any `UseCaseProcessor`, including a hand-rolled one. The default returns an empty list,
+     * so an implementation that does not care about tracing needs no change.
+     */
+    public val interceptors: List<UseCaseInterceptor<S, I>> get() = emptyList()
+
+    /**
      * Dispatches the given [intent] to be processed by this [UseCaseProcessor].
+     *
+     * ### Contract
+     * Unlike a `PresentationProcessor`, which queues intents and guards its loop, this is a
+     * plain suspending call straight into the processor's handling of [intent]:
+     *
+     * - **No ordering guarantee.** Concurrent calls interleave. Use-case processors are
+     *   commonly shared singletons, so this is the normal case rather than an edge one. Where
+     *   serialisation matters, it is the caller's responsibility — a `Mutex`, or routing
+     *   through a single presentation processor.
+     * - **Exceptions propagate to the caller.** They are reported to [interceptors] first and
+     *   then rethrown. Called from an `AsyncAction`, as intended, the presentation processor's
+     *   `executeGuarded` catches the throwable and reports it against the originating
+     *   `ViewIntent`, so the failure appears in the trace at both layers.
      */
     public suspend fun dispatch(intent: I)
 }
