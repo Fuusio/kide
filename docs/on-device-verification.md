@@ -77,8 +77,33 @@ curl -s -X POST $MCP -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","i
 curl -s -X POST $MCP -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"kide_get_trace","arguments":{"processor":"search","limit":"20"}}}'
 ```
 
+`kide_list_processors` must report the `search` entry with all six fields:
+
+| Field | Expected |
+|---|---|
+| `name` | `search` |
+| `processorClass` | `org.fuusio.kide.app.feature.search.presentation.SearchProcessor` |
+| `intentClass` | `org.fuusio.kide.app.feature.search.presentation.SearchIntent` |
+| `currentState` | rendering of the current `SearchViewState` |
+| `recordedEvents` | grows as you use the screen |
+| `closed` | `false` |
+
+`intentClass` is what `kide_dispatch_intent` type-checks against — if it reads `unknown`,
+the processor was attached with the deprecated `KideDebug.attach` instead of `attachTyped`.
+
 Type something in the Search field on the device, re-run `kide_get_trace` — the new
 `UpdateQuery` intents and state diffs must appear.
+
+**B2a — Asynchronous reductions in the trace.** Run an actual search (type a query, then
+trigger it) and re-read the trace. It must contain `StateChanged` events for the
+*asynchronous* half of the work, not just the synchronous `UpdateQuery` reductions:
+`isLoading` going true, then results arriving and `isLoading` going false again.
+
+This is the fix that motivated 1.2.0 and it cannot be checked by unit tests against the
+real app. Before the fix, reductions performed inside `async { }` / `useCase { }` never
+reached interceptors, so this half of every search was simply absent from the trace — the
+symptom being a recorded session that shows a load starting and never finishing. If the
+`isLoading` transitions are missing here, that regression is back.
 
 **B3 — Intent injection (watch the device screen).**
 
@@ -93,6 +118,33 @@ the second. Then export the session:
 ```bash
 curl -s -X POST $MCP -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"kide_export_regression_test","arguments":{"processor":"search"}}}'
 ```
+
+**B3a — Rejected injections (negative cases).** Each of these must come back as a tool
+result with `"isError": true` and a message that says what was wrong. Silence, or a
+success message with no visible change on the device, is the failure being tested for —
+that is what an agent would chase as an application bug that does not exist.
+
+```bash
+# Wrong type: SearchViewState is @Serializable and decodes from {}, but is not a SearchIntent.
+curl -s -X POST $MCP -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"kide_dispatch_intent","arguments":{"processor":"search","intent_class":"org.fuusio.kide.app.feature.search.presentation.SearchViewState","intent_json":"{}"}}}'
+# Unknown processor name.
+curl -s -X POST $MCP -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"kide_dispatch_intent","arguments":{"processor":"nope","intent_class":"org.fuusio.kide.app.feature.search.presentation.TriggerSearch","intent_json":"{}"}}}'
+```
+
+Expected messages: the first names both types — *"Processor 'search' accepts
+…SearchIntent, but got …SearchViewState"*; the second is *"No processor named 'nope'"*.
+The device screen must not change for either.
+
+The class in the first call is deliberately one that is `@Serializable` and has defaults
+for every field. A class that is neither would be rejected earlier, by `serializer(type)`
+or by the decode, and the type check at the handle boundary would never run — the test
+would pass without testing anything. If you substitute another class here, keep those two
+properties.
+
+**B3b — Closed processor.** Navigate away from Search so its destination is popped, then
+re-run either `kide_dispatch_intent` call from B3. Expected: `"isError": true` with
+*"Processor 'search' … is closed and cannot accept intents"*, and `kide_list_processors`
+reporting `"closed": true` for the stale handle rather than presenting it as live.
 
 **B4 — Real agent.**
 
@@ -113,6 +165,16 @@ Install a release (non-debuggable) build and verify logcat shows
 - Connection refused in B1 → server never started: check B0 log line and the guard.
 - Empty processor list in B2 → Search screen not yet visited (expected), or
   `KideDebug.attachTyped` not wired in `SearchFeature`.
+- `intentClass` reads `unknown` in B2 → the processor was attached with the deprecated
+  `KideDebug.attach`; injected intents are not type-checked. Switch to `attachTyped`.
+- No `isLoading` transitions in the B2a trace → reductions made inside `async { }` /
+  `useCase { }` are not reaching interceptors. This is the regression 1.2.0 fixed; the
+  trace-fidelity unit tests in `kide` should have caught it, so treat it as a signal that
+  something bypassed `PresentationProcessor.reduceState`.
 - `Serializer for class ... not found` in B3 → the intent class isn't `@Serializable`,
   or (release builds only) R8 stripped serializers — agent port is debug-only, so this
-  should never occur in practice.
+  should never occur in practice. Seeing it in **B3a** instead means the negative test is
+  not reaching the type check: pick a serializable class with all-default fields.
+- B3a succeeds, or fails silently with no `isError` → the handle's type check is not
+  running. An agent hitting this will read the success, see unchanged state, and start
+  looking for a bug in application code that does not exist.
