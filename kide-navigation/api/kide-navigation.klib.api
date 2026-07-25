@@ -56,6 +56,8 @@ final class <#A: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> or
 }
 
 final object org.fuusio.kide.navigation/ScreenNavKeyRegistry { // org.fuusio.kide.navigation/ScreenNavKeyRegistry|null[0]
+    final fun clear() // org.fuusio.kide.navigation/ScreenNavKeyRegistry.clear|clear(){}[0]
+    final fun find(kotlin/String): org.fuusio.kide.navigation/ScreenNavKey<*>? // org.fuusio.kide.navigation/ScreenNavKeyRegistry.find|find(kotlin.String){}[0]
     final fun get(kotlin/String): org.fuusio.kide.navigation/ScreenNavKey<*> // org.fuusio.kide.navigation/ScreenNavKeyRegistry.get|get(kotlin.String){}[0]
     final fun register(org.fuusio.kide.navigation/ScreenNavKey<*>) // org.fuusio.kide.navigation/ScreenNavKeyRegistry.register|register(org.fuusio.kide.navigation.ScreenNavKey<*>){}[0]
 }

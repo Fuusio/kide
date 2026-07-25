@@ -39,8 +39,14 @@ import org.fuusio.kide.presentation.ViewState
  * persists the processor's `ViewState` across process death: a previously saved state is
  * restored via [PresentationProcessor.restoreState] before first composition, and a **lazy**
  * save provider serializes [PresentationProcessor.stateToSave] only at the moment the
- * platform snapshots state — never during normal state emissions. A failed restore
- * (schema change, corrupt data) is logged and the processor starts from its initial state.
+ * platform snapshots state — never during normal state emissions.
+ *
+ * Persistence never propagates a failure to the caller in either direction. A failed restore
+ * (schema change, corrupt data) is logged and the processor starts from its initial state; a
+ * failed save (oversized snapshot, an encoder error, a throwing `onSaveState`) is logged and
+ * the snapshot is skipped. Persistence is an optimisation, and losing it must never take the
+ * application down — least of all from inside the platform's state-saving path, which runs
+ * while the app is being backgrounded.
  *
  * Used internally by Kide's navigation (`AppNavigation`), where each `NavEntry`'s
  * `ViewModelStore` retains one host per destination. Alternative hosts (e.g. for Decompose or
@@ -81,9 +87,22 @@ public class ViewModelHost<P : PresentationProcessor<*, *, *>>(
             }
         }
         handle.setSavedStateProvider(VIEW_STATE_KEY) {
-            restorable.stateToSave()
-                ?.let { state -> encodeToSavedState(stateSerializer, state) }
-                ?: savedState { }
+            // This lambda runs inside the platform's state-saving path, so anything thrown here
+            // propagates into the framework — on Android, a crash while the app is being
+            // backgrounded. Reachable without exotic conditions: an oversized snapshot hitting
+            // the binder transaction limit, a contextual or polymorphic field that fails at
+            // encode time, or a user override of onSaveState that throws. Losing a snapshot is
+            // a far better outcome, and it is the one the restore path above already chooses.
+            try {
+                restorable.stateToSave()
+                    ?.let { state -> encodeToSavedState(stateSerializer, state) }
+                    ?: savedState { }
+            } catch (exception: Exception) {
+                logW(exception) {
+                    "Failed to save ViewState; this destination will start from its initial state"
+                }
+                savedState { }
+            }
         }
     }
 

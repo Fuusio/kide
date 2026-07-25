@@ -149,7 +149,28 @@ private fun <T : PresentationProcessor<*, *, *>> RenderScreen(
     navKey.screen(ctx)
 }
 
-internal object NavKeyWrapperSerializer : KSerializer<NavKeyWrapper> {
+/**
+ * Serializes a [NavKeyWrapper] as its [ScreenNavKey.serialKey] plus optional arguments.
+ *
+ * [fallbackKey] decides what happens when a persisted `serialKey` cannot be resolved against
+ * [ScreenNavKeyRegistry] — which is what an application upgrade looks like from here: a user
+ * backgrounds version 1 with a destination on the stack, version 2 removes or renames it, the
+ * process is killed, and the user comes back.
+ *
+ * - Non-null: the entry is replaced by the fallback and a warning is logged. The application
+ *   opens on a valid screen instead of crashing. Note that this can leave the same destination
+ *   twice in a row on the restored stack.
+ * - Null: restoration throws, which is the right behaviour when a caller wants an unresolvable
+ *   key treated as a programming error rather than an upgrade.
+ *
+ * [NavKeyWrapperSerializer] is the strict, no-argument form used by the `@Serializable`
+ * annotation; [rememberScreenNavBackStack] installs an instance carrying the application's first
+ * initial key as the fallback.
+ */
+internal open class NavKeyWrapperSerializerImpl(
+    private val fallbackKey: ScreenNavKey<*>?,
+) : KSerializer<NavKeyWrapper> {
+
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("NavKeyWrapper") {
         element<String>("serialKey")
         element<String>("args", isOptional = true)
@@ -176,12 +197,49 @@ internal object NavKeyWrapperSerializer : KSerializer<NavKeyWrapper> {
                     else -> error("Unexpected index: $index")
                 }
             }
-            val navKey = ScreenNavKeyRegistry.get(
-                checkNotNull(serialKey) { "Missing serialKey in saved navigation state" }
-            )
-            NavKeyWrapper(if (args != null) navKey.restoreArgs(args) else navKey)
+            val key = checkNotNull(serialKey) { "Missing serialKey in saved navigation state" }
+            val navKey = ScreenNavKeyRegistry.find(key) ?: resolveUnregistered(key)
+            NavKeyWrapper(restoreArguments(navKey, args))
         }
+
+    private fun resolveUnregistered(serialKey: String): ScreenNavKey<*> {
+        val fallback = fallbackKey
+            ?: error("NavKey for $serialKey was not registered. Ensure the module is initialized.")
+        KideLog.w(NAV_LOG_TAG) {
+            "Saved navigation state references unregistered destination '$serialKey'; " +
+                "falling back to '${fallback.serialKey}'. This is expected when a release " +
+                "removes or renames a destination that an older saved back stack still refers " +
+                "to; it is a bug if the destination still exists and its feature simply has " +
+                "not been initialized yet."
+        }
+        return fallback
+    }
+
+    private fun restoreArguments(navKey: ScreenNavKey<*>, args: String?): ScreenNavKey<*> {
+        if (args == null) return navKey
+        val restored = navKey.restoreArgs(args)
+        if (restored === navKey) {
+            // saveArgs() produced these arguments, so restoreArgs() was expected to consume
+            // them. The default implementation returns the receiver unchanged, which silently
+            // reopens the destination with default arguments — a failure that only appears
+            // after process death, on a screen that looks otherwise fine.
+            KideLog.w(NAV_LOG_TAG) {
+                "Destination '${navKey.serialKey}' saved navigation arguments but its " +
+                    "restoreArgs() returned the key unchanged, so the arguments were dropped. " +
+                    "Override restoreArgs() to return a new key carrying them."
+            }
+        }
+        return restored
+    }
 }
+
+/**
+ * The strict [NavKeyWrapperSerializerImpl]: an unresolvable `serialKey` throws.
+ *
+ * Used by the `@Serializable` annotation on [NavKeyWrapper]. Back-stack restoration goes
+ * through [rememberScreenNavBackStack], which installs a fallback-carrying instance instead.
+ */
+internal object NavKeyWrapperSerializer : NavKeyWrapperSerializerImpl(fallbackKey = null)
 
 @Serializable(with = NavKeyWrapperSerializer::class)
 internal data class NavKeyWrapper(val screenNavKey: ScreenNavKey<*>) : NavKey
@@ -195,7 +253,14 @@ private fun rememberScreenNavBackStack(
     val configuration = SavedStateConfiguration {
         serializersModule = SerializersModule {
             polymorphic(NavKey::class) {
-                subclass(NavKeyWrapper::class, NavKeyWrapperSerializer)
+                // Restoration must not be able to crash the application at startup: a back stack
+                // saved by an earlier release can name destinations this build no longer has,
+                // and the saved state survives restarts, so throwing here would keep throwing.
+                // Unresolvable entries resolve to the first initial key instead.
+                subclass(
+                    NavKeyWrapper::class,
+                    NavKeyWrapperSerializerImpl(fallbackKey = initialKeys.firstOrNull()),
+                )
             }
         }
     }

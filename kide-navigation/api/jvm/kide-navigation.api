@@ -50,6 +50,8 @@ public final class org/fuusio/kide/navigation/ScreenNavKey$DefaultImpls {
 public final class org/fuusio/kide/navigation/ScreenNavKeyRegistry {
 	public static final field $stable I
 	public static final field INSTANCE Lorg/fuusio/kide/navigation/ScreenNavKeyRegistry;
+	public final fun clear ()V
+	public final fun find (Ljava/lang/String;)Lorg/fuusio/kide/navigation/ScreenNavKey;
 	public final fun get (Ljava/lang/String;)Lorg/fuusio/kide/navigation/ScreenNavKey;
 	public final fun register (Lorg/fuusio/kide/navigation/ScreenNavKey;)V
 }

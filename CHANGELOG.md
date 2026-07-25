@@ -4,6 +4,43 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`kide-navigation`** — a failure while *saving* a `ViewState` no longer propagates out of
+  `ViewModelHost`'s saved-state provider. That provider is invoked by the platform inside its
+  state-saving path, so an exception escaping it crashed the application while it was being
+  backgrounded — reachable through an oversized snapshot hitting the binder transaction limit,
+  an encoder error on a contextual or polymorphic field, or a `PresentationProcessor.onSaveState`
+  override that throws. The failure is now logged and the snapshot skipped, matching what the
+  restore path already did: persistence fails quietly in both directions and never takes the
+  application down.
+- **`kide-navigation`** — restoring a back stack that names a destination this build does not
+  have no longer throws. Previously an application that removed or renamed a destination
+  crashed at startup for any user who had it on their saved stack — and because saved state
+  survives restarts, it kept crashing until app data was cleared. Unresolvable entries now
+  resolve to the first initial key with a warning. `AGENTS.md` invariant 4 calls the
+  `NavKeyWrapper` format a forward-compatible contract; hard-failing on an unknown key was not.
+- **`kide-navigation`** — a destination that implements `saveArgs()` but not `restoreArgs()`
+  now logs a warning instead of silently discarding its navigation arguments on restore. The
+  default `restoreArgs()` returns the key unchanged, so such a destination reopened with
+  default arguments and nothing anywhere reported it.
+- **`kide-navigation`** — `ScreenNavKeyRegistry.register` rejects a *different* destination
+  registered under an already-used `serialKey` instead of silently overwriting it. Overwriting
+  meant the saved back stack resolved to whichever feature initialised last, sending the user
+  to the wrong screen after process death, or throwing `ClassCastException` from inside a
+  composable when the two destinations used different processor types. Re-registering the same
+  or an equal key remains a no-op, so a feature whose `initialize()` runs twice is unaffected.
+- **sample app** — `AboutFeature` never registered `AboutNavKey`, although the About
+  destination is reachable from the navigation drawer. Backgrounding on that screen and losing
+  the process crashed the app on relaunch — a live instance of the failure above.
+
+### Added
+
+- **`kide-navigation`** — `ScreenNavKeyRegistry.find(serialKey)`, a non-throwing lookup, and
+  `ScreenNavKeyRegistry.clear()` for resetting the registry between tests.
+
 ## [1.2.0] - 2026-07-25
 
 This release is the result of an audit of the MVI core and the agent-facing trace path. Most
