@@ -17,6 +17,7 @@
 
 package org.fuusio.kide.presentation
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -105,8 +106,40 @@ class CompositeActionTest : DescribeSpec({
             }
 
             it("stores a provided cancellationKey") {
-                val result = composite<TestViewState, TestEffect>(cancellationKey = "profile")
+                val result = composite<TestViewState, TestEffect>(
+                    AsyncAction(),
+                    cancellationKey = "profile",
+                )
                 result.cancellationKey shouldBe "profile"
+            }
+
+            // An all-synchronous composite runs inline on the intent loop and is never launched
+            // as a cancellable job, so a key on it silently does nothing. Reject it at the point
+            // where the mistake is made rather than letting it look like it works.
+            it("rejects a cancellationKey when no contained action is asynchronous") {
+                shouldThrow<IllegalArgumentException> {
+                    composite<TestViewState, TestEffect>(
+                        ReducerAction(),
+                        cancellationKey = "profile",
+                    )
+                }
+            }
+
+            it("rejects a cancellationKey on an empty composite") {
+                shouldThrow<IllegalArgumentException> {
+                    composite<TestViewState, TestEffect>(cancellationKey = "profile")
+                }
+            }
+
+            it("accepts a cancellationKey when an async action is nested in a child composite") {
+                val nested = composite<TestViewState, TestEffect>(AsyncAction())
+                val result = composite(ReducerAction(), nested, cancellationKey = "profile")
+                result.cancellationKey shouldBe "profile"
+            }
+
+            it("allows a synchronous composite without a cancellationKey") {
+                val result = composite<TestViewState, TestEffect>(ReducerAction())
+                result.cancellationKey.shouldBeNull()
             }
 
             it("produces the same action list as create() for identical inputs") {

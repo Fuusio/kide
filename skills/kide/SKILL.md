@@ -128,6 +128,12 @@ trace's `payloadClass`), `kide_export_regression_test` (recorded session → kot
 
 - Blocking or long-running work in `map()` or in `reduce { }` — it stalls the intent loop.
   Suspend work belongs inside `async { }` / `useCase { }`.
+- Passing a multi-threaded `processorScope` (`Dispatchers.Default`, a thread pool). It must be
+  single-threaded; the default is correct. Inside `async { }` you may still
+  `withContext(Dispatchers.IO) { ... }` and `reduce { }` from there.
+- A `cancellationKey` on a `composite(...)` whose actions are all synchronous — such a
+  composite runs inline and is never a cancellable job, so the key would do nothing. The
+  builder rejects it.
 - Collecting `sideEffects` from more than one place — delivery is exactly-once to a
   single collector.
 - Deriving `serialKey` from a class name — breaks saved state under R8/renames.

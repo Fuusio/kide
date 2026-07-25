@@ -25,6 +25,15 @@ Constructor: `(initialState: S, processorScope: CoroutineScope = defaultProcesso
 | `getComponentProcessor(kclass) { factory }` | child processors, closed with the parent |
 | `close()` | idempotent end-of-life; cancels scope, closes channels |
 
+### Threading
+
+`processorScope` **must be single-threaded** (`Dispatchers.Main.immediate` by default;
+`UnconfinedTestDispatcher`/`StandardTestDispatcher` in tests). Never pass
+`Dispatchers.Default` or a thread pool. This constrains the processor's own machinery only —
+`dispatch(intent)` is safe from any thread, and an `async { }` / `useCase { }` body may
+`withContext(Dispatchers.IO) { ... }` and call `reduce { }` from there; state is published
+with a compare-and-set.
+
 ### Execution guarantees
 
 Intents process sequentially in dispatch order. Synchronous actions (`ReducerAction`,

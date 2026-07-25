@@ -1,9 +1,11 @@
 public final class org/fuusio/kide/devtools/DebugHandle {
 	public final fun currentState ()Ljava/lang/String;
 	public final fun dispatch (Ljava/lang/Object;)V
+	public final fun getIntentClassName ()Ljava/lang/String;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getProcessorClassName ()Ljava/lang/String;
 	public final fun getRecorder ()Lorg/fuusio/kide/devtools/FlightRecorder;
+	public final fun isClosed ()Z
 }
 
 public abstract interface class org/fuusio/kide/devtools/DevToolsClient {
@@ -46,7 +48,7 @@ public final class org/fuusio/kide/devtools/JvmDevToolsClient : org/fuusio/kide/
 
 public final class org/fuusio/kide/devtools/KideDebug {
 	public static final field INSTANCE Lorg/fuusio/kide/devtools/KideDebug;
-	public final fun attach (Ljava/lang/String;Lorg/fuusio/kide/presentation/PresentationProcessor;Lorg/fuusio/kide/devtools/FlightRecorder;)Lorg/fuusio/kide/devtools/DebugHandle;
+	public final fun attachInternal (Ljava/lang/String;Lorg/fuusio/kide/presentation/PresentationProcessor;Lorg/fuusio/kide/devtools/FlightRecorder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lorg/fuusio/kide/devtools/DebugHandle;
 	public final fun detach (Ljava/lang/String;)V
 	public final fun handle (Ljava/lang/String;)Lorg/fuusio/kide/devtools/DebugHandle;
 	public final fun handles ()Ljava/util/Map;

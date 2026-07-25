@@ -43,7 +43,10 @@ import kotlin.concurrent.atomics.fetchAndIncrement
  * order, a recorded trace is a *sound* account of what happened — not a sampled
  * approximation.
  *
- * The recorder is thread-safe (lock-free CAS) and never throws from its callbacks.
+ * The recorder is thread-safe (lock-free CAS) and never throws from its callbacks. Concurrent
+ * recording preserves ordering: the buffer is kept sorted by [TraceEvent.seq], so consumers
+ * that read it positionally — [toJson], the agent port, [TraceTestGenerator] — see the same
+ * order the events were sequenced in.
  *
  * @param capacity Maximum number of retained events; older events are evicted first.
  */
@@ -57,6 +60,10 @@ public class FlightRecorder<I : ViewIntent, S : ViewState, E : SideEffect>(
 
     /**
      * A snapshot of the recorded events, oldest first.
+     *
+     * Always ordered by [TraceEvent.seq], including when events were recorded concurrently
+     * from several threads — list position and causal order never disagree. Once [capacity]
+     * is reached the snapshot holds exactly the most recent [capacity] events.
      */
     public val events: List<TraceEvent> get() = eventsRef.load()
 
@@ -130,11 +137,11 @@ public class FlightRecorder<I : ViewIntent, S : ViewState, E : SideEffect>(
         )
         while (true) {
             val current = eventsRef.load()
-            val appended = current + event
-            val trimmed = if (appended.size > capacity) {
-                appended.subList(appended.size - capacity, appended.size).toList()
+            val inserted = current.insertOrdered(event)
+            val trimmed = if (inserted.size > capacity) {
+                inserted.subList(inserted.size - capacity, inserted.size).toList()
             } else {
-                appended
+                inserted
             }
             if (eventsRef.compareAndSet(current, trimmed)) return
         }
@@ -142,5 +149,34 @@ public class FlightRecorder<I : ViewIntent, S : ViewState, E : SideEffect>(
 
     public companion object {
         public const val DEFAULT_CAPACITY: Int = 500
+    }
+}
+
+/**
+ * Returns this buffer with [event] inserted so that the result remains ordered by
+ * [TraceEvent.seq].
+ *
+ * Sequence numbers are allocated *before* the insertion race is run — deliberately, so that
+ * they stay gap-free — which means a thread holding a higher number can still win the race and
+ * insert first. Appending blindly would then leave the buffer out of order, and that matters
+ * twice over: [FlightRecorder.events] is documented as oldest-first and is consumed in list
+ * order by the agent port and by [TraceTestGenerator], and capacity trimming drops from the
+ * front, so an out-of-order buffer would evict a *newer* event while keeping an older one.
+ *
+ * The overwhelmingly common case is an in-order append, which costs a single comparison. The
+ * backwards scan only runs when a race actually reordered two events, and then only walks the
+ * few positions they were displaced by.
+ */
+private fun List<TraceEvent>.insertOrdered(event: TraceEvent): List<TraceEvent> {
+    if (isEmpty() || last().seq < event.seq) return this + event
+
+    var index = size
+    while (index > 0 && this[index - 1].seq > event.seq) {
+        index--
+    }
+    return buildList(size + 1) {
+        addAll(this@insertOrdered.subList(0, index))
+        add(event)
+        addAll(this@insertOrdered.subList(index, this@insertOrdered.size))
     }
 }

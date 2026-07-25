@@ -66,6 +66,10 @@ final class <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide.pr
 }
 
 final class org.fuusio.kide.devtools/DebugHandle { // org.fuusio.kide.devtools/DebugHandle|null[0]
+    final val intentClassName // org.fuusio.kide.devtools/DebugHandle.intentClassName|{}intentClassName[0]
+        final fun <get-intentClassName>(): kotlin/String // org.fuusio.kide.devtools/DebugHandle.intentClassName.<get-intentClassName>|<get-intentClassName>(){}[0]
+    final val isClosed // org.fuusio.kide.devtools/DebugHandle.isClosed|{}isClosed[0]
+        final fun <get-isClosed>(): kotlin/Boolean // org.fuusio.kide.devtools/DebugHandle.isClosed.<get-isClosed>|<get-isClosed>(){}[0]
     final val name // org.fuusio.kide.devtools/DebugHandle.name|{}name[0]
         final fun <get-name>(): kotlin/String // org.fuusio.kide.devtools/DebugHandle.name.<get-name>|<get-name>(){}[0]
     final val processorClassName // org.fuusio.kide.devtools/DebugHandle.processorClassName|{}processorClassName[0]
@@ -128,10 +132,11 @@ final class org.fuusio.kide.devtools/TraceEvent { // org.fuusio.kide.devtools/Tr
 }
 
 final object org.fuusio.kide.devtools/KideDebug { // org.fuusio.kide.devtools/KideDebug|null[0]
-    final fun <#A1: org.fuusio.kide.presentation/ViewIntent, #B1: org.fuusio.kide.presentation/ViewState, #C1: org.fuusio.kide.presentation/SideEffect> attach(kotlin/String, org.fuusio.kide.presentation/PresentationProcessor<#A1, #B1, #C1>, org.fuusio.kide.devtools/FlightRecorder<#A1, #B1, #C1>): org.fuusio.kide.devtools/DebugHandle // org.fuusio.kide.devtools/KideDebug.attach|attach(kotlin.String;org.fuusio.kide.presentation.PresentationProcessor<0:0,0:1,0:2>;org.fuusio.kide.devtools.FlightRecorder<0:0,0:1,0:2>){0§<org.fuusio.kide.presentation.ViewIntent>;1§<org.fuusio.kide.presentation.ViewState>;2§<org.fuusio.kide.presentation.SideEffect>}[0]
+    final fun <#A1: org.fuusio.kide.presentation/ViewIntent, #B1: org.fuusio.kide.presentation/ViewState, #C1: org.fuusio.kide.presentation/SideEffect> attachInternal(kotlin/String, org.fuusio.kide.presentation/PresentationProcessor<#A1, #B1, #C1>, org.fuusio.kide.devtools/FlightRecorder<#A1, #B1, #C1>, kotlin/String, kotlin/Function1<kotlin/Any, kotlin/Boolean>): org.fuusio.kide.devtools/DebugHandle // org.fuusio.kide.devtools/KideDebug.attachInternal|attachInternal(kotlin.String;org.fuusio.kide.presentation.PresentationProcessor<0:0,0:1,0:2>;org.fuusio.kide.devtools.FlightRecorder<0:0,0:1,0:2>;kotlin.String;kotlin.Function1<kotlin.Any,kotlin.Boolean>){0§<org.fuusio.kide.presentation.ViewIntent>;1§<org.fuusio.kide.presentation.ViewState>;2§<org.fuusio.kide.presentation.SideEffect>}[0]
     final fun detach(kotlin/String) // org.fuusio.kide.devtools/KideDebug.detach|detach(kotlin.String){}[0]
     final fun handle(kotlin/String): org.fuusio.kide.devtools/DebugHandle? // org.fuusio.kide.devtools/KideDebug.handle|handle(kotlin.String){}[0]
     final fun handles(): kotlin.collections/Map<kotlin/String, org.fuusio.kide.devtools/DebugHandle> // org.fuusio.kide.devtools/KideDebug.handles|handles(){}[0]
+    final inline fun <#A1: reified org.fuusio.kide.presentation/ViewIntent, #B1: org.fuusio.kide.presentation/ViewState, #C1: org.fuusio.kide.presentation/SideEffect> attach(kotlin/String, org.fuusio.kide.presentation/PresentationProcessor<#A1, #B1, #C1>, org.fuusio.kide.devtools/FlightRecorder<#A1, #B1, #C1>): org.fuusio.kide.devtools/DebugHandle // org.fuusio.kide.devtools/KideDebug.attach|attach(kotlin.String;org.fuusio.kide.presentation.PresentationProcessor<0:0,0:1,0:2>;org.fuusio.kide.devtools.FlightRecorder<0:0,0:1,0:2>){0§<org.fuusio.kide.presentation.ViewIntent>;1§<org.fuusio.kide.presentation.ViewState>;2§<org.fuusio.kide.presentation.SideEffect>}[0]
 }
 
 final object org.fuusio.kide.devtools/TraceTestGenerator { // org.fuusio.kide.devtools/TraceTestGenerator|null[0]

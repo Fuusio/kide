@@ -71,6 +71,8 @@ abstract class <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide
 
     final val interceptors // org.fuusio.kide.presentation/PresentationProcessor.interceptors|{}interceptors[0]
         final fun <get-interceptors>(): kotlin.collections/List<org.fuusio.kide.presentation/KideInterceptor<#A, #B, #C>> // org.fuusio.kide.presentation/PresentationProcessor.interceptors.<get-interceptors>|<get-interceptors>(){}[0]
+    final val isClosed // org.fuusio.kide.presentation/PresentationProcessor.isClosed|{}isClosed[0]
+        final fun <get-isClosed>(): kotlin/Boolean // org.fuusio.kide.presentation/PresentationProcessor.isClosed.<get-isClosed>|<get-isClosed>(){}[0]
     final val processorScope // org.fuusio.kide.presentation/PresentationProcessor.processorScope|{}processorScope[0]
         final fun <get-processorScope>(): kotlinx.coroutines/CoroutineScope // org.fuusio.kide.presentation/PresentationProcessor.processorScope.<get-processorScope>|<get-processorScope>(){}[0]
     final val sideEffects // org.fuusio.kide.presentation/PresentationProcessor.sideEffects|{}sideEffects[0]

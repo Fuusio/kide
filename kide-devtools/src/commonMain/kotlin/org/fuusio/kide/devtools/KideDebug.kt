@@ -31,8 +31,15 @@ import org.fuusio.kide.presentation.ViewState
 public class DebugHandle internal constructor(
     public val name: String,
     public val processorClassName: String,
+    /**
+     * Fully qualified name of the [ViewIntent] type this processor accepts. Tooling reports it
+     * so that a caller constructing an intent to inject knows what to build.
+     */
+    public val intentClassName: String,
     public val recorder: FlightRecorder<*, *, *>,
     private val stateProvider: () -> Any,
+    private val closedProvider: () -> Boolean,
+    private val intentTypeCheck: (Any) -> Boolean,
     private val dispatcher: (Any) -> Unit,
 ) {
     /**
@@ -41,11 +48,43 @@ public class DebugHandle internal constructor(
     public fun currentState(): String = stateProvider().toString()
 
     /**
-     * Dispatches [intent] to the processor. The caller is responsible for providing an
-     * instance of the processor's intent type; a mismatch throws [ClassCastException]
-     * when the intent is processed.
+     * `true` if the attached processor has been closed and can no longer process intents.
+     *
+     * Handles are not removed automatically when a processor is closed — a destination that
+     * has been popped leaves its handle in the registry until something re-attaches under the
+     * same name or [KideDebug.detach] is called — so tooling should surface this rather than
+     * present a dead processor as live.
+     */
+    public val isClosed: Boolean get() = closedProvider()
+
+    /**
+     * Dispatches [intent] to the processor, after checking that it is an instance of the
+     * processor's intent type.
+     *
+     * The type check is done here, at the boundary, rather than being left to the cast inside
+     * the handle: generics are erased, so that cast compiles to nothing and a wrong intent
+     * would sail into the intent channel to fail — or silently match no branch — deep inside
+     * the processor's `map()`, far from the call that caused it.
+     *
+     * @throws IllegalArgumentException if [intent] is not of the processor's intent type.
+     * @throws IllegalStateException if the processor has already been closed. A closed
+     * processor discards intents silently, so injecting into one would otherwise look like a
+     * successful dispatch that mysteriously changed nothing — sending whoever is debugging
+     * (often an agent) hunting for a bug in application code that does not exist.
      */
     public fun dispatch(intent: Any) {
+        check(!isClosed) {
+            "Processor '$name' ($processorClassName) is closed and cannot accept intents. " +
+                "Its screen has most likely been popped or recreated; re-attach the current " +
+                "instance with KideDebug.attach(\"$name\", ...), or drop the stale handle with " +
+                "KideDebug.detach(\"$name\")."
+        }
+        require(intentTypeCheck(intent)) {
+            "Processor '$name' accepts $intentClassName, but got " +
+                "${intent::class.qualifiedName ?: intent::class.simpleName}. Check the " +
+                "intent class name — kide_list_processors reports the expected type as " +
+                "'intentClass', and recorded intents carry it as 'payloadClass'."
+        }
         dispatcher(intent)
     }
 }
@@ -74,19 +113,46 @@ public object KideDebug {
      * Registers [processor] and its [recorder] under [name], replacing any previous handle
      * with the same name (for example, after a destination is recreated).
      *
+     * Reified so that the resulting handle can record the processor's intent type and reject
+     * a wrongly typed injection at the boundary — see [DebugHandle.dispatch].
+     *
+     * Handles are *not* removed when a processor is closed; call [detach] when a destination
+     * goes away, or check [DebugHandle.isClosed] before trusting a handle.
+     *
      * @return The registered [DebugHandle].
      */
-    public fun <I : ViewIntent, S : ViewState, E : SideEffect> attach(
+    public inline fun <reified I : ViewIntent, S : ViewState, E : SideEffect> attach(
         name: String,
         processor: PresentationProcessor<I, S, E>,
         recorder: FlightRecorder<I, S, E>,
+    ): DebugHandle = attachInternal(
+        name = name,
+        processor = processor,
+        recorder = recorder,
+        intentClassName = I::class.qualifiedName ?: I::class.simpleName ?: "unknown",
+        // Captured at the call site, where I is still reified. This is what lets the handle
+        // reject a wrongly typed intent before it reaches the processor.
+        intentTypeCheck = { intent -> intent is I },
+    )
+
+    @PublishedApi
+    internal fun <I : ViewIntent, S : ViewState, E : SideEffect> attachInternal(
+        name: String,
+        processor: PresentationProcessor<I, S, E>,
+        recorder: FlightRecorder<I, S, E>,
+        intentClassName: String,
+        intentTypeCheck: (Any) -> Boolean,
     ): DebugHandle {
         @Suppress("UNCHECKED_CAST")
         val handle = DebugHandle(
             name = name,
             processorClassName = processor::class.qualifiedName ?: "unknown",
+            intentClassName = intentClassName,
             recorder = recorder,
             stateProvider = { processor.state },
+            closedProvider = { processor.isClosed },
+            intentTypeCheck = intentTypeCheck,
+            // Safe: DebugHandle.dispatch runs intentTypeCheck before calling this.
             dispatcher = { intent -> processor.dispatch(intent as I) },
         )
         update { it + (name to handle) }

@@ -16,7 +16,9 @@
  */
 package org.fuusio.kide.devtools
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -44,6 +46,9 @@ private sealed interface CounterIntent : ViewIntent {
 private sealed interface CounterEffect : SideEffect {
     data object Pong : CounterEffect
 }
+
+/** An intent from an unrelated processor, used to check the handle's type boundary. */
+private data object UnrelatedIntent : ViewIntent
 
 private class CounterProcessor(
     recorder: FlightRecorder<CounterIntent, CounterState, CounterEffect>,
@@ -143,6 +148,79 @@ class FlightRecorderTest : DescribeSpec({
             KideDebug.handle("counter") shouldBe handle
             KideDebug.detach("counter")
             KideDebug.handle("counter") shouldBe null
+        }
+
+        it("reports whether the attached processor is still open") {
+            val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
+            val processor = CounterProcessor(recorder)
+            val handle = KideDebug.attach("counter_closed", processor, recorder)
+
+            handle.isClosed shouldBe false
+            processor.close()
+            handle.isClosed shouldBe true
+
+            KideDebug.detach("counter_closed")
+        }
+
+        // A closed processor discards intents silently, so injecting into one used to look
+        // like a successful dispatch that changed nothing at all — which sends whoever is
+        // debugging, usually an agent, hunting for an application bug that does not exist.
+        it("refuses to dispatch into a closed processor") {
+            val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
+            val processor = CounterProcessor(recorder)
+            val handle = KideDebug.attach("counter_dead", processor, recorder)
+            processor.close()
+
+            val failure = shouldThrow<IllegalStateException> {
+                handle.dispatch(CounterIntent.Increment)
+            }
+            failure.message shouldContain "counter_dead"
+            failure.message shouldContain "closed"
+            handle.currentState() shouldBe "CounterState(value=0)"
+
+            KideDebug.detach("counter_dead")
+        }
+
+        it("reports the intent type the processor accepts") {
+            val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
+            val processor = CounterProcessor(recorder)
+            val handle = KideDebug.attach("counter_type", processor, recorder)
+
+            handle.intentClassName shouldBe "org.fuusio.kide.devtools.CounterIntent"
+
+            KideDebug.detach("counter_type")
+        }
+
+        // Generics are erased, so the cast inside the handle compiles to nothing: a wrongly
+        // typed intent used to sail into the intent channel and fail — or match no branch and
+        // do nothing at all — deep inside map(), far from the call that caused it.
+        it("refuses an intent that is not of the processor's intent type") {
+            val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
+            val processor = CounterProcessor(recorder)
+            val handle = KideDebug.attach("counter_wrong_type", processor, recorder)
+
+            val failure = shouldThrow<IllegalArgumentException> {
+                handle.dispatch(UnrelatedIntent)
+            }
+            failure.message shouldContain "CounterIntent"
+            failure.message shouldContain "UnrelatedIntent"
+            handle.currentState() shouldBe "CounterState(value=0)"
+            recorder.events.shouldBeEmpty()
+
+            KideDebug.detach("counter_wrong_type")
+        }
+
+        it("still exposes the trace recorded before the processor was closed") {
+            val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
+            val processor = CounterProcessor(recorder)
+            val handle = KideDebug.attach("counter_trace", processor, recorder)
+
+            processor.dispatch(CounterIntent.Increment)
+            processor.close()
+
+            handle.recorder.events.count { it.type == TraceEventType.StateChanged } shouldBe 1
+
+            KideDebug.detach("counter_trace")
         }
     }
 

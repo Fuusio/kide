@@ -28,10 +28,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.fuusio.kide.log.logD
 import org.fuusio.kide.log.logE
+import org.fuusio.kide.log.logW
 import kotlin.concurrent.Volatile
 import kotlin.reflect.KClass
 
@@ -58,6 +58,27 @@ import kotlin.reflect.KClass
  *   executing an action (synchronous or asynchronous) is caught, logged, reported to the
  *   [interceptors] via [KideInterceptor.onError] and to [onError], and the intent loop
  *   continues with the next intent. [CancellationException]s are rethrown as usual.
+ * - **State changes are reported exactly once:** every transition that is actually applied —
+ *   whether by a [ReducerAction] on the intent loop or by [AsyncScope.reduce] inside an
+ *   [AsyncAction] — is reported to [KideInterceptor.onStateChanged] exactly once, after the
+ *   new state has been published to [states]. Transformations that leave the state unchanged,
+ *   and transformations discarded because another coroutine won the race, are not reported.
+ *   Trace fidelity is a public contract: `kide-devtools` and its regression-test generator
+ *   depend on it.
+ *
+ * ### Threading
+ * **[processorScope] must be confined to a single thread.** The default
+ * ([defaultProcessorScope]) satisfies this with `Dispatchers.Main.immediate`; tests typically
+ * substitute a single-threaded test dispatcher. The intent loop and the processor's internal
+ * bookkeeping — the keyed-cancellation job registry and the component-processor registry — are
+ * unsynchronised and rely on this. A multi-threaded scope (`Dispatchers.Default`, an arbitrary
+ * thread pool) is unsupported and can corrupt that bookkeeping.
+ *
+ * This constrains where the processor's *own* machinery runs, not where your work runs.
+ * Reductions themselves are safe from any thread: an [AsyncAction] is free to
+ * `withContext(Dispatchers.IO) { ... }` and call [AsyncScope.reduce] from there, and state is
+ * published with a compare-and-set so concurrent reductions cannot be lost or double-reported.
+ * [dispatch] is likewise safe to call from any thread.
  *
  * ### Hosting and lifecycle
  * [PresentationProcessor] is a plain class, independent of any UI or lifecycle framework. Its
@@ -80,6 +101,11 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
      * The [CoroutineScope] in which the intent loop and all [AsyncAction]s run. The processor
      * owns this scope and cancels it in [close]. Defaults to a supervisor scope provided by
      * [defaultProcessorScope]; tests can inject a test scope directly.
+     *
+     * **Must be confined to a single thread** — see *Threading* in the class documentation.
+     * `Dispatchers.Main.immediate` (the default) and single-threaded test dispatchers such as
+     * `UnconfinedTestDispatcher` or `StandardTestDispatcher` qualify; `Dispatchers.Default`
+     * and other pools do not.
      */
     public val processorScope: CoroutineScope = defaultProcessorScope(),
     /**
@@ -97,6 +123,7 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
 
     private val children = mutableMapOf<KClass<*>, PresentationProcessor<*, *, *>>()
 
+    @Volatile
     private var closed = false
 
     /**
@@ -128,7 +155,7 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
     private val asyncScope = object : AsyncScope<S> {
         override val state: S get() = states.value
         override fun reduce(transform: S.() -> S) {
-            _states.update { currentState -> currentState.transform() }
+            reduceState { currentState -> currentState.transform() }
         }
     }
 
@@ -161,13 +188,24 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
      * Processes the given [intent]. An [ViewIntent] is first mapped to an [Action] which is then
      * executed to either reduce the [ViewState] or to post a [SideEffect].
      *
-     * Intents are queued without loss and processed sequentially in dispatch order. Dispatching
-     * after the processor has been cleared is a no-op.
+     * Intents are queued without loss and processed sequentially in dispatch order.
+     *
+     * Dispatching after [close] is a no-op, and the [interceptors] are *not* notified: an
+     * intent that will never be mapped must not appear in a recorded trace, where it would be
+     * indistinguishable from an intent that was mapped to `null` or from a stalled loop.
      */
     public fun dispatch(intent: I) {
+        if (closed) {
+            logW { "Intent dispatched to a closed processor; ignoring: $intent" }
+            return
+        }
         interceptors.forEach { it.onIntent(intent) }
         intentDispatched = true
-        intents.trySend(intent)
+        if (intents.trySend(intent).isFailure) {
+            // Narrow race: close() ran between the guard above and here. The intent is lost;
+            // say so rather than leaving a dangling entry in the trace unexplained.
+            logW { "Intent could not be queued, processor closed concurrently: $intent" }
+        }
     }
 
     /**
@@ -186,13 +224,19 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
     private fun launchAsync(intent: I, action: Action<S, E>) {
         val key = action.cancellationKeyOrNull
         if (key != null) {
-            logD { "Cancelling previous job for key: $key" }
-            activeJobs[key]?.cancel()
-            val job = processorScope.launch { executeGuarded(intent, action) }
-            activeJobs[key] = job
-            job.invokeOnCompletion {
-                if (activeJobs[key] === job) activeJobs.remove(key)
+            // [activeJobs] is a plain map and is only ever touched from here — that is, from
+            // the intent loop, which is single-threaded by contract (see *Threading* in the
+            // class documentation). Completed jobs are deliberately left in the map rather
+            // than removed by a completion handler: `invokeOnCompletion` runs on whichever
+            // thread completed or cancelled the job, which would put a concurrent writer on a
+            // map that has no synchronisation. The map is bounded by the number of distinct
+            // cancellation keys the processor uses — a handful of string literals in practice
+            // — and cancelling an already-completed job is a no-op.
+            activeJobs[key]?.let { previous ->
+                logD { "Cancelling previous job for key: $key" }
+                previous.cancel()
             }
+            activeJobs[key] = processorScope.launch { executeGuarded(intent, action) }
         } else {
             processorScope.launch { executeGuarded(intent, action) }
         }
@@ -233,6 +277,34 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
         // By default, do nothing
     }
 
+    /**
+     * Applies [transform] to the current [ViewState] and, when the transformation actually
+     * changed the state, notifies the [interceptors] exactly once — after the new state has
+     * been published to [states].
+     *
+     * The compare-and-set retry loop is written out rather than delegating to
+     * [kotlinx.coroutines.flow.update] deliberately: `update` re-evaluates its lambda when it
+     * loses a race, which would re-run [transform] *and* re-report a transition that was
+     * ultimately discarded. Interceptors — and therefore the `FlightRecorder` trace that agent
+     * tooling reads — must only ever observe transitions that were actually applied.
+     *
+     * [transform] must be pure and fast; it can be evaluated more than once when another
+     * coroutine wins the race.
+     */
+    private fun reduceState(transform: (S) -> S) {
+        while (true) {
+            val currentState = _states.value
+            val newState = transform(currentState)
+            if (_states.compareAndSet(currentState, newState)) {
+                if (newState != currentState) {
+                    logD { "State updated: $newState" }
+                    interceptors.forEach { it.onStateChanged(currentState, newState) }
+                }
+                return
+            }
+        }
+    }
+
     private suspend fun execute(action: Action<S, E>) {
         interceptors.forEach { it.onActionExecuting(action) }
         when (action) {
@@ -246,18 +318,18 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
             }
             is ReducerAction -> {
                 logD { "Executing ReducerAction" }
-                _states.update { currentState ->
-                    val newState = action(currentState)
-                    logD { "State updated: $newState" }
-                    interceptors.forEach { it.onStateChanged(currentState, newState) }
-                    newState
-                }
+                reduceState { currentState -> action(currentState) }
             }
             is SideEffectAction -> {
                 val effect = action(state)
-                logD { "Sending SideEffect: $effect" }
-                interceptors.forEach { it.onSideEffect(effect) }
-                sideEffectChannel.trySend(effect)
+                if (sideEffectChannel.trySend(effect).isSuccess) {
+                    logD { "Sent SideEffect: $effect" }
+                    interceptors.forEach { it.onSideEffect(effect) }
+                } else {
+                    // Only reachable once the processor is closed. Reporting the effect anyway
+                    // would put a delivery in the trace that never happened.
+                    logW { "SideEffect dropped, processor is closed: $effect" }
+                }
             }
         }
     }
@@ -354,6 +426,17 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
     ): P = children.getOrPut(processorClass) { factory() } as P
 
     /**
+     * `true` once [close] has been called.
+     *
+     * A closed processor ignores [dispatch], emits no further states or side effects, and its
+     * [processorScope] is cancelled. Debug and host tooling uses this to tell a live processor
+     * from a dead one — see `DebugHandle.isClosed` in `kide-devtools`, which stops the agent
+     * port from reporting a successful intent injection into a processor that can no longer
+     * act on it.
+     */
+    public val isClosed: Boolean get() = closed
+
+    /**
      * Ends this processor's life: closes the intent and side-effect channels, closes all
      * component processors created via [getComponentProcessor], and cancels [processorScope].
      *
@@ -365,6 +448,7 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
         closed = true
         children.values.forEach { it.close() }
         children.clear()
+        activeJobs.clear()
         intents.close()
         sideEffectChannel.close()
         processorScope.cancel()
@@ -414,14 +498,25 @@ private val Action<*, *>.cancellationKeyOrNull: String?
  * @param E The type of [SideEffect] the grouped actions can produce.
  * @param cancellationKey An optional key used to manage job cancellation. If an action with the
  * same key is dispatched while a previous one is still running, the previous job will be canceled.
+ * Requires at least one contained action to be asynchronous: a composite of only synchronous
+ * actions runs inline on the intent-processing loop and is never launched as a cancellable job,
+ * so a key on it would be silently ignored.
  * @param actions The variable list of [Action] objects to be executed.
  * @return A [CompositeAction] containing the provided [actions].
+ * @throws IllegalArgumentException if a [cancellationKey] is given but no contained action is
+ * asynchronous.
  */
 public fun <S : ViewState, E : SideEffect> composite(
     vararg actions: Action<S, E>,
     cancellationKey: String? = null,
-): CompositeAction<S, E> =
-    CompositeAction(actions.toList(), cancellationKey)
+): CompositeAction<S, E> {
+    require(cancellationKey == null || actions.any { !it.isSynchronous }) {
+        "cancellationKey '$cancellationKey' would be ignored: a composite of only synchronous " +
+            "actions executes inline on the intent loop and is never launched as a cancellable " +
+            "job. Either drop the key, or include an async { } / useCase { } action."
+    }
+    return CompositeAction(actions.toList(), cancellationKey)
+}
 
 /**
  * Creates a [ReducerAction] that encapsulates a state transformation.

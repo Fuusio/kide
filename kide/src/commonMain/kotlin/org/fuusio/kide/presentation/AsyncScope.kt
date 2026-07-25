@@ -29,6 +29,12 @@ public interface AsyncScope<S : ViewState> {
 
     /**
      * Atomically reduces the state.
+     *
+     * Reductions made here are reported to the processor's interceptors via
+     * [KideInterceptor.onStateChanged] on exactly the same terms as a `ReducerAction` on the
+     * intent loop, so work done inside an [AsyncAction] is fully represented in a recorded
+     * trace. [transform] must be pure: it is evaluated again if another coroutine changes the
+     * state first.
      */
     public fun reduce(transform: S.() -> S)
 }

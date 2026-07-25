@@ -319,6 +319,30 @@ class PresentationProcessorTest : DescribeSpec({
                 processor.dispatch(TestIntent.UseCaseWithKey("search"))
                 processor.state shouldNotBe null
             }
+
+            // The job registry no longer clears entries from a completion handler, because that
+            // handler runs on whichever thread finished the job and the map is unsynchronised.
+            // Completed jobs are therefore left in place, and a later dispatch under the same key
+            // cancels a job that has already finished — which must be a no-op, not a way to lose
+            // the new execution.
+            it("reuses a key whose previous execution already completed") {
+                val processor = TestProcessor()
+
+                processor.dispatch(TestIntent.UseCaseWithKey("search"))
+                processor.state shouldBe TestViewState(1)
+
+                processor.dispatch(TestIntent.UseCaseWithKey("search"))
+
+                processor.state shouldBe TestViewState(2)
+            }
+
+            it("keeps applying a repeatedly reused key") {
+                val processor = TestProcessor()
+
+                repeat(5) { processor.dispatch(TestIntent.UseCaseWithKey("search")) }
+
+                processor.state shouldBe TestViewState(5)
+            }
         }
 
         describe("type hierarchy") {
@@ -447,7 +471,10 @@ class PresentationProcessorTest : DescribeSpec({
             }
 
             it("stores the provided cancellationKey") {
-                val result = composite<TestViewState, TestSideEffect>(cancellationKey = "batch")
+                val result = composite<TestViewState, TestSideEffect>(
+                    AsyncAction(),
+                    cancellationKey = "batch",
+                )
                 result.cancellationKey shouldBe "batch"
             }
         }

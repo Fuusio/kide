@@ -30,6 +30,11 @@ package org.fuusio.kide.presentation
  * entire group can be managed collectively. Note that only the outermost [cancellationKey]
  * participates in cancellation; keys of nested actions are ignored.
  *
+ * A [cancellationKey] is only meaningful when at least one contained action is asynchronous:
+ * an all-synchronous composite executes inline on the intent-processing loop and is never
+ * launched as a cancellable job, so its key has no effect. The [composite] builder rejects
+ * that combination; this constructor and [create] do not check it, so prefer the builder.
+ *
  * @param S The type of the [ViewState] the actions operate on.
  * @param E The type of the [SideEffect] the actions can produce.
  * @property actions A [List] of [Action]s

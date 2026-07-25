@@ -390,8 +390,14 @@ public object KideMcpServer {
                                 buildJsonObject {
                                     put("name", handle.name)
                                     put("processorClass", handle.processorClassName)
+                                    // The type kide_dispatch_intent expects for intent_class.
+                                    put("intentClass", handle.intentClassName)
                                     put("currentState", handle.currentState())
                                     put("recordedEvents", handle.recorder.events.size)
+                                    // A closed processor still has a trace worth reading, but
+                                    // it cannot accept injected intents — say so up front
+                                    // rather than failing the dispatch later.
+                                    put("closed", handle.isClosed)
                                 },
                             )
                         }

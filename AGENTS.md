@@ -69,6 +69,25 @@ a public API change without regenerated dumps fails the build.
    Android the guarded `start(context)` variant enforces this. It binds explicitly to
    the IPv4 loopback (`127.0.0.1`), not `InetAddress.getLoopbackAddress()` — see the
    comment at `KideMcpServer.kt:95-97` for why (`adb forward` can't reach `::1`).
+7. **The processor is single-threaded by contract.** `PresentationProcessor.processorScope`
+   must be confined to one thread (`Dispatchers.Main.immediate` by default; a single-threaded
+   dispatcher in tests). The intent loop, the keyed-cancellation job registry (`activeJobs`)
+   and the component registry (`children`) are unsynchronised plain maps and depend on it —
+   which is also why completed jobs are left in `activeJobs` instead of being removed from an
+   `invokeOnCompletion` handler, since that handler runs on whichever thread finished the job.
+   This constrains the processor's own machinery only: `dispatch` is safe from any thread, and
+   `AsyncScope.reduce` is explicitly safe to call after a `withContext(Dispatchers.IO)`, which
+   is why `reduceState` uses a compare-and-set rather than relying on confinement.
+8. **Trace fidelity is a public contract.** Every applied state transition is reported to
+   `KideInterceptor.onStateChanged` exactly once, after the new state is published — from
+   *both* reduction paths (`ReducerAction` on the intent loop, and `AsyncScope.reduce`
+   inside an `AsyncAction`). Transitions that changed nothing, or that lost a
+   compare-and-set race and were discarded, are never reported. `kide-devtools` —
+   `FlightRecorder`, the agent port, `TraceTestGenerator` — is only as correct as this, so
+   all reductions go through `PresentationProcessor.reduceState`. Do not "simplify" it back
+   to `MutableStateFlow.update`: that lambda re-runs when it loses a race, which reports
+   phantom transitions. `InterceptorFidelityTest` and `PresentationProcessorConcurrencyTest`
+   pin this down.
 
 ## Debugging the sample app
 

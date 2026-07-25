@@ -124,6 +124,7 @@ public abstract class org/fuusio/kide/presentation/PresentationProcessor : java/
 	public final fun getStates ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun getWasRestored ()Z
 	public final fun initializeWith (Lorg/fuusio/kide/presentation/ViewIntent;)V
+	public final fun isClosed ()Z
 	protected abstract fun map (Lorg/fuusio/kide/presentation/ViewIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
 	protected fun onSaveState (Lorg/fuusio/kide/presentation/ViewState;)Lorg/fuusio/kide/presentation/ViewState;

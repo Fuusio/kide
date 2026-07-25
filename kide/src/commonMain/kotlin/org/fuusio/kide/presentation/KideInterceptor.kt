@@ -42,10 +42,17 @@ public interface KideInterceptor<I : ViewIntent, S : ViewState, E : SideEffect> 
     public fun onActionExecuting(action: Action<S, E>) {}
 
     /**
-     * Invoked after a state change is computed and about to be set.
+     * Invoked once for every state transition that was actually applied, after [newState] has
+     * been published to the processor's state flow.
+     *
+     * Reported for reductions from both execution paths: a `ReducerAction` running on the
+     * intent loop, and [AsyncScope.reduce] called from inside an [AsyncAction]. *Not* reported
+     * for a transformation that left the state unchanged, nor for one that was discarded
+     * because another coroutine won the compare-and-set race — so the sequence of
+     * `onStateChanged` calls is a faithful account of the states the processor actually held.
      *
      * @param oldState The previous view state.
-     * @param newState The new view state.
+     * @param newState The new view state, already published when this is invoked.
      */
     public fun onStateChanged(oldState: S, newState: S) {}
 

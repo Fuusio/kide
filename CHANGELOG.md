@@ -4,6 +4,88 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`kide`** — state changes made through `AsyncScope.reduce` (that is, every reduction
+  performed inside an `async { }` / `useCase { }` action) are now reported to
+  `KideInterceptor.onStateChanged`. Previously they were written straight to the state flow
+  without notifying interceptors, so the entire asynchronous half of a processor's work —
+  network results, error handling, the reduction that clears a loading flag — was missing
+  from `FlightRecorder` traces, from the `kide_get_trace` agent tool, and from the
+  assertions produced by `TraceTestGenerator`. Traces of async-heavy screens will now
+  contain events they did not contain before.
+- **`kide`** — interceptors are no longer notified from inside `MutableStateFlow.update`.
+  That lambda is re-evaluated whenever it loses a compare-and-set race, which reported
+  state transitions that were computed, discarded, and never applied. Reductions now run
+  through an explicit compare-and-set loop that notifies exactly once, for the transition
+  that won, after it has been published.
+- **`kide`** — a reduction that leaves the state unchanged (returning the receiver, or an
+  `equals` copy) no longer reports an `onStateChanged`. `StateFlow` conflates such an
+  update and emits nothing, so the previous behaviour recorded transitions that no
+  collector ever observed.
+- **`kide-devtools`** — `FlightRecorder` now keeps its buffer ordered by `TraceEvent.seq`.
+  Sequence numbers are allocated before the compare-and-set that inserts an event, so a
+  thread holding a higher number could win the race and land first, leaving list order and
+  causal order disagreeing. Everything downstream reads the buffer positionally — `events`
+  is documented oldest-first, `toJson(limit)` slices the tail, and `TraceTestGenerator`
+  numbers replay steps in list order — and capacity trimming drops from the front, so an
+  out-of-order buffer could also evict a newer event while retaining an older one.
+
+- **`kide`** — a `SideEffect` is reported to `KideInterceptor.onSideEffect` only once the
+  side-effect channel has accepted it. The result of the send was previously discarded and
+  interceptors were notified beforehand, so an effect produced while the processor was
+  closing was recorded as delivered when it had in fact been dropped.
+- **`kide`** — `dispatch()` on a closed processor no longer notifies interceptors. It was
+  already a documented no-op, but `onIntent` fired first, leaving an intent in the trace
+  with no mapping, no state change and no effect after it — indistinguishable from a `map()`
+  that returned `null` or from an intent loop that had stalled.
+- **`kide-devtools`** — `DebugHandle.dispatch` now throws `IllegalStateException` instead of
+  silently doing nothing when the attached processor has been closed. Handles are not removed
+  automatically when a screen is popped, so `kide_dispatch_intent` against a stale handle used
+  to report success while changing nothing.
+
+- **`kide`** — the keyed-cancellation job registry is no longer mutated from a job completion
+  handler. `invokeOnCompletion` runs on whichever thread completed or cancelled the job, which
+  put a concurrent writer on an unsynchronised map; completed jobs are now left in place and
+  replaced on the next dispatch under the same key. The map is bounded by the number of
+  distinct keys in use, and cancelling an already-completed job is a no-op.
+- **`kide-devtools`** — `DebugHandle.dispatch` now rejects an intent that is not of the
+  processor's intent type, instead of relying on an erased cast that compiled to nothing and
+  let the wrong object fail deep inside `map()` — or match no branch and do nothing at all.
+
+### Added
+
+- **`kide`** — `PresentationProcessor.isClosed`.
+- **`kide-devtools`** — `DebugHandle.intentClassName`, also reported as `intentClass` by the
+  `kide_list_processors` MCP tool, so a caller knows what type to construct for
+  `kide_dispatch_intent`.
+- **`kide-devtools`** — `DebugHandle.isClosed`, and a `closed` field on each entry returned by
+  the `kide_list_processors` MCP tool, so an agent can tell a live processor from the remains
+  of a destination that has been popped.
+
+### Changed
+
+- **`kide`** — `KideInterceptor.onStateChanged` is now invoked *after* the new state has
+  been published to `states`, rather than immediately before it is set. An interceptor that
+  reads `processor.state` during the callback now observes the transition it was just told
+  about. The KDoc has been updated to state the fidelity contract that `kide-devtools`
+  depends on.
+- **`kide`** — the threading contract is now documented rather than merely assumed:
+  `processorScope` must be confined to a single thread. The default
+  (`Dispatchers.Main.immediate`) and single-threaded test dispatchers satisfy it;
+  `Dispatchers.Default` and thread pools do not. This constrains the processor's own
+  machinery only — `dispatch` is safe from any thread, and `AsyncScope.reduce` remains safe
+  to call after a `withContext`.
+- **`kide`** — `composite(...)` now rejects a `cancellationKey` when none of the contained
+  actions is asynchronous. Such a composite executes inline on the intent loop and is never
+  launched as a cancellable job, so the key was silently ignored. `CompositeAction`'s
+  constructor and `create()` are unchanged; prefer the builder.
+- **`kide-devtools`** — `KideDebug.attach` is now `inline` with a `reified` intent type, so
+  the handle can carry the intent class. Source-compatible; existing call sites need no
+  change.
+
 ## [1.1.1] - 2026-07-23
 
 ### Fixed
