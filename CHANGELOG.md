@@ -4,7 +4,28 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - 2026-07-25
+
+An audit of `kide-navigation`, focused on the **process-death restore path** — where failures
+are either silent (arguments vanish, the wrong screen opens) or fatal (a crash at startup that
+survives restarts), and where none of the code had test coverage. Binary-compatible with 1.2.0.
+
+> **Upgrading:** `ScreenNavKeyRegistry.register` now fails fast on a duplicate `serialKey`
+> rather than overwriting silently. If your application currently registers two different
+> destinations under the same key, it will throw on first launch after upgrading. That is
+> deliberate — a duplicate `serialKey` is a bug, and failing immediately for everyone is far
+> better than failing only for the users who reach process death on the wrong screen — but it
+> is a behaviour change, and it surfaces at startup. See *Changed* below.
+
+### Changed
+
+- **`kide-navigation`** — `ScreenNavKeyRegistry.register` rejects a *different* destination
+  registered under an already-used `serialKey` instead of silently overwriting it. Overwriting
+  meant the saved back stack resolved to whichever feature initialised last, sending the user
+  to the wrong screen after process death, or throwing `ClassCastException` from inside a
+  composable when the two destinations used different processor types. Re-registering the same
+  or an `equals` key remains a no-op, so a feature whose `initialize()` runs twice is
+  unaffected.
 
 ### Fixed
 
@@ -26,12 +47,6 @@ All notable changes to Kide are documented in this file. The format follows
   now logs a warning instead of silently discarding its navigation arguments on restore. The
   default `restoreArgs()` returns the key unchanged, so such a destination reopened with
   default arguments and nothing anywhere reported it.
-- **`kide-navigation`** — `ScreenNavKeyRegistry.register` rejects a *different* destination
-  registered under an already-used `serialKey` instead of silently overwriting it. Overwriting
-  meant the saved back stack resolved to whichever feature initialised last, sending the user
-  to the wrong screen after process death, or throwing `ClassCastException` from inside a
-  composable when the two destinations used different processor types. Re-registering the same
-  or an equal key remains a no-op, so a feature whose `initialize()` runs twice is unaffected.
 - **sample app** — `AboutFeature` never registered `AboutNavKey`, although the About
   destination is reachable from the navigation drawer. Backgrounding on that screen and losing
   the process crashed the app on relaunch — a live instance of the failure above.
