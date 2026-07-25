@@ -42,7 +42,7 @@ object SearchFeature : KoinFeature {
             // drive this processor in debug builds.
             val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>()
             SearchProcessor(get(), get(), interceptors = listOf(recorder)).also { processor ->
-                KideDebug.attach("search", processor, recorder)
+                KideDebug.attachTyped("search", processor, recorder)
             }
         }
     }

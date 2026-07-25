@@ -382,7 +382,7 @@ public object KideMcpServer {
             "kide_list_processors" -> {
                 val handles = KideDebug.handles()
                 if (handles.isEmpty()) {
-                    "No processors attached. Attach FlightRecorders via KideDebug.attach in the app."
+                    "No processors attached. Attach FlightRecorders via KideDebug.attachTyped in the app."
                 } else {
                     buildJsonArray {
                         handles.values.forEach { handle ->

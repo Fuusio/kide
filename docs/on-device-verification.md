@@ -112,7 +112,7 @@ Install a release (non-debuggable) build and verify logcat shows
 **Failure signatures:**
 - Connection refused in B1 → server never started: check B0 log line and the guard.
 - Empty processor list in B2 → Search screen not yet visited (expected), or
-  `KideDebug.attach` not wired in `SearchFeature`.
+  `KideDebug.attachTyped` not wired in `SearchFeature`.
 - `Serializer for class ... not found` in B3 → the intent class isn't `@Serializable`,
   or (release builds only) R8 stripped serializers — agent port is debug-only, so this
   should never occur in practice.

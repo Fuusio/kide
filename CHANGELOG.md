@@ -4,7 +4,16 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.0] - 2026-07-25
+
+This release is the result of an audit of the MVI core and the agent-facing trace path. Most
+of it concerns **trace fidelity**: `kide-devtools` — the `FlightRecorder`, the MCP agent port
+and the regression-test generator — can only be as correct as what interceptors are told, and
+several things were being reported that had not happened, or not reported at all. Traces of
+async-heavy screens will contain events they did not contain before.
+
+Binary-compatible with 1.1.1; source-compatible apart from one deprecation and one newly
+rejected argument combination (both below).
 
 ### Fixed
 
@@ -32,7 +41,6 @@ All notable changes to Kide are documented in this file. The format follows
   is documented oldest-first, `toJson(limit)` slices the tail, and `TraceTestGenerator`
   numbers replay steps in list order — and capacity trimming drops from the front, so an
   out-of-order buffer could also evict a newer event while retaining an older one.
-
 - **`kide`** — a `SideEffect` is reported to `KideInterceptor.onSideEffect` only once the
   side-effect channel has accepted it. The result of the send was previously discarded and
   interceptors were notified beforehand, so an effect produced while the processor was
@@ -45,7 +53,6 @@ All notable changes to Kide are documented in this file. The format follows
   silently doing nothing when the attached processor has been closed. Handles are not removed
   automatically when a screen is popped, so `kide_dispatch_intent` against a stale handle used
   to report success while changing nothing.
-
 - **`kide`** — the keyed-cancellation job registry is no longer mutated from a job completion
   handler. `invokeOnCompletion` runs on whichever thread completed or cancelled the job, which
   put a concurrent writer on an unsynchronised map; completed jobs are now left in place and
@@ -82,9 +89,16 @@ All notable changes to Kide are documented in this file. The format follows
   actions is asynchronous. Such a composite executes inline on the intent loop and is never
   launched as a cancellable job, so the key was silently ignored. `CompositeAction`'s
   constructor and `create()` are unchanged; prefer the builder.
-- **`kide-devtools`** — `KideDebug.attach` is now `inline` with a `reified` intent type, so
-  the handle can carry the intent class. Source-compatible; existing call sites need no
-  change.
+
+### Deprecated
+
+- **`kide-devtools`** — `KideDebug.attach` in favour of `KideDebug.attachTyped`, which is
+  `inline` with a `reified` intent type and can therefore give the handle a real type to check
+  injected intents against. `attach` remains, with unchanged behaviour and an unchanged JVM
+  signature, so code compiled against 1.1.x keeps working; handles it creates accept any object
+  and report their intent type as `"unknown"`. The two are separate functions only because a
+  `reified` function emits no callable JVM method — `attachTyped` will take the `attach` name at
+  the next major release.
 
 ## [1.1.1] - 2026-07-23
 

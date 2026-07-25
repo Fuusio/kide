@@ -139,7 +139,7 @@ class FlightRecorderTest : DescribeSpec({
         it("attach exposes state and dispatch through the handle") {
             val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
             val processor = CounterProcessor(recorder)
-            val handle = KideDebug.attach("counter", processor, recorder)
+            val handle = KideDebug.attachTyped("counter", processor, recorder)
 
             handle.currentState() shouldBe "CounterState(value=0)"
             handle.dispatch(CounterIntent.Increment)
@@ -153,7 +153,7 @@ class FlightRecorderTest : DescribeSpec({
         it("reports whether the attached processor is still open") {
             val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
             val processor = CounterProcessor(recorder)
-            val handle = KideDebug.attach("counter_closed", processor, recorder)
+            val handle = KideDebug.attachTyped("counter_closed", processor, recorder)
 
             handle.isClosed shouldBe false
             processor.close()
@@ -168,7 +168,7 @@ class FlightRecorderTest : DescribeSpec({
         it("refuses to dispatch into a closed processor") {
             val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
             val processor = CounterProcessor(recorder)
-            val handle = KideDebug.attach("counter_dead", processor, recorder)
+            val handle = KideDebug.attachTyped("counter_dead", processor, recorder)
             processor.close()
 
             val failure = shouldThrow<IllegalStateException> {
@@ -181,10 +181,26 @@ class FlightRecorderTest : DescribeSpec({
             KideDebug.detach("counter_dead")
         }
 
+        // Kept for binary compatibility with 1.1.x: a reified function emits no callable JVM
+        // method, so replacing attach() outright would have broken anything already compiled
+        // against it. It cannot capture the intent type, so it stays permissive.
+        it("supports the deprecated untyped attach") {
+            val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
+            val processor = CounterProcessor(recorder)
+            @Suppress("DEPRECATION")
+            val handle = KideDebug.attach("counter_legacy", processor, recorder)
+
+            handle.intentClassName shouldBe "unknown"
+            handle.dispatch(CounterIntent.Increment)
+            handle.currentState() shouldBe "CounterState(value=1)"
+
+            KideDebug.detach("counter_legacy")
+        }
+
         it("reports the intent type the processor accepts") {
             val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
             val processor = CounterProcessor(recorder)
-            val handle = KideDebug.attach("counter_type", processor, recorder)
+            val handle = KideDebug.attachTyped("counter_type", processor, recorder)
 
             handle.intentClassName shouldBe "org.fuusio.kide.devtools.CounterIntent"
 
@@ -197,7 +213,7 @@ class FlightRecorderTest : DescribeSpec({
         it("refuses an intent that is not of the processor's intent type") {
             val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
             val processor = CounterProcessor(recorder)
-            val handle = KideDebug.attach("counter_wrong_type", processor, recorder)
+            val handle = KideDebug.attachTyped("counter_wrong_type", processor, recorder)
 
             val failure = shouldThrow<IllegalArgumentException> {
                 handle.dispatch(UnrelatedIntent)
@@ -213,7 +229,7 @@ class FlightRecorderTest : DescribeSpec({
         it("still exposes the trace recorded before the processor was closed") {
             val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
             val processor = CounterProcessor(recorder)
-            val handle = KideDebug.attach("counter_trace", processor, recorder)
+            val handle = KideDebug.attachTyped("counter_trace", processor, recorder)
 
             processor.dispatch(CounterIntent.Increment)
             processor.close()
@@ -229,7 +245,7 @@ class FlightRecorderTest : DescribeSpec({
         it("generates a replay scaffold containing intents and expected states") {
             val recorder = FlightRecorder<CounterIntent, CounterState, CounterEffect>()
             val processor = CounterProcessor(recorder)
-            val handle = KideDebug.attach("counter_gen", processor, recorder)
+            val handle = KideDebug.attachTyped("counter_gen", processor, recorder)
 
             processor.dispatch(CounterIntent.Increment)
             processor.dispatch(CounterIntent.Increment)

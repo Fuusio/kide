@@ -34,3 +34,6 @@ google-services.json
 *.hprof
 /.idea
 /.kotlin
+
+# Local AI agent configuration
+.claude/

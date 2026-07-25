@@ -35,7 +35,7 @@ import kotlin.concurrent.atomics.fetchAndIncrement
  *
  * Where [KideDevToolsInterceptor] *streams* events out to a console, the flight recorder
  * keeps a *queryable history* inside the app. It is the data source for the Kide agent
- * port ([attach][KideDebug.attach] + `KideMcpServer`), for attaching traces to bug
+ * port ([attachTyped][KideDebug.attachTyped] + `KideMcpServer`), for attaching traces to bug
  * reports ([toJson]), and for turning a recorded session into a regression-test scaffold
  * ([TraceTestGenerator]).
  *

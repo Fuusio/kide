@@ -95,7 +95,7 @@ small (Android transaction limits) — persist inputs, not result lists.
 - `FlightRecorder<I, S, E>(capacity = 500)` — interceptor recording the causal trace
   (`TraceEvent`: seq, timestamp, type, payload, payloadClass, previousState);
   `events`, `toJson(limit)`, `clear()`.
-- `KideDebug.attach(name, processor, recorder)` / `detach(name)` — registry for tooling.
+- `KideDebug.attachTyped(name, processor, recorder)` / `detach(name)` — registry for tooling.
 - `KideMcpServer.start(port = 8765)` (JVM) / `KideMcpServer.start(context, port)`
   (Android; refuses unless debuggable). Loopback-only; debug builds only. MCP tools:
   `kide_list_processors`, `kide_get_state`, `kide_get_trace`, `kide_clear_trace`,
