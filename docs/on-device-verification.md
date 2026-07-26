@@ -89,7 +89,7 @@ curl -s -X POST $MCP -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","i
 | `closed` | `false` |
 
 `intentClass` is what `kide_dispatch_intent` type-checks against — if it reads `unknown`,
-the processor was attached with the deprecated `KideDebug.attach` instead of `attachTyped`.
+the processor was attached with the deprecated `KideDebug.attach` instead of `attach`.
 
 Type something in the Search field on the device, re-run `kide_get_trace` — the new
 `UpdateQuery` intents and state diffs must appear.
@@ -118,6 +118,29 @@ the second. Then export the session:
 ```bash
 curl -s -X POST $MCP -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"kide_export_regression_test","arguments":{"processor":"search"}}}'
 ```
+
+**B2b — Domain events in the trace.** Save a project from the Search screen (the star / save
+control), then re-read the trace.
+
+The `SavedProjectsProcessor` shares the application's `TraceBuffer` with the search screen's
+`FlightRecorder`, so the trace must contain **both** layers for that one tap, tied together by
+a single `correlationId`:
+
+```
+"source":"Presentation" "type":"Intent"        ← ToggleSave
+"source":"Presentation" "type":"ActionMapped"
+"source":"Domain"       "type":"Intent"        ← SaveProject
+"source":"Domain"       "type":"StateChanged"  ← SavedProjectsState, projects grew
+"source":"Presentation" "type":"StateChanged"
+```
+
+Check that every one of those events carries the same `correlationId`, and that a *second*
+save gets a different one. This is the whole point of the domain-tracing work: before it, the
+trace stopped at the first two lines and an agent could not tell a failed repository write from
+a UI that never dispatched.
+
+Events with `"correlationId":null` are expected and correct — `SavedProjectsProcessor` collects
+repository flows from its `init` block, which has no originating intent.
 
 **B3a — Rejected injections (negative cases).** Each of these must come back as a tool
 result with `"isError": true` and a message that says what was wrong. Silence, or a
@@ -163,10 +186,14 @@ Install a release (non-debuggable) build and verify logcat shows
 
 **Failure signatures:**
 - Connection refused in B1 → server never started: check B0 log line and the guard.
+- `Could not start the Kide agent port` in logcat, app otherwise running → the port is held by
+  something else, usually an older build of the app still alive. `adb shell ss -ltnp | grep
+  8765` to find it. The app deliberately keeps running: losing the agent port must never be
+  fatal. (Before 2.0.0 this crashed the app at startup.)
 - Empty processor list in B2 → Search screen not yet visited (expected), or
-  `KideDebug.attachTyped` not wired in `SearchFeature`.
+  `KideDebug.attach` not wired in `SearchFeature`.
 - `intentClass` reads `unknown` in B2 → the processor was attached with the deprecated
-  `KideDebug.attach`; injected intents are not type-checked. Switch to `attachTyped`.
+  `KideDebug.attach`; injected intents are not type-checked. Switch to `attach`.
 - No `isLoading` transitions in the B2a trace → reductions made inside `async { }` /
   `useCase { }` are not reaching interceptors. This is the regression 1.2.0 fixed; the
   trace-fidelity unit tests in `kide` should have caught it, so treat it as a signal that

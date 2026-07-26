@@ -70,7 +70,7 @@ Kide is highly decoupled. Use only what you need:
 ## Installation
 
 Kide is published to **Maven Central** under the group `org.fuusio.kide`. The latest
-release is **1.3.0**.
+release is **2.0.0**.
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.fuusio.kide/kide.svg?label=Maven%20Central)](https://central.sonatype.com/search?q=org.fuusio.kide)
 
@@ -96,16 +96,16 @@ in `commonMain`:
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("org.fuusio.kide:kide:1.3.0")                     // Core MVI engine
-            implementation("org.fuusio.kide:kide-navigation:1.3.0")          // Navigation 3
-            implementation("org.fuusio.kide:kide-clean-architecture:1.3.0")  // Clean Architecture
-            implementation("org.fuusio.kide:kide-koin:1.3.0")                // Koin DI helpers
-            implementation("org.fuusio.kide:kide-decompose:1.3.0")           // Decompose host
-            implementation("org.fuusio.kide:kide-voyager:1.3.0")             // Voyager host
+            implementation("org.fuusio.kide:kide:2.0.0")                     // Core MVI engine
+            implementation("org.fuusio.kide:kide-navigation:2.0.0")          // Navigation 3
+            implementation("org.fuusio.kide:kide-clean-architecture:2.0.0")  // Clean Architecture
+            implementation("org.fuusio.kide:kide-koin:2.0.0")                // Koin DI helpers
+            implementation("org.fuusio.kide:kide-decompose:2.0.0")           // Decompose host
+            implementation("org.fuusio.kide:kide-voyager:2.0.0")             // Voyager host
         }
         commonTest.dependencies {
-            implementation("org.fuusio.kide:kide-test:1.3.0")                     // Presentation testing DSL
-            implementation("org.fuusio.kide:kide-clean-architecture-test:1.3.0")  // Use-case testing DSL
+            implementation("org.fuusio.kide:kide-test:2.0.0")                     // Presentation testing DSL
+            implementation("org.fuusio.kide:kide-clean-architecture-test:2.0.0")  // Use-case testing DSL
         }
     }
 }
@@ -115,11 +115,11 @@ For debug builds only, add the agent-native debug tooling:
 
 ```kotlin
 // e.g. an androidMain / debug source set
-implementation("org.fuusio.kide:kide-devtools:1.3.0")
+implementation("org.fuusio.kide:kide-devtools:2.0.0")
 
 // Add this too if you use kide-clean-architecture and want domain-layer events
 // in the same trace as the UI events that caused them:
-implementation("org.fuusio.kide:kide-clean-architecture-devtools:1.3.0")
+implementation("org.fuusio.kide:kide-clean-architecture-devtools:2.0.0")
 ```
 
 For a single-platform (e.g. Android-only) project, declare them in the regular
@@ -127,8 +127,8 @@ For a single-platform (e.g. Android-only) project, declare them in the regular
 
 ```kotlin
 dependencies {
-    implementation("org.fuusio.kide:kide:1.3.0")
-    testImplementation("org.fuusio.kide:kide-test:1.3.0")
+    implementation("org.fuusio.kide:kide:2.0.0")
+    testImplementation("org.fuusio.kide:kide-test:2.0.0")
 }
 ```
 
@@ -138,7 +138,7 @@ If you use a `libs.versions.toml` catalog, declare a shared version and the arti
 
 ```toml
 [versions]
-kide = "1.3.0"
+kide = "2.0.0"
 
 [libraries]
 kide = { module = "org.fuusio.kide:kide", version.ref = "kide" }
@@ -410,29 +410,58 @@ class SearchProcessor : PresentationProcessor<…> {
 
 Classic MVI debug tooling renders a GUI for human eyes. Kide's `kide-devtools` module
 additionally targets the entity that increasingly does the debugging: **your AI coding
-agent**. A `FlightRecorder` interceptor keeps a queryable, causally ordered trace of a
-processor's life (intent → mapped action → state diff → side effect → error), and an
+agent**. Recorders keep a queryable, causally ordered trace of an application's life, and an
 embedded MCP server exposes the *running app* as agent tools:
 
 ```mermaid
 flowchart TD
     Agent[AI Agent\nClaude / Antigravity] <-->|MCP Protocol\nHTTP| MCP[KideMcpServer]
-    
+
     subgraph Running Application
-        MCP <-->|Tools:\nget_trace, get_state,\ndispatch_intent| FR[FlightRecorder]
+        MCP <-->|Tools:\nget_trace, get_state,\ndispatch_intent| TB[(TraceBuffer\none causal stream)]
+        FR[FlightRecorder] -->|source: Presentation| TB
+        UFR[UseCaseFlightRecorder] -->|source: Domain| TB
         FR -.->|Intercepts Intent, Action,\nState, SideEffect, Error| PP[PresentationProcessor]
+        UFR -.->|Intercepts Intent,\nState, Error| UC[UseCaseProcessor]
         UI[App UI] -->|dispatch| PP
         PP -->|stateFlow| UI
+        PP -->|dispatch| UC
     end
 ```
 
+**Both layers, one trace.** Give the presentation and domain recorders the same `TraceBuffer`
+and a single tap reads end to end:
+
+```
+correlationId  source        type            payload
+0              Presentation  Intent          ToggleSave(project=…)
+0              Presentation  ActionMapped    AsyncAction
+0              Domain        Intent          SaveProject(…)      ← the domain half
+0              Domain        StateChanged    SavedProjectsState(projects=8)
+0              Presentation  StateChanged    SearchViewState(saved=true)
+```
+
+Every event produced by one interaction shares a `correlationId`. Nothing passes it by hand —
+it rides the coroutine context, so it survives an `AsyncAction`, a
+`withContext(Dispatchers.IO)`, and the call into a use case that knows nothing about the UI.
+That turns *"why didn't the list update?"* into a question with a mechanical answer: group by
+`correlationId` and find the layer where the chain stops.
+
 ```kotlin
 // Wiring (debug builds):
-val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>()
-val processor = SearchProcessor(useCase, interceptors = listOf(recorder))
+val buffer = TraceBuffer()                                    // one per app is fine
+val savedProjects = SavedProjectsProcessor(
+    repository,
+    interceptors = listOf(UseCaseFlightRecorder(buffer)),     // kide-clean-architecture-devtools
+)
+val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>(buffer)
+val processor = SearchProcessor(useCase, savedProjects, interceptors = listOf(recorder))
 KideDebug.attach("search", processor, recorder)
 KideMcpServer.start(context) // Android: guarded — refuses to start unless debuggable
 ```
+
+The domain half is optional: use `FlightRecorder()` on its own and you get the presentation
+trace, exactly as before.
 
 ```
 adb forward tcp:8765 tcp:8765

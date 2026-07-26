@@ -4,14 +4,26 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2.0.0
+## [2.0.0] - 2026-07-26
 
-A consolidated major that collects every known breaking change while adoption is still small
-enough for the cost to be near zero, and leaves no deprecated surface behind. See
-[docs/proposal-2.0.0.md](docs/proposal-2.0.0.md) for the full plan and
+Two things at once: **the domain layer joins the trace**, and every known breaking change is
+collected into one release so that no deprecated surface is carried forward.
+
+Until now a recorded session covered the presentation layer only. Ask *"why didn't the saved
+list update?"* and the trace showed the tap, the action, and then stopped exactly where the
+real work began. Domain events now land in the same causally ordered stream, and every event —
+in both layers — carries a correlation id identifying the interaction that caused it. Nothing
+passes that id by hand: it travels in the coroutine context, so it survives an `AsyncAction`,
+a `withContext(Dispatchers.IO)`, and the call into a use case that knows nothing about the UI.
+
+The breaking changes exist because that was not expressible otherwise — interceptor callbacks
+needed somewhere to put the context — and once one break was necessary, the rest were cheaper
+to take together. See [docs/proposal-2.0.0.md](docs/proposal-2.0.0.md) for the reasoning and
 [docs/migration-1.x-to-2.0.md](docs/migration-1.x-to-2.0.md) for step-by-step migration.
 
-*In progress — the domain-layer tracing work (changes 1, 2 and 6) is not yet implemented.*
+> **The one change the compiler cannot find for you:** a `cancellationKey` on a `composite(…)`
+> with no asynchronous member now throws instead of being silently ignored. Grep for
+> `cancellationKey` before upgrading. See *Changed* below.
 
 ### Added
 
