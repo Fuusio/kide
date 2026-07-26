@@ -39,10 +39,14 @@ object SearchFeature : KoinFeature {
         includes(FuusioApplicationFeature.koinModule(applicationContext))
         factory {
             // Attach a flight recorder so the Kide agent port (MCP) can inspect and
-            // drive this processor in debug builds.
-            val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>()
+            // drive this processor in debug builds. It shares the application-wide TraceBuffer
+            // with SavedProjectsProcessor's UseCaseFlightRecorder, so a recorded session shows
+            // the domain writes a tap caused — not just the UI events around them.
+            val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>(
+                buffer = get(),
+            )
             SearchProcessor(get(), get(), interceptors = listOf(recorder)).also { processor ->
-                KideDebug.attachTyped("search", processor, recorder)
+                KideDebug.attach("search", processor, recorder)
             }
         }
     }

@@ -49,8 +49,29 @@ class CompositeActionTest : DescribeSpec({
             }
 
             it("stores an explicit cancellationKey") {
-                val composite = CompositeAction<TestViewState, TestEffect>(emptyList(), "search")
+                val composite = CompositeAction<TestViewState, TestEffect>(
+                    listOf(AsyncAction()),
+                    "search",
+                )
                 composite.cancellationKey shouldBe "search"
+            }
+
+            // The key is only honoured for a composite that becomes a cancellable job, so every
+            // construction path rejects the combination rather than accepting a key that the
+            // processor will silently ignore.
+            it("rejects a cancellationKey when every action is synchronous") {
+                shouldThrow<IllegalArgumentException> {
+                    CompositeAction<TestViewState, TestEffect>(
+                        listOf(ReducerAction()),
+                        "search",
+                    )
+                }
+            }
+
+            it("rejects a cancellationKey on an empty actions list") {
+                shouldThrow<IllegalArgumentException> {
+                    CompositeAction<TestViewState, TestEffect>(emptyList(), "search")
+                }
             }
 
             it("accepts an empty actions list") {
@@ -83,6 +104,15 @@ class CompositeActionTest : DescribeSpec({
             it("defaults cancellationKey to null") {
                 val composite = CompositeAction.create<TestViewState, TestEffect>()
                 composite.cancellationKey.shouldBeNull()
+            }
+
+            it("rejects a cancellationKey when no contained action is asynchronous") {
+                shouldThrow<IllegalArgumentException> {
+                    CompositeAction.create<TestViewState, TestEffect>(
+                        ReducerAction(),
+                        cancellationKey = "profile",
+                    )
+                }
             }
         }
 
@@ -194,15 +224,16 @@ class CompositeActionTest : DescribeSpec({
         describe("data class semantics") {
 
             it("is equal to another instance with the same actions and key") {
-                val action = ReducerAction<TestViewState>()
-                val c1 = CompositeAction(listOf(action), "key")
-                val c2 = CompositeAction(listOf(action), "key")
+                val action = AsyncAction<TestViewState>()
+                val c1 = CompositeAction<TestViewState, TestEffect>(listOf(action), "key")
+                val c2 = CompositeAction<TestViewState, TestEffect>(listOf(action), "key")
                 c1 shouldBe c2
             }
 
             it("is not equal when cancellationKeys differ") {
-                val c1 = CompositeAction<TestViewState, TestEffect>(emptyList(), "a")
-                val c2 = CompositeAction<TestViewState, TestEffect>(emptyList(), "b")
+                val action = AsyncAction<TestViewState>()
+                val c1 = CompositeAction<TestViewState, TestEffect>(listOf(action), "a")
+                val c2 = CompositeAction<TestViewState, TestEffect>(listOf(action), "b")
                 c1 shouldNotBe c2
             }
 
@@ -213,20 +244,41 @@ class CompositeActionTest : DescribeSpec({
             }
 
             it("copy() replaces cancellationKey while keeping actions") {
-                val action = ReducerAction<TestViewState>()
-                val original = CompositeAction(listOf(action), "search")
+                val action = AsyncAction<TestViewState>()
+                val original = CompositeAction<TestViewState, TestEffect>(listOf(action), "search")
                 val copy = original.copy(cancellationKey = "load")
                 copy.cancellationKey shouldBe "load"
                 copy.actions shouldContainExactly listOf(action)
             }
 
             it("copy() replaces actions while keeping cancellationKey") {
-                val a1 = ReducerAction<TestViewState>()
+                val a1 = AsyncAction<TestViewState>()
                 val a2 = AsyncAction<TestViewState>()
-                val original = CompositeAction(listOf(a1), "key")
+                val original = CompositeAction<TestViewState, TestEffect>(listOf(a1), "key")
                 val copy = original.copy(actions = listOf(a2))
                 copy.actions shouldContainExactly listOf(a2)
                 copy.cancellationKey shouldBe "key"
+            }
+
+            // copy() runs the init block, so it cannot be used to smuggle a key past the check.
+            // This is why the validation was left out of 1.2.0 and waited for a major.
+            it("copy() rejects replacing the actions with synchronous ones while keyed") {
+                val original = CompositeAction<TestViewState, TestEffect>(
+                    listOf(AsyncAction()),
+                    "key",
+                )
+
+                shouldThrow<IllegalArgumentException> {
+                    original.copy(actions = listOf(ReducerAction()))
+                }
+            }
+
+            it("copy() rejects adding a key to a synchronous composite") {
+                val original = CompositeAction<TestViewState, TestEffect>(listOf(ReducerAction()))
+
+                shouldThrow<IllegalArgumentException> {
+                    original.copy(cancellationKey = "key")
+                }
             }
         }
 

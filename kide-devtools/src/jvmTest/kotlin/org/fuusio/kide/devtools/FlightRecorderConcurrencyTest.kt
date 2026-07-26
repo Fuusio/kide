@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.fuusio.kide.presentation.SideEffect
+import org.fuusio.kide.presentation.TraceContext
 import org.fuusio.kide.presentation.ViewIntent
 import org.fuusio.kide.presentation.ViewState
 
@@ -59,7 +60,10 @@ private suspend fun hammer(recorder: FlightRecorder<RaceIntent, RaceState, RaceE
         repeat(THREADS) { thread ->
             launch(Dispatchers.Default) {
                 repeat(PER_THREAD) { index ->
-                    recorder.onIntent(RaceIntent(thread * PER_THREAD + index))
+                    val id = thread * PER_THREAD + index
+                    // A distinct context per event: the buffer must preserve correlation as
+                    // faithfully as it preserves ordering, and a shared one would hide a mix-up.
+                    recorder.onIntent(RaceIntent(id), TraceContext(correlationId = id.toLong()))
                 }
             }
         }
@@ -120,6 +124,29 @@ class FlightRecorderConcurrencyTest : DescribeSpec({
             hammer(recorder)
 
             recorder.events.map { it.seq }.toSet().size shouldBe TOTAL
+        }
+
+        // Ordering is only half of what a trace has to preserve. Correlation is what ties an
+        // event back to the interaction that caused it, and a buffer that mixed ids up under
+        // contention would still pass every assertion above.
+        it("preserves each event's correlation id") {
+            val recorder = FlightRecorder<RaceIntent, RaceState, RaceEffect>(capacity = TOTAL * 2)
+
+            hammer(recorder)
+
+            recorder.events.mapNotNull { it.correlationId }.toSet().size shouldBe TOTAL
+        }
+
+        it("keeps each event's correlation id with its own payload") {
+            val recorder = FlightRecorder<RaceIntent, RaceState, RaceEffect>(capacity = TOTAL * 2)
+
+            hammer(recorder)
+
+            // hammer() gives event id N the correlation id N, so any mismatch is a mix-up.
+            val mismatched = recorder.events.filter { event ->
+                event.payload != "RaceIntent(id=${event.correlationId})"
+            }
+            mismatched shouldBe emptyList()
         }
     }
 })

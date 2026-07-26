@@ -91,21 +91,21 @@ public abstract interface annotation class org/fuusio/kide/presentation/ExposedI
 }
 
 public abstract interface class org/fuusio/kide/presentation/KideInterceptor {
-	public fun onActionExecuting (Lorg/fuusio/kide/presentation/Action;)V
-	public fun onActionMapped (Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/Action;)V
-	public fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
-	public fun onIntent (Lorg/fuusio/kide/presentation/ViewIntent;)V
-	public fun onSideEffect (Lorg/fuusio/kide/presentation/SideEffect;)V
-	public fun onStateChanged (Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/ViewState;)V
+	public fun onActionExecuting (Lorg/fuusio/kide/presentation/Action;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onActionMapped (Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/Action;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onIntent (Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onSideEffect (Lorg/fuusio/kide/presentation/SideEffect;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onStateChanged (Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/TraceContext;)V
 }
 
 public final class org/fuusio/kide/presentation/KideInterceptor$DefaultImpls {
-	public static fun onActionExecuting (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/Action;)V
-	public static fun onActionMapped (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/Action;)V
-	public static fun onError (Lorg/fuusio/kide/presentation/KideInterceptor;Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
-	public static fun onIntent (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewIntent;)V
-	public static fun onSideEffect (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/SideEffect;)V
-	public static fun onStateChanged (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/ViewState;)V
+	public static fun onActionExecuting (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/Action;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public static fun onActionMapped (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/Action;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public static fun onError (Lorg/fuusio/kide/presentation/KideInterceptor;Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public static fun onIntent (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public static fun onSideEffect (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/SideEffect;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public static fun onStateChanged (Lorg/fuusio/kide/presentation/KideInterceptor;Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/ViewState;Lorg/fuusio/kide/presentation/TraceContext;)V
 }
 
 public abstract interface class org/fuusio/kide/presentation/PresentationComponent : org/fuusio/kide/KideComponent {
@@ -164,6 +164,25 @@ public class org/fuusio/kide/presentation/SideEffectAction : org/fuusio/kide/pre
 	public fun <init> (Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun invoke (Lorg/fuusio/kide/presentation/ViewState;)Lorg/fuusio/kide/presentation/SideEffect;
+}
+
+public final class org/fuusio/kide/presentation/TraceContext : kotlin/coroutines/AbstractCoroutineContextElement {
+	public static final field Key Lorg/fuusio/kide/presentation/TraceContext$Key;
+	public fun <init> (J)V
+	public final fun component1 ()J
+	public final fun copy (J)Lorg/fuusio/kide/presentation/TraceContext;
+	public static synthetic fun copy$default (Lorg/fuusio/kide/presentation/TraceContext;JILjava/lang/Object;)Lorg/fuusio/kide/presentation/TraceContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCorrelationId ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/fuusio/kide/presentation/TraceContext$Key : kotlin/coroutines/CoroutineContext$Key {
+}
+
+public final class org/fuusio/kide/presentation/TraceContextKt {
+	public static final fun currentTraceContext (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class org/fuusio/kide/presentation/ViewIntent : org/fuusio/kide/presentation/PresentationComponent {

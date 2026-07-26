@@ -24,6 +24,7 @@ import kotlinx.serialization.json.put
 import org.fuusio.kide.presentation.Action
 import org.fuusio.kide.presentation.KideInterceptor
 import org.fuusio.kide.presentation.SideEffect
+import org.fuusio.kide.presentation.TraceContext
 import org.fuusio.kide.presentation.ViewIntent
 import org.fuusio.kide.presentation.ViewState
 
@@ -53,7 +54,7 @@ public class KideDevToolsInterceptor<I : ViewIntent, S : ViewState, E : SideEffe
         client.send(packet.toString())
     }
 
-    override fun onIntent(intent: I): Unit {
+    override fun onIntent(intent: I, context: TraceContext?): Unit {
         val payload = if (intentSerializer != null) {
             json.encodeToString(intentSerializer, intent)
         } else {
@@ -62,7 +63,7 @@ public class KideDevToolsInterceptor<I : ViewIntent, S : ViewState, E : SideEffe
         sendEvent("intent", payload)
     }
 
-    override fun onActionMapped(intent: I, action: Action<S, E>?): Unit {
+    override fun onActionMapped(intent: I, action: Action<S, E>?, context: TraceContext?): Unit {
         val payload = buildJsonObject {
             put("intent", intent.toString())
             put("action", action?.toString() ?: "null")
@@ -70,11 +71,11 @@ public class KideDevToolsInterceptor<I : ViewIntent, S : ViewState, E : SideEffe
         sendEvent("action_mapped", payload.toString())
     }
 
-    override fun onActionExecuting(action: Action<S, E>): Unit {
+    override fun onActionExecuting(action: Action<S, E>, context: TraceContext?): Unit {
         sendEvent("action_executing", action.toString())
     }
 
-    override fun onStateChanged(oldState: S, newState: S): Unit {
+    override fun onStateChanged(oldState: S, newState: S, context: TraceContext?): Unit {
         val payload = buildJsonObject {
             put("oldState", if (stateSerializer != null) json.encodeToString(stateSerializer, oldState) else oldState.toString())
             put("newState", if (stateSerializer != null) json.encodeToString(stateSerializer, newState) else newState.toString())
@@ -82,7 +83,7 @@ public class KideDevToolsInterceptor<I : ViewIntent, S : ViewState, E : SideEffe
         sendEvent("state_changed", payload.toString())
     }
 
-    override fun onSideEffect(sideEffect: E): Unit {
+    override fun onSideEffect(sideEffect: E, context: TraceContext?): Unit {
         val payload = if (effectSerializer != null) {
             json.encodeToString(effectSerializer, sideEffect)
         } else {

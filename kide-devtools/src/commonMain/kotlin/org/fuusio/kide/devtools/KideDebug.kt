@@ -76,7 +76,7 @@ public class DebugHandle internal constructor(
         check(!isClosed) {
             "Processor '$name' ($processorClassName) is closed and cannot accept intents. " +
                 "Its screen has most likely been popped or recreated; re-attach the current " +
-                "instance with KideDebug.attachTyped(\"$name\", ...), or drop the stale handle with " +
+                "instance with KideDebug.attach(\"$name\", ...), or drop the stale handle with " +
                 "KideDebug.detach(\"$name\")."
         }
         require(intentTypeCheck(intent)) {
@@ -99,7 +99,7 @@ public class DebugHandle internal constructor(
  * ```kotlin
  * val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>()
  * val processor = SearchProcessor(useCase, interceptors = listOf(recorder))
- * KideDebug.attachTyped("search", processor, recorder)
+ * KideDebug.attach("search", processor, recorder)
  * ```
  *
  * Intended for debug builds; attach nothing in release builds and the registry stays empty.
@@ -113,37 +113,6 @@ public object KideDebug {
      * Registers [processor] and its [recorder] under [name], replacing any previous handle
      * with the same name (for example, after a destination is recreated).
      *
-     * Prefer [attachTyped], which captures the processor's intent type and lets the handle
-     * reject a wrongly typed injection at the boundary. A handle attached here accepts any
-     * object and reports its intent type as `"unknown"`, because the type argument is erased
-     * by the time this function runs.
-     *
-     * Handles are *not* removed when a processor is closed; call [detach] when a destination
-     * goes away, or check [DebugHandle.isClosed] before trusting a handle.
-     *
-     * @return The registered [DebugHandle].
-     */
-    @Deprecated(
-        message = "Use attachTyped, which type-checks injected intents at the agent port.",
-        replaceWith = ReplaceWith("attachTyped(name, processor, recorder)"),
-    )
-    public fun <I : ViewIntent, S : ViewState, E : SideEffect> attach(
-        name: String,
-        processor: PresentationProcessor<I, S, E>,
-        recorder: FlightRecorder<I, S, E>,
-    ): DebugHandle = attachInternal(
-        name = name,
-        processor = processor,
-        recorder = recorder,
-        intentClassName = UNKNOWN_INTENT_CLASS,
-        // The type argument is erased here, so no check is possible. Matches 1.1.x behaviour.
-        intentTypeCheck = { true },
-    )
-
-    /**
-     * Registers [processor] and its [recorder] under [name], replacing any previous handle
-     * with the same name (for example, after a destination is recreated).
-     *
      * Reified so that the resulting handle records the processor's intent type and can reject
      * a wrongly typed injection at the boundary — see [DebugHandle.dispatch]. This matters most
      * for the MCP agent port, where the intent is reconstructed from a class name supplied by
@@ -152,13 +121,9 @@ public object KideDebug {
      * Handles are *not* removed when a processor is closed; call [detach] when a destination
      * goes away, or check [DebugHandle.isClosed] before trusting a handle.
      *
-     * (Named separately from [attach] only to keep binary compatibility with 1.1.x, since a
-     * `reified` function emits no callable JVM method. The deprecated [attach] can be removed
-     * and this one renamed at the next major release.)
-     *
      * @return The registered [DebugHandle].
      */
-    public inline fun <reified I : ViewIntent, S : ViewState, E : SideEffect> attachTyped(
+    public inline fun <reified I : ViewIntent, S : ViewState, E : SideEffect> attach(
         name: String,
         processor: PresentationProcessor<I, S, E>,
         recorder: FlightRecorder<I, S, E>,
@@ -220,6 +185,4 @@ public object KideDebug {
         }
     }
 
-    /** Reported by handles attached without a reified intent type. */
-    private const val UNKNOWN_INTENT_CLASS: String = "unknown"
 }

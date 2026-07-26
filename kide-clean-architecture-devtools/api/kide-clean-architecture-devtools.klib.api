@@ -1,0 +1,18 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KideApp:kide-clean-architecture-devtools>
+final class <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase.devtools/UseCaseFlightRecorder : org.fuusio.kide.domain.usecase/UseCaseInterceptor<#A, #B> { // org.fuusio.kide.domain.usecase.devtools/UseCaseFlightRecorder|null[0]
+    constructor <init>(org.fuusio.kide.devtools/TraceBuffer) // org.fuusio.kide.domain.usecase.devtools/UseCaseFlightRecorder.<init>|<init>(org.fuusio.kide.devtools.TraceBuffer){}[0]
+
+    final val buffer // org.fuusio.kide.domain.usecase.devtools/UseCaseFlightRecorder.buffer|{}buffer[0]
+        final fun <get-buffer>(): org.fuusio.kide.devtools/TraceBuffer // org.fuusio.kide.domain.usecase.devtools/UseCaseFlightRecorder.buffer.<get-buffer>|<get-buffer>(){}[0]
+
+    final fun onError(kotlin/Throwable, #B, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.domain.usecase.devtools/UseCaseFlightRecorder.onError|onError(kotlin.Throwable;1:1;org.fuusio.kide.presentation.TraceContext?){}[0]
+    final fun onIntent(#B, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.domain.usecase.devtools/UseCaseFlightRecorder.onIntent|onIntent(1:1;org.fuusio.kide.presentation.TraceContext?){}[0]
+    final fun onStateChanged(#A, #A, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.domain.usecase.devtools/UseCaseFlightRecorder.onStateChanged|onStateChanged(1:0;1:0;org.fuusio.kide.presentation.TraceContext?){}[0]
+}

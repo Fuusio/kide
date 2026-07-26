@@ -70,6 +70,9 @@ private class RecordingInterceptor : KideInterceptor<FidelityIntent, TestViewSta
 
     val events = mutableListOf<Recorded>()
 
+    /** The TraceContext passed to each callback, in the same order as [events]. */
+    val contexts = mutableListOf<TraceContext?>()
+
     /** Set after construction; lets assertions check what the processor exposed at callback time. */
     var processor: PresentationProcessor<FidelityIntent, TestViewState, FidelitySideEffect>? = null
 
@@ -79,28 +82,34 @@ private class RecordingInterceptor : KideInterceptor<FidelityIntent, TestViewSta
     val stateChanges: List<Recorded.StateChanged>
         get() = events.filterIsInstance<Recorded.StateChanged>()
 
-    override fun onIntent(intent: FidelityIntent) {
+    override fun onIntent(intent: FidelityIntent, context: TraceContext?) {
+        contexts += context
         events += Recorded.Dispatched(intent)
     }
 
-    override fun onActionMapped(intent: FidelityIntent, action: Action<TestViewState, FidelitySideEffect>?) {
+    override fun onActionMapped(intent: FidelityIntent, action: Action<TestViewState, FidelitySideEffect>?, context: TraceContext?) {
+        contexts += context
         events += Recorded.Mapped(action?.let { it::class.simpleName })
     }
 
-    override fun onActionExecuting(action: Action<TestViewState, FidelitySideEffect>) {
+    override fun onActionExecuting(action: Action<TestViewState, FidelitySideEffect>, context: TraceContext?) {
+        contexts += context
         events += Recorded.Executing(action::class.simpleName ?: "?")
     }
 
-    override fun onStateChanged(oldState: TestViewState, newState: TestViewState) {
+    override fun onStateChanged(oldState: TestViewState, newState: TestViewState, context: TraceContext?) {
+        contexts += context
         events += Recorded.StateChanged(oldState, newState)
         processor?.let { stateAtNotification += it.state }
     }
 
-    override fun onSideEffect(sideEffect: FidelitySideEffect) {
+    override fun onSideEffect(sideEffect: FidelitySideEffect, context: TraceContext?) {
+        contexts += context
         events += Recorded.Effect(sideEffect)
     }
 
-    override fun onError(throwable: Throwable, intent: FidelityIntent) {
+    override fun onError(throwable: Throwable, intent: FidelityIntent, context: TraceContext?) {
+        contexts += context
         events += Recorded.Failed(throwable.message)
     }
 }
@@ -321,6 +330,69 @@ class InterceptorFidelityTest : DescribeSpec({
             }
         }
 
+        describe("trace context") {
+
+            it("gives every callback for one intent the same correlation id") {
+                val (processor, recorder) = processorWithRecorder()
+
+                processor.dispatch(FidelityIntent.SyncIncrement)
+
+                recorder.contexts.map { it?.correlationId }.toSet() shouldBe setOf(0L)
+            }
+
+            it("gives each intent its own correlation id, in processing order") {
+                val (processor, recorder) = processorWithRecorder()
+
+                processor.dispatch(FidelityIntent.SyncIncrement)
+                processor.dispatch(FidelityIntent.SyncIncrement)
+                processor.dispatch(FidelityIntent.SyncIncrement)
+
+                recorder.contexts.map { it?.correlationId }.distinct() shouldContainExactly
+                    listOf(0L, 1L, 2L)
+            }
+
+            // The point of putting the context in the *coroutine* context rather than passing it
+            // by hand: an AsyncAction runs in its own coroutine, launched from the loop, and its
+            // reductions must still be attributable to the intent that started it.
+            it("carries the originating intent's id into asynchronous reductions") {
+                val (processor, recorder) = processorWithRecorder()
+
+                processor.dispatch(FidelityIntent.SyncIncrement)
+                processor.dispatch(FidelityIntent.AsyncTwoStep)
+
+                val asyncStateChanges = recorder.events
+                    .zip(recorder.contexts)
+                    .filter { (event, _) -> event is Recorded.StateChanged }
+                    .drop(1) // the synchronous one from the first intent
+                    .map { (_, context) -> context?.correlationId }
+
+                asyncStateChanges shouldContainExactly listOf(1L, 1L)
+            }
+
+            it("attributes an error to the intent that caused it") {
+                val (processor, recorder) = processorWithRecorder()
+
+                processor.dispatch(FidelityIntent.SyncIncrement)
+                processor.dispatch(FidelityIntent.ThrowInReducer)
+
+                val failureContext = recorder.events
+                    .zip(recorder.contexts)
+                    .last { (event, _) -> event is Recorded.Failed }
+                    .second
+
+                failureContext?.correlationId shouldBe 1L
+            }
+
+            it("never reports a null context for an intent the loop processed") {
+                val (processor, recorder) = processorWithRecorder()
+
+                processor.dispatch(FidelityIntent.SyncThenEffect)
+                processor.dispatch(FidelityIntent.AsyncIncrement)
+
+                recorder.contexts.any { it == null } shouldBe false
+            }
+        }
+
         describe("side effects") {
 
             // The processor reports an effect only once the channel has accepted it. The
@@ -350,10 +422,10 @@ class InterceptorFidelityTest : DescribeSpec({
                 processor.state shouldBe TestViewState(1)
             }
 
-            // Regression: interceptors used to be notified before the intent was queued, so an
-            // intent dispatched after close() left an entry in the trace with no mapping, no
-            // state change and no effect — indistinguishable from a map() that returned null or
-            // from an intent loop that had stalled.
+            // Interceptors are notified by the loop, not by dispatch, so an intent the loop will
+            // never pick up is never reported at all. Reporting it would leave an entry in the
+            // trace with no mapping, no state change and no effect after it — indistinguishable
+            // from a map() that returned null, or from a loop that had stalled.
             it("does not report ignored intents to interceptors") {
                 val (processor, recorder) = processorWithRecorder()
                 processor.close()

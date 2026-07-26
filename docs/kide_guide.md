@@ -256,6 +256,49 @@ Instead of relying only on traditional GUI debug tools, you attach a `FlightReco
 Your AI Agent can connect to your running app via an MCP port (`http://localhost:8765/mcp`). 
 The Agent can read a queryable trace of the processor's life (intents, actions, state diffs, errors) to instantly find and fix bugs.
 
+#### Tracing the domain layer too
+
+A `FlightRecorder` on its own covers the presentation layer. Add a `UseCaseFlightRecorder`
+(module `kide-clean-architecture-devtools`) writing to the **same** `TraceBuffer`, and the
+domain layer joins the same causally ordered stream:
+
+```kotlin
+val buffer = TraceBuffer()                       // one per application is fine
+
+val savedProjects = SavedProjectsProcessor(
+    repository,
+    interceptors = listOf(UseCaseFlightRecorder(buffer)),
+)
+val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>(buffer)
+val processor = SearchProcessor(searchUseCase, savedProjects, interceptors = listOf(recorder))
+
+KideDebug.attach("search", processor, recorder)
+```
+
+A use case shared by several screens — the usual case for a DI singleton — needs its recorder
+at construction, which is why an application-wide buffer is normally simpler than one per
+screen.
+
+#### Reading a trace
+
+Every event carries a `correlationId` grouping everything one interaction caused, and a
+`source` of either `Presentation` or `Domain`. The id travels in the coroutine context, so it
+survives an `AsyncAction`, a `withContext(Dispatchers.IO)` and the call into a use case; no
+code passes it by hand.
+
+To work out why something *didn't* happen, group by `correlationId` and find where the chain
+stops:
+
+| Trace stops after | Diagnosis |
+|---|---|
+| `Intent` | `map()` returned `null`, or the intent matched no branch |
+| `ActionExecuting`, no `Domain` events | the use case was never dispatched to |
+| `Domain Intent` | the use case ran and reduced nothing |
+| `Domain StateChanged` | the domain updated and the UI never reflected it |
+
+`"correlationId": null` is legitimate rather than a gap — work with no originating intent, such
+as a repository flow collected at application startup.
+
 ---
 
 ## 7. Testing

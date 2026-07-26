@@ -6,13 +6,10 @@
 // - Show declarations: true
 
 // Library unique name: <KideApp:kide-clean-architecture>
-abstract interface <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/UseCaseLogic : org.fuusio.kide.domain.usecase/UseCaseComponent { // org.fuusio.kide.domain.usecase/UseCaseLogic|null[0]
-    abstract val state // org.fuusio.kide.domain.usecase/UseCaseLogic.state|{}state[0]
-        abstract fun <get-state>(): #A // org.fuusio.kide.domain.usecase/UseCaseLogic.state.<get-state>|<get-state>(){}[0]
-    abstract val stateFlow // org.fuusio.kide.domain.usecase/UseCaseLogic.stateFlow|{}stateFlow[0]
-        abstract fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/UseCaseLogic.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
-
-    abstract suspend fun onIntent(#B) // org.fuusio.kide.domain.usecase/UseCaseLogic.onIntent|onIntent(1:1){}[0]
+abstract interface <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/UseCaseInterceptor { // org.fuusio.kide.domain.usecase/UseCaseInterceptor|null[0]
+    open fun onError(kotlin/Throwable, #B, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.domain.usecase/UseCaseInterceptor.onError|onError(kotlin.Throwable;1:1;org.fuusio.kide.presentation.TraceContext?){}[0]
+    open fun onIntent(#B, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.domain.usecase/UseCaseInterceptor.onIntent|onIntent(1:1;org.fuusio.kide.presentation.TraceContext?){}[0]
+    open fun onStateChanged(#A, #A, org.fuusio.kide.presentation/TraceContext?) // org.fuusio.kide.domain.usecase/UseCaseInterceptor.onStateChanged|onStateChanged(1:0;1:0;org.fuusio.kide.presentation.TraceContext?){}[0]
 }
 
 abstract interface <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/UseCaseProcessor : org.fuusio.kide.domain.usecase/UseCaseComponent { // org.fuusio.kide.domain.usecase/UseCaseProcessor|null[0]
@@ -20,6 +17,8 @@ abstract interface <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide
         abstract fun <get-state>(): #A // org.fuusio.kide.domain.usecase/UseCaseProcessor.state.<get-state>|<get-state>(){}[0]
     abstract val stateFlow // org.fuusio.kide.domain.usecase/UseCaseProcessor.stateFlow|{}stateFlow[0]
         abstract fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/UseCaseProcessor.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
+    open val interceptors // org.fuusio.kide.domain.usecase/UseCaseProcessor.interceptors|{}interceptors[0]
+        open fun <get-interceptors>(): kotlin.collections/List<org.fuusio.kide.domain.usecase/UseCaseInterceptor<#A, #B>> // org.fuusio.kide.domain.usecase/UseCaseProcessor.interceptors.<get-interceptors>|<get-interceptors>(){}[0]
 
     abstract suspend fun dispatch(#B) // org.fuusio.kide.domain.usecase/UseCaseProcessor.dispatch|dispatch(1:1){}[0]
 }
@@ -56,29 +55,19 @@ abstract interface org.fuusio.kide.framework/FrameworkComponent : org.fuusio.kid
 
 abstract interface org.fuusio.kide.framework/Manager : org.fuusio.kide.framework/FrameworkComponent // org.fuusio.kide.framework/Manager|null[0]
 
-abstract class <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/AbstractUseCaseLogic : org.fuusio.kide.domain.usecase/UseCaseLogic<#A, #B> { // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic|null[0]
-    constructor <init>(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.<init>|<init>(1:0){}[0]
-
-    open val state // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.state|{}state[0]
-        open fun <get-state>(): #A // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.state.<get-state>|<get-state>(){}[0]
-    open val stateFlow // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.stateFlow|{}stateFlow[0]
-        open fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
-
-    final fun reduce(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.reduce|reduce(1:0){}[0]
-    final fun reduce(kotlin/Function1<#A, #A>) // org.fuusio.kide.domain.usecase/AbstractUseCaseLogic.reduce|reduce(kotlin.Function1<1:0,1:0>){}[0]
-}
-
 abstract class <#A: org.fuusio.kide.domain.entity/State, #B: org.fuusio.kide.domain.usecase/UseCaseIntent<#A>> org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor : org.fuusio.kide.domain.usecase/UseCaseProcessor<#A, #B> { // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor|null[0]
-    constructor <init>(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.<init>|<init>(1:0){}[0]
+    constructor <init>(#A, kotlin.collections/List<org.fuusio.kide.domain.usecase/UseCaseInterceptor<#A, #B>> = ...) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.<init>|<init>(1:0;kotlin.collections.List<org.fuusio.kide.domain.usecase.UseCaseInterceptor<1:0,1:1>>){}[0]
 
+    open val interceptors // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.interceptors|{}interceptors[0]
+        open fun <get-interceptors>(): kotlin.collections/List<org.fuusio.kide.domain.usecase/UseCaseInterceptor<#A, #B>> // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.interceptors.<get-interceptors>|<get-interceptors>(){}[0]
     open val state // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.state|{}state[0]
         open fun <get-state>(): #A // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.state.<get-state>|<get-state>(){}[0]
     open val stateFlow // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.stateFlow|{}stateFlow[0]
         open fun <get-stateFlow>(): kotlinx.coroutines.flow/StateFlow<#A> // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.stateFlow.<get-stateFlow>|<get-stateFlow>(){}[0]
 
     abstract suspend fun map(#B) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.map|map(1:1){}[0]
-    final fun reduce(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.reduce|reduce(1:0){}[0]
-    final fun reduce(kotlin/Function1<#A, #A>) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.reduce|reduce(kotlin.Function1<1:0,1:0>){}[0]
+    final suspend fun reduce(#A) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.reduce|reduce(1:0){}[0]
+    final suspend fun reduce(kotlin/Function1<#A, #A>) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.reduce|reduce(kotlin.Function1<1:0,1:0>){}[0]
     open suspend fun dispatch(#B) // org.fuusio.kide.domain.usecase/AbstractUseCaseProcessor.dispatch|dispatch(1:1){}[0]
 }
 

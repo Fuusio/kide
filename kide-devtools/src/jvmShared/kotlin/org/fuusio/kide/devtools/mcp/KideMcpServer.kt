@@ -89,13 +89,41 @@ public object KideMcpServer {
     /**
      * Starts the agent port on the loopback interface at [port]. Idempotent; call from
      * application startup in debug builds only.
+     *
+     * Never throws. A debugging tool that can take down the application it is meant to debug
+     * is worse than no debugging tool, and the common failure here is mundane: reinstalling
+     * over a running build, or a previous process whose listening socket is still in
+     * `TIME_WAIT`, leaves the port occupied and the bind fails with `EADDRINUSE` — inside
+     * `Application.onCreate`, so the app dies before it draws a frame.
+     *
+     * @return `true` if the port is now listening (or already was), `false` if it could not
+     * be bound. A `false` return leaves the application fully functional, just undebuggable.
      */
-    public fun start(port: Int = 8765) {
-        if (serverSocket != null) return
-        // Bind explicitly to the IPv4 loopback: `adb forward` always connects to the
-        // device's 127.0.0.1, but InetAddress.getLoopbackAddress() can resolve to the
-        // IPv6 loopback (::1) on some Android devices, which `adb forward` can't reach.
-        val socket = ServerSocket(port, 8, java.net.InetAddress.getByName("127.0.0.1"))
+    public fun start(port: Int = 8765): Boolean {
+        if (serverSocket != null) return true
+        val socket = try {
+            // Bind explicitly to the IPv4 loopback: `adb forward` always connects to the
+            // device's 127.0.0.1, but InetAddress.getLoopbackAddress() can resolve to the
+            // IPv6 loopback (::1) on some Android devices, which `adb forward` can't reach.
+            //
+            // Bound in two steps rather than via the ServerSocket(port, backlog, addr)
+            // constructor so that SO_REUSEADDR can be set first: it only takes effect before
+            // binding, and it is what allows a restart to reclaim a port still lingering in
+            // TIME_WAIT from the previous process.
+            ServerSocket().apply {
+                reuseAddress = true
+                bind(java.net.InetSocketAddress(java.net.InetAddress.getByName("127.0.0.1"), port), 8)
+            }
+        } catch (exception: Exception) {
+            KideLog.e(TAG, exception) {
+                "Could not start the Kide agent port on 127.0.0.1:$port — the application will " +
+                    "run normally but cannot be debugged through it. Usually something else " +
+                    "holds the port: an older build of this app still running, or another " +
+                    "process. Check with `adb shell ss -ltnp | grep $port`, or pass a " +
+                    "different port to start()."
+            }
+            return false
+        }
         serverSocket = socket
         KideLog.i(TAG) { "Kide agent port (MCP) listening on 127.0.0.1:$port" }
         KideLog.w(TAG) {
@@ -114,6 +142,7 @@ public object KideMcpServer {
                 }
             }
         }
+        return true
     }
 
     /**
@@ -239,13 +268,18 @@ public object KideMcpServer {
             }
             put(
                 "instructions",
-                "This is a live Kide MVI application exposing its presentation layer for " +
-                    "debugging. Use kide_list_processors to discover screens, kide_get_state " +
-                    "for current ViewStates, kide_get_trace for the causal event history " +
-                    "(intents, actions, state diffs, side effects, errors), " +
-                    "kide_dispatch_intent to inject intents into the running app (intent " +
-                    "classes must be @Serializable), and kide_export_regression_test to turn " +
-                    "a recorded session into a test scaffold.",
+                "This is a live Kide MVI application exposed for debugging. Use " +
+                    "kide_list_processors to discover screens, kide_get_state for current " +
+                    "ViewStates, kide_get_trace for the causal event history (intents, " +
+                    "actions, state diffs, side effects, errors), kide_dispatch_intent to " +
+                    "inject intents into the running app (intent classes must be " +
+                    "@Serializable), and kide_export_regression_test to turn a recorded " +
+                    "session into a test scaffold. " +
+                    "Every trace event carries 'correlationId', grouping everything one user " +
+                    "interaction caused, and 'source': 'Presentation' for UI events, 'Domain' " +
+                    "for use-case events when the app wires a UseCaseFlightRecorder into the " +
+                    "same buffer. To find out why something did not happen, group the trace " +
+                    "by correlationId and look for the layer where the chain stops.",
             )
         }
     }
@@ -382,7 +416,7 @@ public object KideMcpServer {
             "kide_list_processors" -> {
                 val handles = KideDebug.handles()
                 if (handles.isEmpty()) {
-                    "No processors attached. Attach FlightRecorders via KideDebug.attachTyped in the app."
+                    "No processors attached. Attach FlightRecorders via KideDebug.attach in the app."
                 } else {
                     buildJsonArray {
                         handles.values.forEach { handle ->

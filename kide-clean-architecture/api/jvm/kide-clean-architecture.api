@@ -29,22 +29,16 @@ public abstract interface class org/fuusio/kide/domain/DomainComponent : org/fuu
 public abstract interface class org/fuusio/kide/domain/entity/State : org/fuusio/kide/domain/DomainComponent {
 }
 
-public abstract class org/fuusio/kide/domain/usecase/AbstractUseCaseLogic : org/fuusio/kide/domain/usecase/UseCaseLogic {
-	public fun <init> (Lorg/fuusio/kide/domain/entity/State;)V
-	public fun getState ()Lorg/fuusio/kide/domain/entity/State;
-	public fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
-	protected final fun reduce (Lkotlin/jvm/functions/Function1;)V
-	protected final fun reduce (Lorg/fuusio/kide/domain/entity/State;)V
-}
-
 public abstract class org/fuusio/kide/domain/usecase/AbstractUseCaseProcessor : org/fuusio/kide/domain/usecase/UseCaseProcessor {
-	public fun <init> (Lorg/fuusio/kide/domain/entity/State;)V
+	public fun <init> (Lorg/fuusio/kide/domain/entity/State;Ljava/util/List;)V
+	public synthetic fun <init> (Lorg/fuusio/kide/domain/entity/State;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun dispatch (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getInterceptors ()Ljava/util/List;
 	public fun getState ()Lorg/fuusio/kide/domain/entity/State;
 	public fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
 	protected abstract fun map (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	protected final fun reduce (Lkotlin/jvm/functions/Function1;)V
-	protected final fun reduce (Lorg/fuusio/kide/domain/entity/State;)V
+	protected final fun reduce (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun reduce (Lorg/fuusio/kide/domain/entity/State;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class org/fuusio/kide/domain/usecase/UseCase : org/fuusio/kide/domain/usecase/UseCaseComponent {
@@ -59,16 +53,27 @@ public abstract interface class org/fuusio/kide/domain/usecase/UseCaseFunction :
 public abstract interface class org/fuusio/kide/domain/usecase/UseCaseIntent : org/fuusio/kide/domain/DomainComponent {
 }
 
-public abstract interface class org/fuusio/kide/domain/usecase/UseCaseLogic : org/fuusio/kide/domain/usecase/UseCaseComponent {
-	public abstract fun getState ()Lorg/fuusio/kide/domain/entity/State;
-	public abstract fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun onIntent (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class org/fuusio/kide/domain/usecase/UseCaseInterceptor {
+	public fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onIntent (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onStateChanged (Lorg/fuusio/kide/domain/entity/State;Lorg/fuusio/kide/domain/entity/State;Lorg/fuusio/kide/presentation/TraceContext;)V
+}
+
+public final class org/fuusio/kide/domain/usecase/UseCaseInterceptor$DefaultImpls {
+	public static fun onError (Lorg/fuusio/kide/domain/usecase/UseCaseInterceptor;Ljava/lang/Throwable;Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public static fun onIntent (Lorg/fuusio/kide/domain/usecase/UseCaseInterceptor;Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public static fun onStateChanged (Lorg/fuusio/kide/domain/usecase/UseCaseInterceptor;Lorg/fuusio/kide/domain/entity/State;Lorg/fuusio/kide/domain/entity/State;Lorg/fuusio/kide/presentation/TraceContext;)V
 }
 
 public abstract interface class org/fuusio/kide/domain/usecase/UseCaseProcessor : org/fuusio/kide/domain/usecase/UseCaseComponent {
 	public abstract fun dispatch (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getInterceptors ()Ljava/util/List;
 	public abstract fun getState ()Lorg/fuusio/kide/domain/entity/State;
 	public abstract fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
+}
+
+public final class org/fuusio/kide/domain/usecase/UseCaseProcessor$DefaultImpls {
+	public static fun getInterceptors (Lorg/fuusio/kide/domain/usecase/UseCaseProcessor;)Ljava/util/List;
 }
 
 public abstract interface class org/fuusio/kide/feature/ApplicationFeature : org/fuusio/kide/feature/Feature {

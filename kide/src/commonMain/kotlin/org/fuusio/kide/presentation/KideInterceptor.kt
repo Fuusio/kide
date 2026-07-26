@@ -20,13 +20,24 @@ package org.fuusio.kide.presentation
 /**
  * Intercepts MVI lifecycle events in a [PresentationProcessor].
  * Implementations can be used for logging, analytics tracking, or debugger integration.
+ *
+ * Every callback receives the [TraceContext] of the intent being processed, so that events can
+ * be attributed to the interaction that caused them rather than merely ordered near it. It is
+ * `null` only when there is genuinely no originating intent. Callbacks that do not care can
+ * ignore the parameter; all of them have empty default bodies, so an implementation overrides
+ * only what it needs.
+ *
+ * Callbacks are invoked on the processor's intent loop, in processing order — including
+ * [onIntent], which fires when the loop picks an intent up rather than when [dispatch] queued
+ * it. Under concurrent dispatch from several threads those orders differ, and the loop's is the
+ * one that describes what actually happened.
  */
 public interface KideInterceptor<I : ViewIntent, S : ViewState, E : SideEffect> {
 
     /**
-     * Invoked when a new [ViewIntent] is dispatched to the processor.
+     * Invoked when the intent loop begins processing a [ViewIntent].
      */
-    public fun onIntent(intent: I) {}
+    public fun onIntent(intent: I, context: TraceContext?) {}
 
     /**
      * Invoked after the [ViewIntent] has been mapped to an [Action].
@@ -34,12 +45,12 @@ public interface KideInterceptor<I : ViewIntent, S : ViewState, E : SideEffect> 
      * @param intent The source intent.
      * @param action The mapped action, or null if no action is triggered.
      */
-    public fun onActionMapped(intent: I, action: Action<S, E>?) {}
+    public fun onActionMapped(intent: I, action: Action<S, E>?, context: TraceContext?) {}
 
     /**
      * Invoked immediately before an [Action] starts executing.
      */
-    public fun onActionExecuting(action: Action<S, E>) {}
+    public fun onActionExecuting(action: Action<S, E>, context: TraceContext?) {}
 
     /**
      * Invoked once for every state transition that was actually applied, after [newState] has
@@ -54,12 +65,12 @@ public interface KideInterceptor<I : ViewIntent, S : ViewState, E : SideEffect> 
      * @param oldState The previous view state.
      * @param newState The new view state, already published when this is invoked.
      */
-    public fun onStateChanged(oldState: S, newState: S) {}
+    public fun onStateChanged(oldState: S, newState: S, context: TraceContext?) {}
 
     /**
-     * Invoked when a [SideEffect] is successfully posted to the collector stream.
+     * Invoked when a [SideEffect] has been successfully posted to the collector stream.
      */
-    public fun onSideEffect(sideEffect: E) {}
+    public fun onSideEffect(sideEffect: E, context: TraceContext?) {}
 
     /**
      * Invoked when an exception is thrown while mapping [intent] or executing the [Action] it
@@ -69,5 +80,5 @@ public interface KideInterceptor<I : ViewIntent, S : ViewState, E : SideEffect> 
      * @param throwable The thrown exception.
      * @param intent The intent whose processing failed.
      */
-    public fun onError(throwable: Throwable, intent: I) {}
+    public fun onError(throwable: Throwable, intent: I, context: TraceContext?) {}
 }

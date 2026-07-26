@@ -32,6 +32,25 @@ public enum class TraceEventType {
 }
 
 /**
+ * The architectural layer a [TraceEvent] came from.
+ *
+ * Kept orthogonal to [TraceEventType] on purpose: an intent is an intent whichever layer
+ * dispatched it, so the *kind* of event and the *layer* it happened in are two independent
+ * facts. Adding `UseCaseIntent` and `UseCaseStateChanged` to [TraceEventType] instead would
+ * have meant a parallel set of constants — and a third one the moment domain errors needed
+ * distinguishing — while making it harder to ask "show me everything about this interaction,
+ * both layers".
+ */
+@Serializable
+public enum class TraceEventSource {
+    /** A `PresentationProcessor`: view intents, actions, view-state changes, side effects. */
+    Presentation,
+
+    /** A `UseCaseProcessor`: domain intents and domain state changes. */
+    Domain,
+}
+
+/**
  * One causally ordered entry in a [FlightRecorder] trace.
  *
  * Events carry `toString()` renderings rather than full serialized objects so that *any*
@@ -46,6 +65,13 @@ public enum class TraceEventType {
  * @property payloadClass Fully qualified class name of the event subject, when available.
  * @property previousState For [TraceEventType.StateChanged]: rendering of the state before
  * the change, enabling state diffing.
+ * @property correlationId Groups every event produced while processing one intent — see
+ * `TraceContext`. `null` when the event had no originating intent, which is legitimate: work
+ * started at application launch, or a flow emitting on its own. Unique only within one
+ * processor, so consumers key on the processor together with the id.
+ * @property source Which layer produced the event. Presentation and domain events share one
+ * buffer and one sequence, so a trace reads as a single causal stream; this is how a consumer
+ * tells them apart within it.
  */
 @Serializable
 public data class TraceEvent(
@@ -55,4 +81,6 @@ public data class TraceEvent(
     val payload: String,
     val payloadClass: String? = null,
     val previousState: String? = null,
+    val correlationId: Long? = null,
+    val source: TraceEventSource = TraceEventSource.Presentation,
 )

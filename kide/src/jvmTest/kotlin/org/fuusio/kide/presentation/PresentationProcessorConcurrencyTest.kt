@@ -90,11 +90,11 @@ private class ThreadSafeRecorder : KideInterceptor<ConcurrentIntent, TestViewSta
     val intents = CopyOnWriteArrayList<ConcurrentIntent>()
     val transitions = CopyOnWriteArrayList<Pair<Int, Int>>()
 
-    override fun onIntent(intent: ConcurrentIntent) {
+    override fun onIntent(intent: ConcurrentIntent, context: TraceContext?) {
         intents += intent
     }
 
-    override fun onStateChanged(oldState: TestViewState, newState: TestViewState) {
+    override fun onStateChanged(oldState: TestViewState, newState: TestViewState, context: TraceContext?) {
         transitions += oldState.value to newState.value
     }
 }

@@ -23,11 +23,16 @@ import kotlinx.coroutines.launch
 import org.fuusio.kide.app.domain.entity.SavedProjectsState
 import org.fuusio.kide.app.domain.adapter.project.ProjectRepository
 import org.fuusio.kide.domain.usecase.AbstractUseCaseProcessor
+import org.fuusio.kide.domain.usecase.UseCaseInterceptor
 
 class SavedProjectsProcessor(
     private val repository: ProjectRepository,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
-) : AbstractUseCaseProcessor<SavedProjectsState, SavedProjectsUseCaseIntent>(SavedProjectsState()) {
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
+    interceptors: List<UseCaseInterceptor<SavedProjectsState, SavedProjectsUseCaseIntent>> = emptyList(),
+) : AbstractUseCaseProcessor<SavedProjectsState, SavedProjectsUseCaseIntent>(
+    SavedProjectsState(),
+    interceptors,
+) {
 
     init {
         scope.launch {
