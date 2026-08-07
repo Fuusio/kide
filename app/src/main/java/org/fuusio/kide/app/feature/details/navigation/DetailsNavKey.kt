@@ -32,8 +32,14 @@ data class DetailsNavKey(val projectId: Long) : ScreenNavKey<DetailsProcessor> {
     override val screen: @Composable ((ScreenContext<DetailsProcessor>) -> Unit)
         get() = { ctx -> DetailsScreen(ctx) }
 
+    /**
+     * Dispatched, not applied with `initializeWith`: this key carries only an id, and loading the
+     * project is a repository call. `initializeWith` runs `reduceInitialIntent`, which is
+     * synchronous and never reaches `map`, so the intent would match nothing and the screen would
+     * open empty.
+     */
     override fun setup(processor: DetailsProcessor) {
-        processor.initializeWith(LoadProjectDetails(projectId))
+        processor.dispatch(LoadProjectDetails(projectId))
     }
 
     override fun saveArgs(): String = projectId.toString()

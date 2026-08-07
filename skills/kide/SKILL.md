@@ -85,6 +85,23 @@ Register the key at startup, before first composition (usually in the feature's
 `initialize()`): `ScreenNavKeyRegistry.register(FooNavKey)`. Wire the feature's Koin
 module with a `factory { FooProcessor(get()) }` binding.
 
+**Opening a screen with something** — override `setup()`. Which mechanism depends on one
+question: *does the bootstrap intent need to await anything?*
+
+| | The key already holds the data | The key holds only an id |
+|---|---|---|
+| Use | `processor.initializeWith(intent)` | `processor.dispatch(intent)` |
+| Handled in | `reduceInitialIntent()` — synchronous | `map()` — may suspend |
+| First frame | already correct | rendered before the data lands |
+
+`initializeWith` **cannot** do the second job: `reduceInitialIntent` never reaches `map()`, so
+an intent carrying an id has nowhere to await the repository, falls through to the default
+`= state`, and is silently ignored. Dispatching from `setup` is ordinary — the intent loop
+starts at construction. If a destination uses both, `initializeWith` must come first.
+
+When you bootstrap by dispatch, make the screen distinguish *loading* from *empty*. Rendering
+"Nothing to show here" while the fetch is in flight makes a working screen look broken.
+
 **4. Persistence (optional)** — survive process death by adding one override to the nav key:
 
 ```kotlin
@@ -159,6 +176,13 @@ repository flow collected at startup.
 
 ## Common mistakes to avoid
 
+- **Using `initializeWith` for a bootstrap intent that has to load something.**
+  `reduceInitialIntent` is synchronous and never reaches `map()`, so an intent carrying only an
+  id — "open item 42" — has nowhere to await the repository. It falls through to the default
+  `= state` and is ignored: no exception, no branch, just a screen that renders as if it had
+  been opened with nothing. Pass data you already hold to `initializeWith`; `dispatch()` the
+  intent from `setup()` when it needs work. Both are legal there, `initializeWith` first.
+  The only signal is a warning logged when the initial state comes back unchanged.
 - **Forgetting `import org.fuusio.kide.presentation.reduce`.** `reduce` means two different
   things: inside `async { }` / `useCase { }` it is `AsyncScope.reduce`, a member that resolves
   by itself; at the top level of `map()` it is the action *builder*, a top-level function that

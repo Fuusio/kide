@@ -76,8 +76,36 @@ public interface ScreenNavKey<T : PresentationProcessor<*, *, *>> : NavigationCo
 
     /**
      * Called once with a newly created [processor], before the first composition of this
-     * destination's screen. Override to apply a bootstrap intent via
-     * [PresentationProcessor.initializeWith].
+     * destination's screen. Override to bootstrap the screen with what it was opened for.
+     *
+     * There are two ways to do that, and the choice turns on one question: **does the intent
+     * need to await anything?**
+     *
+     * - **No** — the destination already holds the data, as a key carrying an entity or a flag
+     *   does. Use [PresentationProcessor.initializeWith]. It applies synchronously before the
+     *   first composition, so the screen's first frame is already correct and nothing flashes.
+     * - **Yes** — the destination holds only an id, a path, a query. Use
+     *   [PresentationProcessor.dispatch]. Dispatching here is legal and ordinary: the intent
+     *   loop starts at construction and the queue is unbounded, so the intent is picked up
+     *   immediately and goes through `map`, where it may suspend.
+     *
+     * `initializeWith` cannot do the second job. It calls
+     * [PresentationProcessor.reduceInitialIntent], which is synchronous and never reaches `map`,
+     * so an intent that needs to load something falls through to the default and is silently
+     * ignored.
+     *
+     * Dispatching means one composition happens before the data arrives, so the screen's empty
+     * state has to be honest about the difference between *loading* and *nothing to show* — a
+     * screen that says "Nothing here" for both is indistinguishable from a broken one.
+     *
+     * Both may be used together, but `initializeWith` must come first; it throws once any intent
+     * has been dispatched.
+     *
+     * ```kotlin
+     * override fun setup(processor: ItemProcessor) {
+     *     processor.dispatch(OpenItem(uid))   // needs a repository read
+     * }
+     * ```
      *
      * Not called when the processor's state was restored from persistent storage
      * (see [stateSerializer]); a restored state takes precedence over bootstrapping.

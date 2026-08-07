@@ -22,6 +22,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import org.fuusio.kide.log.KideLog
+import org.fuusio.kide.log.KideLogger
+import org.fuusio.kide.log.LogLevel
 
 // ── Test fixtures ──────────────────────────────────────────────────────────────
 
@@ -56,6 +60,38 @@ private sealed interface TestSideEffect : SideEffect {
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
+/**
+ * Handles [TestIntent.Increment] as a bootstrap intent and [TestIntent.Decrement] in [map],
+ * which is the distinction the two mechanisms rest on: one carries everything it needs, the
+ * other stands in for work that has to happen somewhere it can suspend.
+ */
+private class BootstrapProcessor(
+    initialState: TestViewState = TestViewState(),
+) : PresentationProcessor<TestIntent, TestViewState, TestSideEffect>(initialState) {
+
+    override fun reduceInitialIntent(intent: TestIntent): TestViewState =
+        when (intent) {
+            TestIntent.Increment -> state.copy(value = state.value + 1)
+            // Everything else falls through unchanged — the silent case the warning exists for.
+            else -> state
+        }
+
+    override suspend fun map(intent: TestIntent): Action<TestViewState, TestSideEffect>? =
+        when (intent) {
+            TestIntent.Decrement -> reduce { copy(value = value - 1) }
+            else -> null
+        }
+}
+
+/** Captures warnings so the one signal a dropped bootstrap intent produces can be asserted. */
+private class RecordingLogger : KideLogger {
+    val warnings = mutableListOf<String>()
+
+    override fun log(level: LogLevel, tag: String, message: String, throwable: Throwable?) {
+        if (level == LogLevel.Warning) warnings.add(message)
+    }
+}
+
 private class TestProcessor(
     initialState: TestViewState = TestViewState(),
     interceptors: List<KideInterceptor<TestIntent, TestViewState, TestSideEffect>> = emptyList(),
@@ -130,6 +166,78 @@ class PresentationProcessorTest : DescribeSpec({
                 job.cancel()
                 scope.cancel()
                 effects shouldBe emptyList()
+            }
+        }
+
+        describe("bootstrap intents") {
+
+            it("initializeWith applies a state the processor computes from the intent") {
+                val processor = BootstrapProcessor(TestViewState(5))
+
+                processor.initializeWith(TestIntent.Increment)
+
+                processor.state shouldBe TestViewState(6)
+            }
+
+            it("initializeWith warns when the intent leaves the state unchanged") {
+                // The whole failure mode: an intent that belongs in map() is passed here, matches
+                // no branch, and is dropped without an exception. The warning is the only trace.
+                val logger = RecordingLogger()
+                val previous = KideLog.logger
+                KideLog.logger = logger
+                try {
+                    val processor = BootstrapProcessor(TestViewState(5))
+
+                    processor.initializeWith(TestIntent.Decrement)
+
+                    processor.state shouldBe TestViewState(5)
+                    logger.warnings.size shouldBe 1
+                    logger.warnings.first() shouldContain "reduceInitialIntent"
+                    logger.warnings.first() shouldContain "dispatch"
+                } finally {
+                    KideLog.logger = previous
+                }
+            }
+
+            it("initializeWith stays quiet when the state did change") {
+                val logger = RecordingLogger()
+                val previous = KideLog.logger
+                KideLog.logger = logger
+                try {
+                    BootstrapProcessor(TestViewState(5)).initializeWith(TestIntent.Increment)
+
+                    logger.warnings.size shouldBe 0
+                } finally {
+                    KideLog.logger = previous
+                }
+            }
+
+            it("initializeWith throws after an intent has been dispatched") {
+                val processor = BootstrapProcessor()
+                processor.dispatch(TestIntent.Decrement)
+
+                io.kotest.assertions.throwables.shouldThrow<IllegalStateException> {
+                    processor.initializeWith(TestIntent.Increment)
+                }
+            }
+
+            it("an intent dispatched as a nav key's setup would reaches map") {
+                // The documented alternative for a bootstrap intent that needs to do work. If this
+                // ever stops holding, ScreenNavKey.setup's guidance is wrong and the trap returns.
+                val processor = BootstrapProcessor(TestViewState(5))
+
+                processor.dispatch(TestIntent.Decrement)
+
+                processor.state shouldBe TestViewState(4)
+            }
+
+            it("initializeWith then dispatch is a legal order and both apply") {
+                val processor = BootstrapProcessor(TestViewState(5))
+
+                processor.initializeWith(TestIntent.Increment)
+                processor.dispatch(TestIntent.Decrement)
+
+                processor.state shouldBe TestViewState(5)
             }
         }
 

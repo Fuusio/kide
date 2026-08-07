@@ -20,7 +20,7 @@ Constructor: `(initialState: S, processorScope: CoroutineScope = defaultProcesso
 | `states: StateFlow<S>` / `state: S` | Observe / read current state |
 | `sideEffects: Flow<E>` | Buffered, exactly-once, **single collector** |
 | `map(intent): Action<S, E>?` | abstract; pattern-match intent → action (`null` = no-op) |
-| `initializeWith(intent)` / `reduceInitialIntent` | synchronous bootstrap before first composition |
+| `initializeWith(intent)` / `reduceInitialIntent` | synchronous bootstrap before first composition; **does not reach `map()`** — an intent needing suspending work must be `dispatch`ed instead (legal from a nav key's `setup`). Warns when the state comes back unchanged |
 | `restoreState(state)` / `wasRestored` | host-applied persisted state (before any dispatch) |
 | `onSaveState(state): S?` | prune/veto a persistence snapshot (open; default = as-is) |
 | `onError(throwable, intent)` | open hook; called after logging + interceptors |

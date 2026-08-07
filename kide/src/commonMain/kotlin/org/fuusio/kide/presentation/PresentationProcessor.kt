@@ -363,6 +363,35 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
     /**
      * Synchronously computes the initial [ViewState] from a bootstrap [intent] before the first
      * composition.
+     *
+     * **This does not reach [map].** It is a plain, non-suspending transformation of the state,
+     * so an intent handled here can only rearrange what it already carries. An intent that has to
+     * *load* something — one carrying an id rather than the thing itself — has nowhere to await a
+     * repository and cannot be handled here at all.
+     *
+     * The default returns [state] unchanged, and so does an unmatched branch of a `when` over the
+     * intent type. Neither is an error, so an intent that belongs in [map] and was passed here
+     * instead is silently ignored: no exception, no branch taken, and a screen that renders as
+     * though it had been given nothing. [initializeWith] logs a warning when the state comes back
+     * unchanged, which is the only signal this mistake produces.
+     *
+     * Use [dispatch] instead for anything that needs work. It is equally available before the
+     * first composition — a navigation key's `setup` may call it — and it does reach [map], at
+     * the cost of one composition rendered before the result lands.
+     *
+     * ```kotlin
+     * // Carries the item: nothing to await, no flash.
+     * override fun reduceInitialIntent(intent: ItemIntent): ItemViewState =
+     *     when (intent) {
+     *         is Initialize -> state.copy(item = intent.item)
+     *         else -> state
+     *     }
+     *
+     * // Carries only an id: belongs in map(), reached by dispatching from setup().
+     * override fun setup(processor: ItemProcessor) {
+     *     processor.dispatch(OpenItem(uid))
+     * }
+     * ```
      */
     protected open fun reduceInitialIntent(intent: I): S = state
 
@@ -370,7 +399,8 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
      * Applies a bootstrap [intent] synchronously before the first screen composition.
      * Calls [reduceInitialIntent] and immediately updates the state.
      *
-     * Must be invoked before any [ViewIntent] is dispatched to this processor.
+     * Must be invoked before any [ViewIntent] is dispatched to this processor — including any
+     * [dispatch] made from the same `setup`, so call this first if a destination does both.
      *
      * @throws IllegalStateException if a [ViewIntent] has already been dispatched.
      */
@@ -378,7 +408,19 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
         check(!intentDispatched) {
             "initializeWith must be called before any intent is dispatched to this processor."
         }
-        updateState(reduceInitialIntent(intent))
+        val initialState = reduceInitialIntent(intent)
+        // A bootstrap intent that changes nothing is nearly always an intent that belonged in
+        // map(): it matched no branch, or it matched one with no data to work from. Both are
+        // otherwise silent, and the screen that results looks broken rather than misconfigured.
+        if (initialState == state) {
+            logW {
+                "reduceInitialIntent left the state unchanged for $intent. Initial intents do " +
+                    "not reach map(), so one that needs to load something has nowhere to await " +
+                    "it. If this intent was meant to do work, dispatch() it instead — that is " +
+                    "also allowed before the first composition."
+            }
+        }
+        updateState(initialState)
     }
 
     /**
