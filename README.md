@@ -593,3 +593,7 @@ pieces fit together.
 
 The Kide library is licensed under the [Apache License, Version 2.0](https://opensource.org/license/apache-2-0).
 See the LICENSE file for details.
+
+## Support my Open Source projects
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K7E224O35X)
