@@ -17,7 +17,7 @@ loop that must never die.
 | Module | Purpose | Notes |
 |---|---|---|
 | `kide` | MVI core | **coroutines-only dependency — never add another** |
-| `kide-navigation` | Navigation 3 integration | rides pre-stable Nav3/lifecycle alphas |
+| `kide-navigation` | Navigation 3 integration | on stable Nav3/lifecycle since 2.1.0 |
 | `kide-clean-architecture` | domain/adapter/framework layer vocabulary | |
 | `kide-test`, `kide-clean-architecture-test` | Turbine-based testing DSLs for `PresentationProcessor` / `UseCaseProcessor` | published test artifacts |
 | `kide-koin` | Koin DI helpers | |

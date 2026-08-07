@@ -4,6 +4,90 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-08-07
+
+**The `iosX64` target is gone.** Kotlin deprecated the Apple x86_64 targets, and Compose
+Multiplatform 1.11.0 removed `iosX64` and `macosX64` from every module it publishes; the
+JetBrains lifecycle and Navigation 3 artifacts did the same. Kide cannot publish a target its
+dependencies no longer have, so `iosX64` is dropped from all ten modules. It is listed under
+*Removed* rather than treated as a major-version break because the target no longer exists
+upstream — nothing can depend on Kide's `iosX64` artifact and still resolve Compose 1.11.
+
+Besides that, one silent failure closed. A destination that carries only an *id* had no obvious
+way to load what it points at. `setup` documented `initializeWith` and nothing else, but
+`initializeWith` calls `reduceInitialIntent`, which is synchronous and never reaches `map` — so
+an intent that needs to await a repository matched no branch, fell through to the default, and
+returned the state unchanged. No exception, no branch taken, and a screen that renders as though
+it had been given nothing. `dispatch` was always legal from `setup` and does reach `map`, but
+nothing said so.
+
+Kide's own declarations are unchanged and binary-compatible with 2.0.0. The ABI dumps change
+only in their target list.
+
+> **Upgrading:** two things need attention, both inherited from upstream rather than chosen
+> here.
+>
+> - **iOS x86_64 is no longer buildable.** If you still build for the Intel iOS simulator, that
+>   path ends at Compose Multiplatform 1.10.x — for Kide, at 2.0.0. Apple Silicon simulators
+>   (`iosSimulatorArm64`) and devices (`iosArm64`) are unaffected. The minimum supported iOS
+>   version also rises from 13.0 to 14.0, set by Compose Multiplatform.
+> - **`kide-voyager` moves across a Voyager major version**, `1.1.0-beta03` →
+>   `2.2.21-1.10.3`, and exposes it with `api`, so it lands on your compile classpath.
+>   Applications using `kide-voyager` need to migrate to Voyager 2.x at the same time. Other
+>   modules are unaffected.
+
+### Removed
+
+- **all modules** — the `iosX64` target. Kotlin deprecated Apple x86_64
+  ([KT-78660](https://youtrack.jetbrains.com/issue/KT-78660)) and Compose Multiplatform 1.11.0
+  removed `iosX64` and `macosX64` from everything it publishes, as did
+  `org.jetbrains.androidx.lifecycle` 2.11.0 and `org.jetbrains.androidx.navigation3` 1.1.1. Five
+  Kide modules depend on those artifacts, and a Kotlin Multiplatform module cannot declare a
+  target its dependencies do not publish. Dropping it from the other five as well keeps one
+  target set across the published artifacts. Published targets are now `iosArm64`,
+  `iosSimulatorArm64`, JVM, and Android.
+
+### Changed
+
+- **`kide`** — `PresentationProcessor.initializeWith` logs a warning when
+  `reduceInitialIntent` returns the state unchanged. A bootstrap intent that changes nothing is
+  nearly always an intent that belonged in `map()`: it matched no branch, or it matched one with
+  no data to work from. Both were otherwise entirely silent. This is the only signal the mistake
+  produces, so it is a warning rather than a throw — an unchanged state is legal, just almost
+  never intended.
+- **`kide-voyager`** — Voyager `1.1.0-beta03` → `2.2.21-1.10.3`. See the upgrade note above.
+- **`kide-navigation`** — Navigation 3 `1.0.0-alpha05` → `1.1.1`, Navigation 3 Material
+  `1.1.4` → `1.1.5`, and Lifecycle `2.10.0-alpha05` → `2.11.0`. The module no longer depends on
+  pre-stable artifacts on its `api` surface.
+- **build** — Kotlin `2.4.0` → `2.4.10`, Compose Multiplatform `1.10.3` → `1.11.1`, kotest
+  `6.2.1` → `6.2.3`, Turbine `1.2.0` → `1.2.1`, Material 3 `1.5.0-alpha23` → `1.5.0-alpha25`.
+  Unused version catalog entries (`core-ktx`, `concurrent-futures`, `coroutines-guava`,
+  `junit-bom`, `material`) were removed.
+- **minimum iOS version** — 13.0 → 14.0, set by Compose Multiplatform 1.11.0, not by Kide.
+
+### Fixed
+
+- **sample app** — the details screen never loaded its project. `DetailsNavKey` passed
+  `LoadProjectDetails(projectId)` to `initializeWith`, `DetailsProcessor` handles it only in
+  `map()`, and `DetailsScreen` never dispatched it — a live instance of exactly the failure the
+  new warning reports. It now dispatches from `setup`.
+
+### Documentation
+
+- `PresentationProcessor.reduceInitialIntent` documents that it does not reach `map`, what that
+  rules out, and why an unmatched intent is silent. `ScreenNavKey.setup` documents both
+  bootstrap paths and the question that decides between them — does the intent need to await
+  anything? — including the cost of dispatching, which is one composition rendered before the
+  data arrives, and therefore an empty state that has to distinguish *loading* from *nothing to
+  show*. `initializeWith` documents that it must precede any `dispatch` from the same `setup`.
+- `skills/kide/SKILL.md` and `skills/kide/reference.md` updated to match.
+- Six tests added to `PresentationProcessorTest`, including one asserting that an intent
+  dispatched from `setup` reaches `map()` — if that ever fails, the new guidance is wrong.
+
+### Targets
+
+Android, JVM (desktop), iOS (`iosArm64`, `iosSimulatorArm64`). Minimum iOS 14.0.
+
 ## [2.0.0] - 2026-07-26
 
 Two things at once: **the domain layer joins the trace**, and every known breaking change is

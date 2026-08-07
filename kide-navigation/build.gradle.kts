@@ -15,7 +15,6 @@ kotlin {
     jvm()
     iosArm64()
     iosSimulatorArm64()
-    iosX64()
 
     android {
         namespace = "org.fuusio.kide.navigation"
