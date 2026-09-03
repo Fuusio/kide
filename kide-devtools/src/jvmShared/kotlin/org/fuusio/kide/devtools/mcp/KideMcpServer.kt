@@ -81,10 +81,22 @@ public object KideMcpServer {
     private const val SERVER_VERSION = "0.1.0"
     private const val TAG = "KideMcpServer"
 
+    /** Upper bound on how long [stop] waits for the accept thread to unwind. */
+    private const val STOP_JOIN_TIMEOUT_MILLIS: Long = 2_000
+
     private val json = Json { ignoreUnknownKeys = true }
 
     @Volatile
     private var serverSocket: ServerSocket? = null
+
+    /**
+     * The thread blocked in `accept()` on [serverSocket]. Held so that [stop] can wait for it:
+     * closing a listening socket from another thread only *begins* the teardown, and the port
+     * is not reliably bindable again until the thread that was blocked in `accept()` has
+     * unwound. A restart on the same port right after [stop] depends on that.
+     */
+    @Volatile
+    private var acceptThread: Thread? = null
 
     /**
      * Starts the agent port on the loopback interface at [port]. Idempotent; call from
@@ -130,13 +142,17 @@ public object KideMcpServer {
             "The agent port exposes app state and intent injection; it must only run in " +
                 "debug builds. On Android, prefer the guarded start(context) variant."
         }
-        thread(isDaemon = true, name = "KideMcpServer") {
-            while (serverSocket != null) {
+        // The loop runs while *this* socket is the current one, not merely while some socket
+        // is: a restart may have installed a new socket before this thread observes the close,
+        // and a thread that checked for non-null would then spin forever on its own closed
+        // socket, logging a failure per iteration.
+        acceptThread = thread(isDaemon = true, name = "KideMcpServer") {
+            while (serverSocket === socket) {
                 try {
                     val client = socket.accept()
                     thread(isDaemon = true) { client.use(::handleConnection) }
                 } catch (exception: Exception) {
-                    if (serverSocket != null) {
+                    if (serverSocket === socket) {
                         KideLog.w(TAG, exception) { "Accept failed" }
                     }
                 }
@@ -147,13 +163,24 @@ public object KideMcpServer {
 
     /**
      * Stops the agent port.
+     *
+     * Returns only once the port has actually been released: the accept thread is joined
+     * (bounded, so a stuck thread cannot hang the caller), because a listening socket closed
+     * from another thread is not reliably rebindable until the thread that was blocked in
+     * `accept()` has left it. Without this, `stop()` followed by `start()` on the same port
+     * is a race the caller wins on a fast machine and loses on a slow one.
      */
     public fun stop() {
-        val socket = serverSocket
+        val socket = serverSocket ?: return
+        val thread = acceptThread
         serverSocket = null
+        acceptThread = null
         try {
-            socket?.close()
+            socket.close()
         } catch (_: Exception) {
+        }
+        if (thread != null && thread !== Thread.currentThread()) {
+            thread.join(STOP_JOIN_TIMEOUT_MILLIS)
         }
     }
 

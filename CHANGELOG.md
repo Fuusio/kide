@@ -40,6 +40,14 @@ composition that showed the result.
   observed flow or its `onEach` throws. The observation is over and the error logged; the
   intent loop is unaffected. Not routed through `onError`, which is for an intent's failure.
 
+### Fixed
+
+- **`kide-devtools`** — `KideMcpServer.stop()` now waits for the accept thread to unwind
+  before returning, so a `start()` on the same port immediately afterwards is deterministic
+  rather than a race that a slow CI runner loses. The accept loop also checks that its own
+  socket is still the current one: a thread that observed a *restarted* server used to spin
+  forever on its closed socket, logging an accept failure per iteration.
+
 ### Documentation
 
 - `skills/kide/reference.md` and `SKILL.md` document both members and replace the
