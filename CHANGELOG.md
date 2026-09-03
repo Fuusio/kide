@@ -4,6 +4,47 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-09-03
+
+Two additions to `PresentationProcessor`, both purely additive — no existing declaration
+changes, and code written against 2.1.0 compiles and behaves as before.
+
+Both close a gap that showed up in application code as workarounds. A use case that has to
+finish with a side effect — *saved, now navigate back*; *could not paste, say so* — had no way
+to say so from inside its own block: a `sideEffect { }` that follows a `useCase { }` in a
+`composite` is built from the state alone, so the result was smuggled to it through a
+one-element array, a flag in the view state, or an intent dispatched back to the processor
+for no other purpose. And a repository flow that should keep a screen current had to be
+collected by a hand-rolled job with its own once-only guard and its own cancellation in
+`close()`, which is why screens reloaded on every entry instead — and then raced the
+composition that showed the result.
+
+### Added
+
+- `PresentationProcessor.emit(effect)` — sends a `SideEffect` from inside an `AsyncAction`,
+  after the work it reports on has completed. Same buffering and exactly-once delivery as a
+  `SideEffectAction`, reported to `KideInterceptor.onSideEffect` with the `TraceContext` of
+  the intent whose action is running, which is why it is `suspend`: reading the coroutine
+  context is how it learns which intent it belongs to. A `protected` member rather than an
+  addition to `AsyncScope`, so no builder signature or scope type changes; a `useCase { }`
+  written inside the processor reaches it directly.
+- `PresentationProcessor.observe(key, flow) { value -> reduce { … } }` — collects a `Flow`
+  in `processorScope` for the life of the processor, handing each value to an `AsyncScope`.
+  Keyed with replacement semantics, like a `cancellationKey`: observing under a key already
+  in use cancels the previous collection, so switching sources is a second call and an
+  intent that fires on every screen entry re-subscribes harmlessly. `isObserving(key)` is
+  the guard for subscribing exactly once; `stopObserving(key)` ends a collection early;
+  `close()` cancels them all. Reductions made from an observation are reported to
+  interceptors with a `null` `TraceContext` — a flow emission has no originating intent.
+- `PresentationProcessor.onObservationError(throwable, key)` — open hook invoked when an
+  observed flow or its `onEach` throws. The observation is over and the error logged; the
+  intent loop is unaffected. Not routed through `onError`, which is for an intent's failure.
+
+### Documentation
+
+- `skills/kide/reference.md` and `SKILL.md` document both members and replace the
+  "carry the result out in an array" idiom.
+
 ## [2.1.0] - 2026-08-07
 
 **The `iosX64` target is gone.** Kotlin deprecated the Apple x86_64 targets, and Compose

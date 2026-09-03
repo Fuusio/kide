@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.coroutineContext
 import org.fuusio.kide.log.logD
 import org.fuusio.kide.log.logE
 import org.fuusio.kide.log.logW
@@ -71,6 +72,13 @@ import kotlin.reflect.KClass
  *   and transformations discarded because another coroutine won the race, are not reported.
  *   Trace fidelity is a public contract: `kide-devtools` and its regression-test generator
  *   depend on it.
+ * - **A use case can finish with a side effect:** [emit] sends a [SideEffect] from inside an
+ *   [AsyncAction], after the work it reports on has completed, with the same buffering and
+ *   exactly-once delivery as a [SideEffectAction] and carrying the [TraceContext] of the
+ *   intent that started the action.
+ * - **Observed flows live as long as the processor:** [observe] collects a [Flow] into the
+ *   state in [processorScope] under a key, so a repository or clipboard flow is subscribed
+ *   once, replaced when the key is reused, and cancelled by [close].
  *
  * ### Threading
  * **[processorScope] must be confined to a single thread.** The default
@@ -136,6 +144,13 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
     private val sideEffectChannel = Channel<E>(Channel.UNLIMITED)
 
     private val children = mutableMapOf<KClass<*>, PresentationProcessor<*, *, *>>()
+
+    /**
+     * The flow collections started by [observe], by key. Touched only from the thread
+     * [processorScope] is confined to — see *Threading* — which is why, like [activeJobs], it
+     * is a plain map and completed jobs are not removed by a completion handler.
+     */
+    private val observations = mutableMapOf<String, Job>()
 
     @Volatile
     private var closed = false
@@ -229,6 +244,36 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
         } else {
             logW { "Intent dispatched to a closed processor; ignoring: $intent" }
         }
+    }
+
+    /**
+     * Emits a [SideEffect] from inside an [AsyncAction] — typically at the end of a [useCase],
+     * once the work the effect reports on has actually completed.
+     *
+     * A [SideEffectAction] that follows a [useCase] in a [composite] is built from the state
+     * alone, so a result the use case produced has to be smuggled to it through the state or a
+     * captured variable. `emit` removes that detour: the use case reduces, then emits, in one
+     * place.
+     *
+     * ```kotlin
+     * SaveItem -> useCase {
+     *     val saved = runCatching { get<SaveItemUseCase>()(state.draft) }.getOrNull()
+     *     reduce { copy(isSaving = false) }
+     *     emit(if (saved != null) ItemSaved(saved.uid) else ShowMessage("Could not save"))
+     * }
+     * ```
+     *
+     * Delivery is the same as for a [SideEffectAction]: buffered until a collector is attached,
+     * delivered exactly once, reported to the [interceptors] via [KideInterceptor.onSideEffect].
+     * Suspending only so that it can read the [TraceContext] of the intent whose action is
+     * running, which is what lets a recorded trace attribute the effect to that intent; it
+     * never blocks. Safe to call after a `withContext`. After [close] the effect is dropped
+     * with a warning.
+     *
+     * @param effect The [SideEffect] to emit.
+     */
+    protected suspend fun emit(effect: E) {
+        sendSideEffect(effect, coroutineContext[TraceContext])
     }
 
     /**
@@ -346,17 +391,22 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
                 logD { "Executing ReducerAction" }
                 reduceState(context) { currentState -> action(currentState) }
             }
-            is SideEffectAction -> {
-                val effect = action(state)
-                if (sideEffectChannel.trySend(effect).isSuccess) {
-                    logD { "Sent SideEffect: $effect" }
-                    interceptors.forEach { it.onSideEffect(effect, context) }
-                } else {
-                    // Only reachable once the processor is closed. Reporting the effect anyway
-                    // would put a delivery in the trace that never happened.
-                    logW { "SideEffect dropped, processor is closed: $effect" }
-                }
-            }
+            is SideEffectAction -> sendSideEffect(action(state), context)
+        }
+    }
+
+    /**
+     * Puts [effect] on the side-effect channel and reports it to the [interceptors]. Shared by
+     * [SideEffectAction] execution and [emit], so both deliver on identical terms.
+     */
+    private fun sendSideEffect(effect: E, context: TraceContext?) {
+        if (sideEffectChannel.trySend(effect).isSuccess) {
+            logD { "Sent SideEffect: $effect" }
+            interceptors.forEach { it.onSideEffect(effect, context) }
+        } else {
+            // Only reachable once the processor is closed. Reporting the effect anyway
+            // would put a delivery in the trace that never happened.
+            logW { "SideEffect dropped, processor is closed: $effect" }
         }
     }
 
@@ -494,6 +544,101 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
     ): P = children.getOrPut(processorClass) { factory() } as P
 
     /**
+     * Collects [flow] for the rest of this processor's life, handing each value to [onEach]
+     * in an [AsyncScope] so it can [AsyncScope.reduce] the state.
+     *
+     * This is the processor-side counterpart of a screen that reloads on every entry: a
+     * repository, clipboard or settings flow subscribed here keeps the state current without
+     * the screen having to remember to ask, and without a reload racing the composition that
+     * shows its result.
+     *
+     * ```kotlin
+     * OnLaunched -> {
+     *     observe("clipboard", get<Clipboard>().content) { content ->
+     *         reduce { copy(pasteableName = content?.name) }
+     *     }
+     *     null
+     * }
+     * ```
+     *
+     * Observations are keyed. Calling `observe` with a [key] that is already being observed
+     * cancels the previous collection and starts the new one — the same replacement rule as a
+     * `cancellationKey` — so switching to another folder's flow is a second call with the same
+     * key, and an intent that fires on every screen entry re-subscribes harmlessly. Use
+     * [isObserving] to subscribe only once, and [stopObserving] to end a collection early.
+     * Every observation is cancelled by [close].
+     *
+     * Reductions made in [onEach] are reported to the [interceptors] like any other, with a
+     * `null` [TraceContext]: a value emitted by a flow has no originating intent. For the same
+     * reason an exception thrown by [onEach] or by the flow is not an intent's failure: it ends
+     * that observation, is logged, and is handed to [onObservationError] rather than to
+     * [onError]. The intent loop is unaffected.
+     *
+     * Must be called from the thread [processorScope] is confined to — from [map], from
+     * `reduceInitialIntent`, or from a host's `setup` on the main thread — like every other
+     * piece of the processor's own bookkeeping. See *Threading*.
+     *
+     * @param T The type of value [flow] emits.
+     * @param key Identifies the observation; reusing it replaces the previous one.
+     * @param flow The [Flow] to collect.
+     * @param onEach Invoked for every value, in an [AsyncScope] over this processor's state.
+     * @return The [Job] collecting [flow]; completed when the flow completes or the
+     * observation is replaced, stopped or the processor closed.
+     */
+    protected fun <T> observe(
+        key: String,
+        flow: Flow<T>,
+        onEach: suspend AsyncScope<S>.(T) -> Unit,
+    ): Job {
+        observations[key]?.let { previous ->
+            if (previous.isActive) logD { "Replacing observation for key: $key" }
+            previous.cancel()
+        }
+        val scope = ActionScope(context = null)
+        val job = processorScope.launch {
+            try {
+                flow.collect { value -> scope.onEach(value) }
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (throwable: Throwable) {
+                logE(throwable) { "Error while observing flow for key: $key" }
+                onObservationError(throwable, key)
+            }
+        }
+        observations[key] = job
+        return job
+    }
+
+    /**
+     * `true` while the flow registered under [key] by [observe] is still being collected.
+     *
+     * The guard for an intent that fires on every screen entry but should subscribe only
+     * once: `if (!isObserving("clipboard")) observe("clipboard", ...)`.
+     */
+    protected fun isObserving(key: String): Boolean = observations[key]?.isActive == true
+
+    /**
+     * Cancels the observation registered under [key] by [observe].
+     *
+     * @return `true` if a live observation was cancelled, `false` if there was none.
+     */
+    protected fun stopObserving(key: String): Boolean {
+        val job = observations.remove(key) ?: return false
+        val wasActive = job.isActive
+        job.cancel()
+        return wasActive
+    }
+
+    /**
+     * Invoked when the flow observed under [key], or its `onEach`, throws. The error has
+     * already been logged; the observation is over, and the intent loop is unaffected. The default does nothing. Override to, for example,
+     * reduce the state to an error state or re-[observe].
+     */
+    protected open fun onObservationError(throwable: Throwable, key: String) {
+        // By default, do nothing
+    }
+
+    /**
      * `true` once [close] has been called.
      *
      * A closed processor ignores [dispatch], emits no further states or side effects, and its
@@ -517,6 +662,7 @@ public abstract class PresentationProcessor<I : ViewIntent, S : ViewState, E : S
         children.values.forEach { it.close() }
         children.clear()
         activeJobs.clear()
+        observations.clear()
         intents.close()
         sideEffectChannel.close()
         processorScope.cancel()

@@ -86,13 +86,18 @@ abstract class <#A: org.fuusio.kide.presentation/ViewIntent, #B: org.fuusio.kide
         final fun <get-wasRestored>(): kotlin/Boolean // org.fuusio.kide.presentation/PresentationProcessor.wasRestored.<get-wasRestored>|<get-wasRestored>(){}[0]
 
     abstract suspend fun map(#A): org.fuusio.kide.presentation/Action<#B, #C>? // org.fuusio.kide.presentation/PresentationProcessor.map|map(1:0){}[0]
+    final fun <#A1: kotlin/Any?> observe(kotlin/String, kotlinx.coroutines.flow/Flow<#A1>, kotlin.coroutines/SuspendFunction2<org.fuusio.kide.presentation/AsyncScope<#B>, #A1, kotlin/Unit>): kotlinx.coroutines/Job // org.fuusio.kide.presentation/PresentationProcessor.observe|observe(kotlin.String;kotlinx.coroutines.flow.Flow<0:0>;kotlin.coroutines.SuspendFunction2<org.fuusio.kide.presentation.AsyncScope<1:1>,0:0,kotlin.Unit>){0§<kotlin.Any?>}[0]
     final fun <#A1: org.fuusio.kide.presentation/PresentationProcessor<*, *, *>> getComponentProcessor(kotlin.reflect/KClass<#A1>, kotlin/Function0<#A1>): #A1 // org.fuusio.kide.presentation/PresentationProcessor.getComponentProcessor|getComponentProcessor(kotlin.reflect.KClass<0:0>;kotlin.Function0<0:0>){0§<org.fuusio.kide.presentation.PresentationProcessor<*,*,*>>}[0]
     final fun dispatch(#A) // org.fuusio.kide.presentation/PresentationProcessor.dispatch|dispatch(1:0){}[0]
     final fun initializeWith(#A) // org.fuusio.kide.presentation/PresentationProcessor.initializeWith|initializeWith(1:0){}[0]
+    final fun isObserving(kotlin/String): kotlin/Boolean // org.fuusio.kide.presentation/PresentationProcessor.isObserving|isObserving(kotlin.String){}[0]
     final fun restoreState(#B) // org.fuusio.kide.presentation/PresentationProcessor.restoreState|restoreState(1:1){}[0]
     final fun stateToSave(): #B? // org.fuusio.kide.presentation/PresentationProcessor.stateToSave|stateToSave(){}[0]
+    final fun stopObserving(kotlin/String): kotlin/Boolean // org.fuusio.kide.presentation/PresentationProcessor.stopObserving|stopObserving(kotlin.String){}[0]
+    final suspend fun emit(#C) // org.fuusio.kide.presentation/PresentationProcessor.emit|emit(1:2){}[0]
     open fun close() // org.fuusio.kide.presentation/PresentationProcessor.close|close(){}[0]
     open fun onError(kotlin/Throwable, #A) // org.fuusio.kide.presentation/PresentationProcessor.onError|onError(kotlin.Throwable;1:0){}[0]
+    open fun onObservationError(kotlin/Throwable, kotlin/String) // org.fuusio.kide.presentation/PresentationProcessor.onObservationError|onObservationError(kotlin.Throwable;kotlin.String){}[0]
     open fun onSaveState(#B): #B? // org.fuusio.kide.presentation/PresentationProcessor.onSaveState|onSaveState(1:1){}[0]
     open fun reduceInitialIntent(#A): #B // org.fuusio.kide.presentation/PresentationProcessor.reduceInitialIntent|reduceInitialIntent(1:0){}[0]
 }

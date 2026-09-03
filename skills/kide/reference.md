@@ -24,6 +24,10 @@ Constructor: `(initialState: S, processorScope: CoroutineScope = defaultProcesso
 | `restoreState(state)` / `wasRestored` | host-applied persisted state (before any dispatch) |
 | `onSaveState(state): S?` | prune/veto a persistence snapshot (open; default = as-is) |
 | `onError(throwable, intent)` | open hook; called after logging + interceptors |
+| `emit(effect)` | *(2.2.0)* `protected suspend`; send a side effect from inside `async`/`useCase`, after the work — same delivery as `sideEffect { }`, carries the intent's `TraceContext` |
+| `observe(key, flow) { value -> reduce { … } }` | *(2.2.0)* collect a flow into state for the processor's life; keyed, **replaces** a live observation under the same key; cancelled by `close()` |
+| `isObserving(key)` / `stopObserving(key)` | *(2.2.0)* once-only guard / early cancel for `observe` |
+| `onObservationError(throwable, key)` | *(2.2.0)* open hook when an observed flow or its `onEach` throws; not `onError` |
 | `getComponentProcessor(kclass) { factory }` | child processors, closed with the parent |
 | `close()` | idempotent end-of-life; cancels scope, closes channels |
 
@@ -72,6 +76,33 @@ member shadows the builder — which is why a missing import only breaks at the 
 `map()`, and breaks confusingly (Kotlin falls through to `Iterable.reduce`).
 
 `AsyncScope<S>` gives `state` (fresh snapshot) and `reduce { }` (compare-and-set).
+
+A use case that ends with a side effect uses the processor's own `emit`, not a trailing
+`sideEffect { }` in a `composite` — that one is built from the state alone and cannot see the
+use case's result:
+
+```kotlin
+SaveItem -> useCase {
+    val saved = runCatching { get<SaveItemUseCase>()(state.draft) }.getOrNull()
+    reduce { copy(isSaving = false) }
+    emit(if (saved != null) ItemSaved(saved.uid) else ShowMessage("Could not save"))
+}
+```
+
+State that mirrors a repository is observed, not reloaded on every screen entry:
+
+```kotlin
+OnLaunched -> {
+    if (!isObserving("items")) observe("items", repo.observeAll()) { items ->
+        reduce { copy(items = items) }
+    }
+    null
+}
+FolderOpened -> {
+    observe("items", repo.observeIn(intent.folderUid)) { items -> reduce { copy(items = items) } }
+    null                                        // same key: the previous folder's flow is cancelled
+}
+```
 
 A `cancellationKey` on a composite with no async member throws `IllegalArgumentException` from
 every construction path — the key would otherwise be silently ignored.

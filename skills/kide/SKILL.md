@@ -203,6 +203,14 @@ repository flow collected at startup.
 - Using `reduce(state)` rather than `reduce { … }` on a use-case processor. The absolute
   overload overwrites instead of transforming, so a processor shared between screens can
   discard a concurrent change. `reduce { newState }` is the same thing, safely.
+- Carrying a use case's result to a trailing `sideEffect { }` through a one-element array, a
+  flag in the view state, or an intent dispatched back to the processor. The `sideEffect`
+  lambda only sees the state; call `emit(effect)` at the end of the `useCase { }` instead
+  (2.2.0).
+- Reloading on every `OnLaunched` what a repository already exposes as a `Flow`. Besides the
+  wasted round trip, the reload races the composition that shows its result — a row that
+  `remember`s something by id keeps the stale value. `observe(key, flow) { reduce { … } }`
+  keeps the state current for the processor's life (2.2.0).
 - Collecting `sideEffects` from more than one place — delivery is exactly-once to a
   single collector.
 - Deriving `serialKey` from a class name — breaks saved state under R8/renames.

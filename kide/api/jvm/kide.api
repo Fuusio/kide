@@ -116,6 +116,7 @@ public abstract class org/fuusio/kide/presentation/PresentationProcessor : java/
 	public synthetic fun <init> (Lorg/fuusio/kide/presentation/ViewState;Lkotlinx/coroutines/CoroutineScope;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
 	public final fun dispatch (Lorg/fuusio/kide/presentation/ViewIntent;)V
+	protected final fun emit (Lorg/fuusio/kide/presentation/SideEffect;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun getComponentProcessor (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function0;)Lorg/fuusio/kide/presentation/PresentationProcessor;
 	protected final fun getInterceptors ()Ljava/util/List;
 	public final fun getProcessorScope ()Lkotlinx/coroutines/CoroutineScope;
@@ -125,12 +126,16 @@ public abstract class org/fuusio/kide/presentation/PresentationProcessor : java/
 	public final fun getWasRestored ()Z
 	public final fun initializeWith (Lorg/fuusio/kide/presentation/ViewIntent;)V
 	public final fun isClosed ()Z
+	protected final fun isObserving (Ljava/lang/String;)Z
 	protected abstract fun map (Lorg/fuusio/kide/presentation/ViewIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun observe (Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
 	protected fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/presentation/ViewIntent;)V
+	protected fun onObservationError (Ljava/lang/Throwable;Ljava/lang/String;)V
 	protected fun onSaveState (Lorg/fuusio/kide/presentation/ViewState;)Lorg/fuusio/kide/presentation/ViewState;
 	protected fun reduceInitialIntent (Lorg/fuusio/kide/presentation/ViewIntent;)Lorg/fuusio/kide/presentation/ViewState;
 	public final fun restoreState (Lorg/fuusio/kide/presentation/ViewState;)V
 	public final fun stateToSave ()Lorg/fuusio/kide/presentation/ViewState;
+	protected final fun stopObserving (Ljava/lang/String;)Z
 }
 
 public abstract interface class org/fuusio/kide/presentation/PresentationProcessorHost : org/fuusio/kide/presentation/PresentationComponent {
