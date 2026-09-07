@@ -589,6 +589,55 @@ pieces fit together.
   <img src="images/Screenshot_Settings.png" width="18%" />
 </p>
 
+## Built with Kide: the Fuusio app
+
+[![Get it on Google Play](https://img.shields.io/badge/Google_Play-Fuusio-414141?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=org.fuusio.app)
+
+The sample app shows how the pieces fit; **[Fuusio](https://play.google.com/store/apps/details?id=org.fuusio.app)**
+shows what they can carry. Fuusio is a full-blown, production Android app built on Kide and
+published on Google Play. It packs into one offline-first app what usually lives in several:
+a catalogue of 50+ utility tools across ten categories, a runtime for sandboxed web applets,
+a personal database of structured records (notes, todos, contacts, and any record type you
+define), a dashboard with an Omnibar for instant calculation, conversion, search, and quick
+capture, eight classic offline games, and an embedded AI agent — bring your own API key from
+Anthropic, Google, OpenAI, or DeepSeek — that can build new applets, tools, and record types
+from a plain-language description, with everything it makes staying on the device.
+
+### From first commit to Google Play in under three months
+
+Fuusio went from its first commit in June 2026 to a published Play Store release in less than
+three months, developed by a single developer working with AI coding agents. The codebase
+that shipped contains roughly 1,700 Kotlin files, close to a hundred `PresentationProcessor`s,
+over ninety `ScreenNavKey` destinations, and more than 260 test files — a scope that would
+normally take a team considerably longer to build and stabilise.
+
+Kide is a big part of why that pace was sustainable:
+
+*   **One shape for every screen.** Each of Fuusio's ~90 destinations is a `ScreenNavKey`, a
+    `PresentationProcessor`, and a Compose screen. Once the agent had seen a handful, it could
+    add new ones correctly and without drift — the strict MVI contract leaves little room for
+    creative interpretation, which is exactly what you want from a code generator.
+*   **Agent-first instructions.** The [Kide skill](skills/kide/SKILL.md) gave the coding agent
+    the architecture, the conventions, and the action builders up front, so features were
+    generated in the idiomatic form on the first attempt rather than after review rounds.
+*   **Agent-native debugging.** With `kide-devtools` in debug builds, the agent could connect
+    to the running app through the MCP port, read the causal trace, dispatch intents into the
+    emulator, and turn a reproduced bug into a regression test — closing bug loops in minutes
+    instead of hours of manual reproduction.
+*   **Execution guarantees that hold under generated code.** Lossless intent queues,
+    deterministic reduction, exactly-once side effects, and a guarded intent loop meant that
+    the inevitable mistakes in generated code surfaced as logged errors and failing tests, not
+    as dropped events or crashes in the field.
+*   **Modular assembly.** Fuusio's tools, applets, games, database, and agent are separate
+    modules that register their own Koin modules and nav keys through Kide's `Feature`
+    abstraction, so the app could grow feature by feature without a central navigation graph
+    to keep in sync.
+
+Fuusio is the proof point for Kide's thesis: an architecture designed to be understood, generated,
+and debugged by AI agents lets a very small team ship a large, reliable app in a very short time.
+
+**[Get Fuusio on Google Play →](https://play.google.com/store/apps/details?id=org.fuusio.app)**
+
 ## License
 
 The Kide library is licensed under the [Apache License, Version 2.0](https://opensource.org/license/apache-2-0).
