@@ -213,6 +213,15 @@ private fun AboutScreenContent(
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 item {
                     OsiLicenseEntry(
+                        libraryName = "Kide",
+                        copyright = "Copyright © 2026 Marko Salmela",
+                        license = OSILicense.APACHE_2,
+                        githubUrl = "https://github.com/Fuusio/kide",
+                    )
+                    HorizontalDivider()
+                }
+                item {
+                    OsiLicenseEntry(
                         libraryName = "Koin",
                         copyright = "Copyright © 2017 Arnaud Giuliani, Laurent Baresse",
                         license = OSILicense.APACHE_2,

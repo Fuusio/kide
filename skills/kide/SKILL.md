@@ -73,9 +73,7 @@ object FooNavKey : ScreenNavKey<FooProcessor> {
 @Composable
 fun FooScreen(ctx: ScreenContext<FooProcessor>) {
     val state by ctx.processor.states.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) {
-        ctx.processor.sideEffects.collect { effect -> /* toast, navigation, ... */ }
-    }
+    CollectSideEffects(ctx.processor) { effect -> /* toast, navigation, ... */ }
     // UI dispatches: ctx.processor.dispatch(FooIntent.Submit)
     // Navigate:      ctx.navigateTo(BarNavKey)
 }
@@ -213,6 +211,9 @@ repository flow collected at startup.
   keeps the state current for the processor's life (2.2.0).
 - Collecting `sideEffects` from more than one place — delivery is exactly-once to a
   single collector.
+- Collecting `sideEffects` in a plain `LaunchedEffect` — it keeps consuming effects while
+  the app is in the background. Use `CollectSideEffects(processor) { … }`, which collects
+  only while the screen is at least `STARTED` and leaves the rest buffered (2.3.0).
 - Deriving `serialKey` from a class name — breaks saved state under R8/renames.
 - Caching processor instances in `createProcessor()` — must return a fresh instance;
   retention is the host's job.

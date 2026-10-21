@@ -121,11 +121,9 @@ In your Compose screen, use `ScreenContext` to observe state and side effects:
 fun SearchScreen(ctx: ScreenContext<SearchProcessor>) {
     val state by ctx.processor.states.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        ctx.processor.sideEffects.collect { effect ->
-            when (effect) {
-                is SearchSideEffect.ShowToast -> showToast(effect.message)
-            }
+    CollectSideEffects(ctx.processor) { effect ->
+        when (effect) {
+            is SearchSideEffect.ShowToast -> showToast(effect.message)
         }
     }
 
@@ -136,6 +134,14 @@ fun SearchScreen(ctx: ScreenContext<SearchProcessor>) {
     }
 }
 ```
+
+Collect side effects with `CollectSideEffects` rather than a plain `LaunchedEffect`. A
+`LaunchedEffect` keeps collecting while the app is in the background, so a toast or a
+navigation can be consumed while nothing is visible and is then gone. `CollectSideEffects`
+collects only while the lifecycle is at least `STARTED` (configurable with
+`minActiveState`); effects emitted meanwhile stay buffered in the processor and are
+delivered in order, exactly once, when the screen is visible again. As with any
+collection of `sideEffects`, call it from exactly one place per processor.
 
 ### Navigating Between Screens
 Navigation is handled via the `ScreenContext` or directly on the `AppNavBackStack`.

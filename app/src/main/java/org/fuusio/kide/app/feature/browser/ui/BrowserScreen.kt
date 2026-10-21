@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.fuusio.kide.app.domain.entity.Project
 import org.fuusio.kide.app.feature.browser.presentation.*
 import org.fuusio.kide.app.feature.details.navigation.DetailsNavKey
+import org.fuusio.kide.navigation.CollectSideEffects
 import org.fuusio.kide.navigation.ScreenContext
 
 @Composable
@@ -47,15 +48,13 @@ fun BrowserScreen(ctx: ScreenContext<BrowserProcessor>) {
     val onDispatch = ctx.processor::dispatch
     val context = LocalContext.current
 
-    LaunchedEffect(ctx.processor.sideEffects) {
-        ctx.processor.sideEffects.collect { effect ->
-            when (effect) {
-                is ShowBrowserToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-                is NavigateToLocalDetails -> {
-                    ctx.navigateTo(DetailsNavKey(effect.projectId))
-                }
+    CollectSideEffects(ctx.processor) { effect ->
+        when (effect) {
+            is ShowBrowserToast -> {
+                Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+            }
+            is NavigateToLocalDetails -> {
+                ctx.navigateTo(DetailsNavKey(effect.projectId))
             }
         }
     }

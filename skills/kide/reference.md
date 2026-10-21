@@ -118,6 +118,9 @@ every construction path — the key would otherwise be silently ignored.
 - `NavBackStack.navigateTo(key)` (clears stack) vs `pushTo(key)` (pushes).
 - `ScreenContext<T>`: `processor`, `backStack`, `onBack`, `navigateTo(key)`,
   `callback(name)` / `openMenu()`.
+- `CollectSideEffects(processor, minActiveState = STARTED) { effect -> … }` *(2.3.0)* —
+  the way to consume `sideEffects` in a screen: collects only while the lifecycle is at
+  least `minActiveState`, leaves effects buffered otherwise; `onEffect` may suspend.
 - Retention: one `ViewModelHost` per destination (config-change safe); back stack and
   opted-in ViewStates survive process death.
 

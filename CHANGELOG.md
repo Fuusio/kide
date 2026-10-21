@@ -4,6 +4,26 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`kide-navigation`** — `CollectSideEffects(processor, minActiveState) { effect -> … }`,
+  a composable that collects a processor's `sideEffects` only while the lifecycle is at
+  least `minActiveState` (`STARTED` by default). The documented pattern until now, a plain
+  `LaunchedEffect { processor.sideEffects.collect { … } }`, keeps collecting while the app
+  is in the background, so a toast or a navigation could be consumed while nothing was
+  visible. With `CollectSideEffects` those effects stay buffered in the processor and are
+  delivered, in order and exactly once, when the screen is visible again. Collection runs
+  on `Dispatchers.Main.immediate`, so a lifecycle stop cannot cancel the collector between
+  receiving an effect and handling it. `kide-navigation` now declares
+  `org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose` as an `api` dependency.
+
+### Changed
+
+- The sample app, README, developer guide and `skills/kide` use `CollectSideEffects`
+  instead of `LaunchedEffect` for side effects.
+
 ## [2.2.0] - 2026-09-03
 
 Two additions to `PresentationProcessor`, both purely additive — no existing declaration

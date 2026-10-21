@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.fuusio.kide.app.feature.about.presentation.OSILicense
 import org.fuusio.kide.app.feature.details.presentation.*
+import org.fuusio.kide.navigation.CollectSideEffects
 import org.fuusio.kide.navigation.ScreenContext
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -49,15 +50,13 @@ fun DetailsScreen(ctx: ScreenContext<DetailsProcessor>) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
-    LaunchedEffect(ctx.processor.sideEffects) {
-        ctx.processor.sideEffects.collect { effect ->
-            when (effect) {
-                is ShowDetailsToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-                is NavigateBack -> {
-                    ctx.onBack()
-                }
+    CollectSideEffects(ctx.processor) { effect ->
+        when (effect) {
+            is ShowDetailsToast -> {
+                Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+            }
+            is NavigateBack -> {
+                ctx.onBack()
             }
         }
     }

@@ -1,39 +1,46 @@
 [versions]
 activityCompose = "1.13.0"
-agp = "9.4.0"
-composeMultiplatform = "1.12.0"
-essenty = "2.5.0"
+agp = "9.4.1"
+composeMultiplatform = "1.12.2"
+essenty = "2.6.0"
 voyager = "2.2.21-1.10.3"
 jetbrainsLifecycle = "2.11.0"
-jetbrainsNavigation3 = "1.1.1"
+jetbrainsNavigation3 = "1.1.2"
 appcompat = "1.8.0"
-composeBom = "2026.08.00"
-datastore = "1.2.1"
+composeBom = "2026.09.00"
+datastore = "1.3.0"
 junitVersion = "1.3.0"
 koinBom = "4.2.2"
-kotest = "6.2.4"
-kotlin = "2.4.10"
+kotest = "6.2.6"
+kotlin = "2.4.21"
 mavenPublish = "0.37.0"
 kotlinxCoroutines = "1.11.0"
-kotlinxSerialization = "1.11.0"
+kotlinxSerialization = "1.12.0"
 turbine = "1.2.1"
-ksp = "2.3.6"
+ksp = "2.3.12"
 lifecycleRuntimeKtx = "2.11.0"
 lifecycleViewmodelCompose = "2.11.0"
-material3 = "1.5.0-alpha27"
+material3 = "1.5.0-beta01"
 mockk = "1.14.11"
-navigation = "2.10.0"
+navigation = "2.10.2"
 navigation3 = "2.11.0"
-navigation3Material = "1.1.7"
-room = "2.8.4"
+navigation3Material = "1.2.0"
+room = "2.8.5"
 timber = "5.0.1"
 
+#noinspection UnusedVersionCatalogEntry
 compileSdk = "37"
+#noinspection UnusedVersionCatalogEntry
 javaCompatibility = "21"
+#noinspection UnusedVersionCatalogEntry
 kotlinJvmTarget = "21"
+#noinspection UnusedVersionCatalogEntry
 minSdk = "33"
+#noinspection UnusedVersionCatalogEntry
 targetSdk = "37"
+#noinspection UnusedVersionCatalogEntry
 material = "1.14.0"
+#noinspection UnusedVersionCatalogEntry
 junit = "4.13.2"
 
 [libraries]
@@ -76,6 +83,7 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
 jetbrains-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "jetbrainsLifecycle" }
+jetbrains-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jetbrainsLifecycle" }
 jetbrains-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrainsLifecycle" }
 jetbrains-lifecycle-viewmodel-navigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "jetbrainsLifecycle" }
 jetbrains-lifecycle-viewmodel-savedstate = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "jetbrainsLifecycle" }

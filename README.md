@@ -271,11 +271,9 @@ Action builders available in `map()`:
 fun SearchScreen(ctx: ScreenContext<SearchProcessor>) {
     val state by ctx.processor.states.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        ctx.processor.sideEffects.collect { effect ->
-            when (effect) {
-                is SearchSideEffect.ShowToast -> /* show it */ Unit
-            }
+    CollectSideEffects(ctx.processor) { effect ->
+        when (effect) {
+            is SearchSideEffect.ShowToast -> /* show it */ Unit
         }
     }
 
@@ -286,6 +284,10 @@ fun SearchScreen(ctx: ScreenContext<SearchProcessor>) {
     )
 }
 ```
+
+`CollectSideEffects` (`kide-navigation`) collects only while the screen is at least
+`STARTED`. Effects emitted while the app is in the background stay buffered and are
+delivered when it returns, instead of being consumed while nothing is visible.
 
 ### 4. Wire up navigation
 

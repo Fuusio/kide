@@ -26,6 +26,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":kide"))
             api(compose.runtime)
+            api(libs.jetbrains.lifecycle.runtime.compose)
             api(libs.jetbrains.lifecycle.viewmodel)
             api(libs.jetbrains.lifecycle.viewmodel.compose)
             api(libs.jetbrains.lifecycle.viewmodel.navigation3)

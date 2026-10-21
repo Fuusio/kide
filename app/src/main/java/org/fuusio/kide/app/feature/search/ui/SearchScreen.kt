@@ -46,6 +46,7 @@ import org.fuusio.kide.app.feature.about.presentation.OSILicense
 import org.fuusio.kide.app.domain.entity.Project
 import org.fuusio.kide.app.feature.search.presentation.*
 import org.fuusio.kide.app.R
+import org.fuusio.kide.navigation.CollectSideEffects
 import org.fuusio.kide.navigation.ScreenContext
 
 @Composable
@@ -55,15 +56,13 @@ fun SearchScreen(ctx: ScreenContext<SearchProcessor>) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
-    LaunchedEffect(ctx.processor.sideEffects) {
-        ctx.processor.sideEffects.collect { effect ->
-            when (effect) {
-                is ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-                is NavigateToDetails -> {
-                    // Details navigation
-                }
+    CollectSideEffects(ctx.processor) { effect ->
+        when (effect) {
+            is ShowToast -> {
+                Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+            }
+            is NavigateToDetails -> {
+                // Details navigation
             }
         }
     }
