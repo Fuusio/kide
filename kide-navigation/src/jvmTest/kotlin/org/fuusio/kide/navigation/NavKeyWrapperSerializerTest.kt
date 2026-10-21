@@ -18,9 +18,11 @@
 package org.fuusio.kide.navigation
 
 import androidx.compose.runtime.Composable
-import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlinx.serialization.json.Json
@@ -207,9 +209,17 @@ class NavKeyWrapperSerializerTest : DescribeSpec({
                 // Intentionally not registered.
                 val encoded = json.encodeToString(NavKeyWrapperSerializer, NavKeyWrapper(key))
 
-                shouldThrow<IllegalStateException> {
+                // Asserted on the cause chain, not the thrown type: since kotlinx-serialization
+                // 1.12.0 the Json format wraps an exception thrown inside a deserializer in a
+                // JsonDecodingException. Which format wraps it, and how, is not ours to pin down;
+                // that the unregistered key surfaces as the failure is.
+                val thrown = shouldThrowAny {
                     json.decodeFromString(NavKeyWrapperSerializer, encoded)
                 }
+                val cause = generateSequence(thrown) { it.cause }
+                    .firstOrNull { it is IllegalStateException }
+                cause.shouldNotBeNull()
+                cause.message shouldContain "ser_never_registered"
             }
 
             // The upgrade path: a back stack saved by an older release names a destination this
