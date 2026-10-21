@@ -1,0 +1,24 @@
+public final class org/fuusio/kide/di/Injector : org/koin/core/component/KoinComponent {
+	public static final field INSTANCE Lorg/fuusio/kide/di/Injector;
+	public fun getKoin ()Lorg/koin/core/Koin;
+}
+
+public final class org/fuusio/kide/di/InjectorKt {
+	public static final fun params ([Ljava/lang/Object;)Lorg/koin/core/parameter/ParametersHolder;
+}
+
+public abstract interface class org/fuusio/kide/feature/KoinApplicationFeature : org/fuusio/kide/feature/ApplicationFeature, org/fuusio/kide/feature/KoinFeature {
+}
+
+public final class org/fuusio/kide/feature/KoinApplicationFeature$DefaultImpls {
+	public static fun initialize (Lorg/fuusio/kide/feature/KoinApplicationFeature;)V
+}
+
+public abstract interface class org/fuusio/kide/feature/KoinFeature : org/fuusio/kide/feature/Feature {
+	public abstract fun koinModule (Landroid/content/Context;)Lorg/koin/core/module/Module;
+}
+
+public final class org/fuusio/kide/feature/KoinFeature$DefaultImpls {
+	public static fun initialize (Lorg/fuusio/kide/feature/KoinFeature;)V
+}
+

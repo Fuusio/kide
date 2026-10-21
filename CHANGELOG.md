@@ -4,7 +4,12 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.3.0] - 2026-10-21
+
+One addition to `kide-navigation`, purely additive: no existing declaration changes, and
+code written against 2.2.0 compiles and behaves as before. Screens that still collect side
+effects in a plain `LaunchedEffect` keep working; switching them to `CollectSideEffects` is
+recommended but not required.
 
 ### Added
 
@@ -23,6 +28,13 @@ All notable changes to Kide are documented in this file. The format follows
 
 - The sample app, README, developer guide and `skills/kide` use `CollectSideEffects`
   instead of `LaunchedEffect` for side effects.
+- **build** — Kotlin `2.4.10` → `2.4.21`, Compose Multiplatform `1.12.0` → `1.12.2`,
+  JetBrains Navigation 3 `1.1.1` → `1.1.2`, kotlinx-serialization `1.11.0` → `1.12.0`,
+  Essenty `2.5.0` → `2.6.0` (`kide-decompose`), kotest `6.2.4` → `6.2.6`.
+- **sample app** — AGP `9.4.0` → `9.4.1`, Compose BOM `2026.08.00` → `2026.09.00`,
+  Material 3 `1.5.0-alpha27` → `1.5.0-beta01`, Navigation 3 Material `1.1.7` → `1.2.0`,
+  Navigation `2.10.0` → `2.10.2`, Room `2.8.4` → `2.8.5`, DataStore `1.2.1` → `1.3.0`,
+  KSP `2.3.6` → `2.3.12`.
 
 ## [2.2.0] - 2026-09-03
 

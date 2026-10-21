@@ -1,0 +1,8 @@
+public final class org/fuusio/kide/domain/usecase/devtools/UseCaseFlightRecorder : org/fuusio/kide/domain/usecase/UseCaseInterceptor {
+	public fun <init> (Lorg/fuusio/kide/devtools/TraceBuffer;)V
+	public final fun getBuffer ()Lorg/fuusio/kide/devtools/TraceBuffer;
+	public fun onError (Ljava/lang/Throwable;Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onIntent (Lorg/fuusio/kide/domain/usecase/UseCaseIntent;Lorg/fuusio/kide/presentation/TraceContext;)V
+	public fun onStateChanged (Lorg/fuusio/kide/domain/entity/State;Lorg/fuusio/kide/domain/entity/State;Lorg/fuusio/kide/presentation/TraceContext;)V
+}
+

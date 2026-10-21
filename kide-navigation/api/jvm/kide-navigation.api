@@ -6,6 +6,10 @@ public final class org/fuusio/kide/navigation/AppNavigationKt {
 	public static final fun rememberAppNavBackStack ([Lorg/fuusio/kide/navigation/ScreenNavKey;Landroidx/compose/runtime/Composer;I)Landroidx/navigation3/runtime/NavBackStack;
 }
 
+public final class org/fuusio/kide/navigation/CollectSideEffectsKt {
+	public static final fun CollectSideEffects (Lorg/fuusio/kide/presentation/PresentationProcessor;Landroidx/lifecycle/Lifecycle$State;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+}
+
 public abstract interface class org/fuusio/kide/navigation/NavigationComponent : org/fuusio/kide/KideComponent {
 }
 
