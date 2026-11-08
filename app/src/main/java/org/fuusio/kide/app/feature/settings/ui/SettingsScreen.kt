@@ -23,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -33,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.fuusio.kide.app.domain.entity.DarkMode
 import org.fuusio.kide.app.feature.settings.presentation.*
 import org.fuusio.kide.navigation.ScreenContext
+import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen(ctx: ScreenContext<SettingsProcessor>) {
@@ -146,11 +148,24 @@ private fun SettingsScreenContent(
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
             )
+            val sliderState = remember {
+                SliderState(
+                    value = state.resultsLimit.toFloat(),
+                    steps = 8,
+                    trackRange = 10f..100f,
+                )
+            }
+            // The view state is the source of truth; follow it when it changes elsewhere
+            // (e.g. settings loaded after the first composition).
+            LaunchedEffect(state.resultsLimit) {
+                sliderState.value = state.resultsLimit.toFloat()
+            }
             Slider(
-                value = state.resultsLimit.toFloat(),
-                onValueChange = { onDispatch(UpdateResultsLimit(it.toInt())) },
-                valueRange = 10f..100f,
-                steps = 8,
+                state = sliderState,
+                onValueChange = {
+                    sliderState.value = it
+                    onDispatch(UpdateResultsLimit(it.roundToInt()))
+                },
                 modifier = Modifier.fillMaxWidth()
             )
         }

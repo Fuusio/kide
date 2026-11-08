@@ -4,6 +4,20 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-11-08
+
+A dependency-update release. No API changes: the ABI dumps are unchanged, and code written
+against 2.3.0 compiles and behaves as before.
+
+### Changed
+
+- **build** — JetBrains Navigation 3 `1.1.2` → `1.2.0` (`kide-navigation`, an `api`
+  dependency), Essenty `2.6.0` → `2.7.1` (`kide-decompose`, an `api` dependency),
+  AGP `9.4.1` → `9.5.1`.
+- **sample app** — Material 3 `1.5.0-beta01` → `1.5.0-rc01`, Navigation 3 `1.2.0` → `1.2.1`;
+  the settings screen moves to the `SliderState` overload of `Slider`, which rc01 makes
+  the only non-deprecated one.
+
 ## [2.3.0] - 2026-10-21
 
 One addition to `kide-navigation`, purely additive: no existing declaration changes, and
