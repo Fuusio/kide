@@ -1,0 +1,72 @@
+name: Publish kide-appstate
+
+# The experimental kide-appstate module is versioned and released on its own. Tags of the
+# form kide-appstate-<version> publish only that module; the stable `v*` release
+# (publish.yml) never does, because the module has no publishing tasks unless
+# -Pkide.publishExperimental is passed.
+on:
+  push:
+    tags:
+      - 'kide-appstate-*'
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify tag matches the module version
+        run: |
+          version_name="$(grep -E '^VERSION_NAME=' kide-appstate/gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+          expected_tag="kide-appstate-${version_name}"
+          # What Gradle will actually publish, read from the generated POM rather than
+          # from the file: the publish plugin sets the version on the publications, not on
+          # project.version, so the `properties` task reports "unspecified".
+          ./gradlew -q :kide-appstate:generatePomFileForKotlinMultiplatformPublication -Pkide.publishExperimental
+          resolved="$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' kide-appstate/build/publications/kotlinMultiplatform/pom-default.xml | head -n 1 | tr -d '[:space:]')"
+          echo "Tag:              ${GITHUB_REF_NAME}"
+          echo "VERSION_NAME:     ${version_name}"
+          echo "Resolved version: ${resolved}"
+          if [ -z "${version_name}" ] || [ "${version_name}" != "${version_name%-SNAPSHOT}" ]; then
+            echo "::error::Refusing to publish kide-appstate from a missing or -SNAPSHOT version (VERSION_NAME=${version_name})."
+            exit 1
+          fi
+          if [ "${GITHUB_REF_NAME}" != "${expected_tag}" ]; then
+            echo "::error::Tag '${GITHUB_REF_NAME}' does not match kide-appstate VERSION_NAME '${version_name}' (expected tag '${expected_tag}')."
+            exit 1
+          fi
+          if [ "${resolved}" != "${version_name}" ]; then
+            echo "::error::The generated POM gives kide-appstate version '${resolved}', not '${version_name}'. The module's VERSION_NAME override is not being applied."
+            exit 1
+          fi
+
+      - name: Verify the Kide version it depends on is released
+        run: |
+          kide_version="$(grep -E '^VERSION_NAME=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+          pom="https://repo1.maven.org/maven2/org/fuusio/kide/kide/${kide_version}/kide-${kide_version}.pom"
+          echo "kide-appstate will depend on org.fuusio.kide:kide:${kide_version}"
+          if ! curl -fsSI "${pom}" > /dev/null; then
+            echo "::error::org.fuusio.kide:kide:${kide_version} is not on Maven Central. Tag kide-appstate from a commit whose root VERSION_NAME is a released Kide version."
+            exit 1
+          fi
+
+      - name: Test
+        run: ./gradlew :kide-appstate:check
+
+      - name: Publish to Maven Central
+        run: ./gradlew :kide-appstate:publishAndReleaseToMavenCentral -Pkide.publishExperimental --no-configuration-cache
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}

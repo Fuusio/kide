@@ -1,0 +1,9 @@
+public abstract interface annotation class org/fuusio/kide/appstate/ExperimentalKideAppStateApi : java/lang/annotation/Annotation {
+}
+
+public final class org/fuusio/kide/appstate/TransformFlowKt {
+	public static final fun asFlow (Landroidx/compose/runtime/State;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun transformFlow (Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/jvm/functions/Function2;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun transformFlow$default (Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
