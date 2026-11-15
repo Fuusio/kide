@@ -144,7 +144,9 @@ is exempt from Kide's Semantic Versioning promise. No other Kide module depends 
 leaving it out leaves AppState out of your build entirely.
 
 ```kotlin
-implementation("org.fuusio.kide:kide-appstate:2.4.0-alpha01")
+implementation("org.fuusio.kide:kide-appstate:2.4.0-alpha02")
+// Optional: publish a use case's domain state into an AppState StateStore
+implementation("org.fuusio.kide:kide-clean-architecture-appstate:2.4.0-alpha02")
 ```
 
 It currently targets **Android and JVM**; a multiplatform project with iOS targets cannot

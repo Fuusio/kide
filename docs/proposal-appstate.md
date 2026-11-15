@@ -293,7 +293,8 @@ optionally a `listener`-based recorder that writes StateStore key changes into a
 
 Status: `mirrorTo`, with and without restore, is done on
 `feature/kide-clean-architecture-appstate` and documented in section 9 of
-`docs/kide_guide.md`. The trace recorder is not started.
+`docs/kide_guide.md`. The trace recorder is deferred until AppState reaches beta; see
+*Deferred until AppState beta*.
 
 - `mirrorTo` is implemented for in-memory keys. The module is released **with**
   `kide-appstate`: one version, one `kide-appstate-<version>` tag, one changelog, one
@@ -342,12 +343,33 @@ Status: `mirrorTo`, with and without restore, is done on
   can live in common code and be tested on JVM with a simulated foreign write; the real
   round trip is tested in `androidHostTest`. Known cost: a domain change made in the first
   tens of milliseconds after start can be replaced by the restored state.
-- The StateStore trace recorder is not started.
 
 **Phase 4 — iOS (deferred until AppState reaches beta).** Add `iosArm64()` and `iosSimulatorArm64()` once the upstream artifacts
 and the Compose runtime they need are confirmed to resolve alongside Compose
 Multiplatform, and a headless composition is shown to recompose there. Purely additive
 for Android and JVM consumers.
+
+**Deferred until AppState beta** (decided 2026-11-15). Neither item is started before
+AppState leaves alpha; both are revisited then against the API as it stands.
+
+- *iOS targets* — phase 4 above.
+- *StateStore trace recorder.* Records StateStore key changes into the shared `TraceBuffer`
+  so the agent port can see them. What is already known about it:
+  - It needs its own artifact (working name `kide-appstate-devtools`), for the reason
+    `kide-clean-architecture-devtools` is one: it joins StateStore, Transform's `listener`
+    and `kide-devtools`, and neither side may depend on the other — `kide-devtools` must
+    not take an alpha dependency, and the AppState modules must not pull debug tooling
+    into release builds.
+  - It needs a decision in `kide-devtools` first: `TraceEventSource` has only
+    `Presentation` and `Domain`, and a StateStore event is neither. That is a change to a
+    stable module.
+  - Its value is limited to keys no Kide processor owns. State published with `mirrorTo`
+    is already traced by `UseCaseFlightRecorder`, because the processor is the only
+    writer; recording the store as well would duplicate those events.
+  - Until then an application can do it by hand: `TraceBuffer.record(...)` is public, or
+    the key can be brought into a screen with
+    `observe(key, stateStore.getState(k).asFlow())`, where it appears as an ordinary
+    state change.
 
 **Graduation.** AppState beta → opt-in level drops to `WARNING`, API frozen. AppState
 stable → module joins the main version train and the annotation is deprecated. Core stays

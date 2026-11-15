@@ -204,7 +204,7 @@ each feature registers nav keys in `initialize()` and provides a Koin module.
 
 ## AppState (`kide-appstate`, experimental)
 
-Jetpack AppState bridge. Alpha upstream, so: own version (`2.4.0-alpha01`, see
+Jetpack AppState bridge. Alpha upstream, so: own version (`2.4.0-alpha02`, see
 `kide-appstate/CHANGELOG.md`), Android + JVM only, every declaration needs
 `@OptIn(ExperimentalKideAppStateApi::class)`, API may change in any release. Add it only
 when the user asks for AppState; never as a default. Needs the Compose compiler plugin in
