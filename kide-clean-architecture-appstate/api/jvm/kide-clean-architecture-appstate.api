@@ -1,0 +1,5 @@
+public final class org/fuusio/kide/appstate/statestore/MirrorToKt {
+	public static final fun mirrorTo (Lorg/fuusio/kide/domain/usecase/UseCaseProcessor;Landroidx/appstate/statestore/StateStore;Landroidx/appstate/statestore/StateStoreKey;Lkotlinx/coroutines/CoroutineScope;)Lkotlinx/coroutines/Job;
+	public static final fun mirrorTo (Lorg/fuusio/kide/domain/usecase/UseCaseProcessor;Landroidx/appstate/statestore/StateStore;Landroidx/appstate/statestore/StateStoreKey;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;)Lkotlinx/coroutines/Job;
+}
+

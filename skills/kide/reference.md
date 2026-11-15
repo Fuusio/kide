@@ -204,7 +204,7 @@ each feature registers nav keys in `initialize()` and provides a Koin module.
 
 ## AppState (`kide-appstate`, experimental)
 
-Jetpack AppState bridge. Alpha upstream, so: own version (`2.4.0-alpha01`, see
+Jetpack AppState bridge. Alpha upstream, so: own version (`2.4.0-alpha02`, see
 `kide-appstate/CHANGELOG.md`), Android + JVM only, every declaration needs
 `@OptIn(ExperimentalKideAppStateApi::class)`, API may change in any release. Add it only
 when the user asks for AppState; never as a default. Needs the Compose compiler plugin in
@@ -231,3 +231,17 @@ processor's own `state` inside the block expecting recomposition (use
 Test deterministically with `transformTest { }` from
 `androidx.appstate.transform:transform-testing`: pass `testDispatcher` to both
 `transformFlow` and the processor scope, then `advance()` after each write.
+
+`kide-clean-architecture-appstate` (same version, package
+`org.fuusio.kide.appstate.statestore`) publishes domain state the other way:
+
+- `UseCaseProcessor.mirrorTo(stateStore, key, scope): Job` — one-way mirror of the
+  processor's state into an AppState `StateStore` key; readers use
+  `stateStore.getState(key)`. The processor stays the only writer.
+- `UseCaseProcessor.mirrorTo(stateStore, key, scope) { stored -> intent? }` — same, plus
+  restore for a `PersistToDataStore` key: a value the mirror did not write is dispatched to
+  the processor as the returned intent (`null` ignores it).
+
+Call it once at application start, before anything reads the key (first access to a key is
+not thread-safe). Never write the key elsewhere; `StateStore.updateState` is not atomic.
+The key's default should equal the processor's initial state. Persistence is Android-only.
