@@ -65,6 +65,7 @@ Kide is highly decoupled. Use only what you need:
 | `kide-clean-architecture-devtools` | `UseCaseFlightRecorder` — records domain events into the same `TraceBuffer` as the UI | `kide-clean-architecture`, `kide-devtools` |
 | `kide-decompose` | `InstanceKeeperHost` for hosting processors in Decompose | `kide`, Essenty |
 | `kide-voyager` | `ScreenModelHost` for hosting processors in Voyager | `kide`, Voyager |
+| `kide-clean-architecture-appstate` | **Experimental.** `mirrorTo` publishes a use-case processor's domain state into an AppState `StateStore`. Android and JVM only; released with `kide-appstate` | `kide-clean-architecture`, `kide-appstate`, AppState StateStore (alpha) |
 | `kide-appstate` | **Experimental.** Jetpack AppState bridge: `transformFlow` feeds Compose `State` and headless compositions into a processor. Android and JVM only; [versioned separately](#experimental-jetpack-appstate-kide-appstate) | `kide`, Compose runtime, AppState (alpha) |
 | `app` | Sample Android application exercising the full stack | all of the above |
 
@@ -171,7 +172,22 @@ override suspend fun map(intent: DashboardIntent) = when (intent) {
 }
 ```
 
-The result is **conflated**: when several inputs change at once only the latest value is
+To let other parts of the process read a use case's domain state as Compose `State` —
+another activity, a service, a widget — add `kide-clean-architecture-appstate` (same
+version) and mirror the processor into an AppState `StateStore` once, at application
+start:
+
+```kotlin
+savedProjectsProcessor.mirrorTo(stateStore, SavedProjectsKey, applicationScope)
+// elsewhere: val saved: State<SavedProjectsState> = stateStore.getState(SavedProjectsKey)
+```
+
+The mirror is one-way: the processor stays the only writer. For a key persisted with
+AppState's DataStore integration (Android only), pass a restore function as well —
+`mirrorTo(stateStore, key, scope) { stored -> RestoreSavedProjects(stored) }` — and the
+value loaded at start-up is dispatched to the processor as that intent.
+
+The `transformFlow` result is **conflated**: when several inputs change at once only the latest value is
 reduced. Use it for the current value of something, not for values that must each be
 seen — those stay a plain `Flow` in `observe`, and events stay intents. The design is
 described in [docs/proposal-appstate.md](docs/proposal-appstate.md).
@@ -603,8 +619,9 @@ change, regenerate the dumps with `./gradlew updateKotlinAbi`.
 
 Publishing is configured via the [vanniktech maven-publish plugin](https://github.com/vanniktech/gradle-maven-publish-plugin)
 with coordinates `org.fuusio.kide:<module>` (see `gradle.properties`). The experimental
-`kide-appstate` module is excluded from that unless `-Pkide.publishExperimental` is
-passed; it is released from its own `kide-appstate-<version>` tags.
+`kide-appstate` and `kide-clean-architecture-appstate` modules are excluded from that
+unless `-Pkide.publishExperimental` is passed; they are released together from
+`kide-appstate-<version>` tags.
 
 ## For AI agents
 

@@ -57,6 +57,8 @@ giving those guarantees up. It *can* compute the inputs a reduction works from.
   train (first release `2.4.0-alpha01`).
 - **Android + JVM first.** iOS targets are added later, in their own phase, once the
   Android/JVM module has shipped; they do not gate phase 1.
+- **iOS waits for the AppState beta** (decided 2026-11-15, after `2.4.0-alpha01` shipped).
+  Phase 4 is not started before then.
 - **Own git tag and CHANGELOG.** Releases are tagged `kide-appstate-<version>` and
   documented in `kide-appstate/CHANGELOG.md`; the root `CHANGELOG.md` only points to it.
 - **The bridge function is named `transformFlow`**, mirroring upstream `transform`.
@@ -289,7 +291,60 @@ AppState sections of `skills/kide`. No `kide-appstate-test` artifact: the recipe
 optionally a `listener`-based recorder that writes StateStore key changes into a shared
 `TraceBuffer`, so the agent port can see session state too.
 
-**Phase 4 — iOS.** Add `iosArm64()` and `iosSimulatorArm64()` once the upstream artifacts
+Status: `mirrorTo`, with and without restore, is done on
+`feature/kide-clean-architecture-appstate` and documented in section 9 of
+`docs/kide_guide.md`. The trace recorder is not started.
+
+- `mirrorTo` is implemented for in-memory keys. The module is released **with**
+  `kide-appstate`: one version, one `kide-appstate-<version>` tag, one changelog, one
+  workflow. Two experimental modules on separate trains would double the release work for
+  no benefit, and the bridge depends on `kide-appstate` anyway.
+- **Persistence and restore are not designed yet, deliberately.** A mirror writes the
+  processor's current state as soon as it starts. With a `PersistToDataStore` key that
+  write races the disk read `syncToDataStore` performs, and AppState documents neither
+  which one wins nor any signal that hydration has finished. Until that is known, a
+  persisted key would at best be overwritten by the processor's initial state on every
+  start. **`statestore-datastore` is published for Android only** (alpha02 has no JVM
+  variant), so any persistence support will have to live in `androidMain`, not in common
+  code. `StateStoreProbe` (`jvmTest`) and `StateStorePersistenceProbe` (`androidHostTest`)
+  print what actually happens:
+  whether `updateState` is atomic, how long hydration takes, what survives a write made
+  before or just after sync starts, and whether a persisted default is distinguishable
+  from nothing persisted. The restore design follows from those answers; the intended
+  shape is hydrate → dispatch an explicit restore intent (so the write goes through the
+  processor's interceptors) → only then start mirroring.
+- **Findings so far (alpha02, JVM).** `updateState` is not atomic: 80 000 concurrent
+  increments from 8 coroutines produced 39 819 on one run and 35 544 on another. And a
+  key's first access is not safe from two threads: when a `getState` races the `setState`
+  that creates the key, the reader can be left holding a `State` that never updates —
+  248 of 5 000 attempts in `StateStoreProbe`, and the cause of a `MirrorToTest` failure
+  before the fix. Both support the rule that Kide never uses a StateStore as a
+  processor's backing store. For the mirror they mean one writer per key (already the
+  design) and creating the key synchronously, which `mirrorTo` now does before it returns.
+- **Persistence findings (alpha02, Android host test, 2026-11-15).**
+  - `getState` returns the default at once; the persisted value arrived about 29 ms later.
+  - **Disk wins at start-up.** A write made before `syncToDataStore` starts, or right after,
+    is overwritten in memory by the persisted value and never reaches disk. So an early
+    mirror write cannot destroy saved data — but it is silently dropped, leaving the store
+    holding the persisted value while the processor holds its own.
+  - There is no hydration signal. `StateStore.keys` stayed empty for a store that had not
+    been asked for the key, with or without persisted data, and a persisted default cannot
+    be told from nothing persisted.
+  - `syncToDataStore` is itself built on Transform's `listener`.
+- **Restore design that follows (built as the `restore` overload of `mirrorTo`; an
+  experiment, open to replacement while AppState is in alpha).** Because disk wins and there is no
+  "hydration finished" signal, restore cannot be a one-off step before mirroring. Instead
+  the mirror treats any value in the key that it did not write itself as coming from disk,
+  and hands it to a caller-supplied `(S) -> I?` that turns it into a restore intent, which
+  is dispatched to the processor — so the restored state enters through the processor's
+  interceptors like any other change. Returning `null` ignores the value, and the mirror
+  re-asserts the processor's state. This needs nothing from `statestore-datastore`, so it
+  can live in common code and be tested on JVM with a simulated foreign write; the real
+  round trip is tested in `androidHostTest`. Known cost: a domain change made in the first
+  tens of milliseconds after start can be replaced by the restored state.
+- The StateStore trace recorder is not started.
+
+**Phase 4 — iOS (deferred until AppState reaches beta).** Add `iosArm64()` and `iosSimulatorArm64()` once the upstream artifacts
 and the Compose runtime they need are confirmed to resolve alongside Compose
 Multiplatform, and a headless composition is shown to recompose there. Purely additive
 for Android and JVM consumers.

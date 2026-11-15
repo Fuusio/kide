@@ -1,8 +1,9 @@
 name: Publish kide-appstate
 
-# The experimental kide-appstate module is versioned and released on its own. Tags of the
-# form kide-appstate-<version> publish only that module; the stable `v*` release
-# (publish.yml) never does, because the module has no publishing tasks unless
+# The experimental AppState modules — kide-appstate and kide-clean-architecture-appstate —
+# are versioned and released together, apart from the stable modules. A tag of the form
+# kide-appstate-<version> publishes both and nothing else; the stable `v*` release
+# (publish.yml) never publishes them, because they have no publishing tasks unless
 # -Pkide.publishExperimental is passed.
 on:
   push:
@@ -28,15 +29,21 @@ jobs:
       - name: Verify tag matches the module version
         run: |
           version_name="$(grep -E '^VERSION_NAME=' kide-appstate/gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+          bridge_version="$(grep -E '^VERSION_NAME=' kide-clean-architecture-appstate/gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
           expected_tag="kide-appstate-${version_name}"
+          if [ "${bridge_version}" != "${version_name}" ]; then
+            echo "::error::kide-clean-architecture-appstate is at '${bridge_version}' but kide-appstate is at '${version_name}'. The experimental modules are released under one version."
+            exit 1
+          fi
           # What Gradle will actually publish, read from the generated POM rather than
           # from the file: the publish plugin sets the version on the publications, not on
           # project.version, so the `properties` task reports "unspecified".
-          ./gradlew -q :kide-appstate:generatePomFileForKotlinMultiplatformPublication -Pkide.publishExperimental
+          ./gradlew -q :kide-appstate:generatePomFileForKotlinMultiplatformPublication :kide-clean-architecture-appstate:generatePomFileForKotlinMultiplatformPublication -Pkide.publishExperimental
           resolved="$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' kide-appstate/build/publications/kotlinMultiplatform/pom-default.xml | head -n 1 | tr -d '[:space:]')"
+          bridge_resolved="$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' kide-clean-architecture-appstate/build/publications/kotlinMultiplatform/pom-default.xml | head -n 1 | tr -d '[:space:]')"
           echo "Tag:              ${GITHUB_REF_NAME}"
           echo "VERSION_NAME:     ${version_name}"
-          echo "Resolved version: ${resolved}"
+          echo "Resolved version: ${resolved} (kide-appstate), ${bridge_resolved} (kide-clean-architecture-appstate)"
           if [ -z "${version_name}" ] || [ "${version_name}" != "${version_name%-SNAPSHOT}" ]; then
             echo "::error::Refusing to publish kide-appstate from a missing or -SNAPSHOT version (VERSION_NAME=${version_name})."
             exit 1
@@ -49,22 +56,26 @@ jobs:
             echo "::error::The generated POM gives kide-appstate version '${resolved}', not '${version_name}'. The module's VERSION_NAME override is not being applied."
             exit 1
           fi
+          if [ "${bridge_resolved}" != "${version_name}" ]; then
+            echo "::error::The generated POM gives kide-clean-architecture-appstate version '${bridge_resolved}', not '${version_name}'."
+            exit 1
+          fi
 
       - name: Verify the Kide version it depends on is released
         run: |
           kide_version="$(grep -E '^VERSION_NAME=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
           pom="https://repo1.maven.org/maven2/org/fuusio/kide/kide/${kide_version}/kide-${kide_version}.pom"
-          echo "kide-appstate will depend on org.fuusio.kide:kide:${kide_version}"
+          echo "The experimental modules will depend on org.fuusio.kide:kide:${kide_version}"
           if ! curl -fsSI "${pom}" > /dev/null; then
             echo "::error::org.fuusio.kide:kide:${kide_version} is not on Maven Central. Tag kide-appstate from a commit whose root VERSION_NAME is a released Kide version."
             exit 1
           fi
 
       - name: Test
-        run: ./gradlew :kide-appstate:check
+        run: ./gradlew :kide-appstate:check :kide-clean-architecture-appstate:check
 
       - name: Publish to Maven Central
-        run: ./gradlew :kide-appstate:publishAndReleaseToMavenCentral -Pkide.publishExperimental --no-configuration-cache
+        run: ./gradlew :kide-appstate:publishAndReleaseToMavenCentral :kide-clean-architecture-appstate:publishAndReleaseToMavenCentral -Pkide.publishExperimental --no-configuration-cache
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}

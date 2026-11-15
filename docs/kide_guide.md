@@ -426,6 +426,50 @@ tracked at all while the device is online. For a single `State`, `state.asFlow()
 - **Nothing else changes.** Screens still render `processor.states`; intents, reducers and side
   effects work exactly as before.
 
+### Sharing domain state through a StateStore (`kide-clean-architecture-appstate`)
+
+`transformFlow` brings Compose `State` *into* a presentation processor. The second
+experimental module goes the other way for the domain layer: it publishes a
+`UseCaseProcessor`'s state into an AppState `StateStore`, where another activity, a service,
+a widget or a `transformFlow` block can read it as Compose `State`. It is released with
+`kide-appstate`, under the same version.
+
+```kotlin
+// Once, at application start — before anything else asks the store for the key.
+savedProjects.mirrorTo(stateStore, SavedProjectsKey, applicationScope)
+
+// Anywhere in the process:
+val saved: State<SavedProjectsState> = stateStore.getState(SavedProjectsKey)
+```
+
+The mirror is one-way. The processor remains the only place the state changes, so every
+change still goes through its intents and its interceptors; the store is a read replica.
+Keep the key `internal` to the module that owns the processor.
+
+For a key persisted with AppState's DataStore integration, pass a restore function too. A
+value the mirror did not write — the one loaded from disk at start-up — is turned into an
+intent and dispatched, so a restored state is an ordinary, traced change:
+
+```kotlin
+savedProjects.mirrorTo(stateStore, SavedProjectsKey, applicationScope) { persisted ->
+    RestoreSavedProjects(persisted)      // or null to ignore it
+}
+```
+
+Things to know, all found by testing against AppState `1.0.0-alpha02` rather than read from
+its documentation:
+
+- **Call `mirrorTo` at application start.** A StateStore key is not safe to create from two
+  threads at once: a reader that asks for it while it is first being written can be handed a
+  `State` that never updates. `mirrorTo` creates the key before it returns.
+- **Never write the key yourself, and do not use `StateStore.updateState` concurrently.**
+  It is not atomic; concurrent updates are lost.
+- **The persisted value loads a few milliseconds after start and replaces what the key
+  held.** A domain change made before that can be replaced by the restored state.
+- **Give the key the processor's initial state as its default.**
+- **Persistence is Android-only**, because `statestore-datastore` is. On JVM desktop the
+  mirror works in memory.
+
 ### Testing
 
 A processor whose `transformFlow` inputs keep their defaults reduces nothing, so existing
