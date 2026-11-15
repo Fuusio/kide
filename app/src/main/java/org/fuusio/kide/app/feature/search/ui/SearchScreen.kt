@@ -221,6 +221,19 @@ private fun SearchScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            state.offlineSavedCount?.let { savedCount ->
+                Text(
+                    text = if (savedCount > 0) {
+                        "You're offline. Your $savedCount saved projects are still available in the browser."
+                    } else {
+                        "You're offline. Search needs a connection."
+                    },
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

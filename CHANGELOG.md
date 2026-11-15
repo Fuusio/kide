@@ -4,6 +4,9 @@ All notable changes to Kide are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and Kide adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+The experimental `kide-appstate` module is versioned and released separately and is not
+covered here; see [kide-appstate/CHANGELOG.md](kide-appstate/CHANGELOG.md).
+
 ## [2.3.1] - 2026-11-08
 
 A dependency-update release. No API changes: the ABI dumps are unchanged, and code written

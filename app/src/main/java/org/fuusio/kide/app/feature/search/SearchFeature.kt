@@ -45,7 +45,7 @@ object SearchFeature : KoinFeature {
             val recorder = FlightRecorder<SearchIntent, SearchViewState, SearchSideEffect>(
                 buffer = get(),
             )
-            SearchProcessor(get(), get(), interceptors = listOf(recorder)).also { processor ->
+            SearchProcessor(get(), get(), get(), interceptors = listOf(recorder)).also { processor ->
                 KideDebug.attach("search", processor, recorder)
             }
         }

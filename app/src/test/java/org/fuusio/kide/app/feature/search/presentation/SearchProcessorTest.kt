@@ -16,6 +16,7 @@
  */
 package org.fuusio.kide.app.feature.search.presentation
 
+import androidx.compose.runtime.mutableStateOf
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.fuusio.kide.app.domain.adapter.connectivity.ConnectivityService
 import org.fuusio.kide.app.domain.entity.Project
 import org.fuusio.kide.app.domain.usecase.SavedProjectsProcessor
 import org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase
@@ -36,6 +38,12 @@ class SearchProcessorTest {
 
     private val searchUseCase: SearchGitHubProjectsUseCase = mockk()
     private val savedProjectsUseCase: SavedProjectsProcessor = mockk()
+
+    // Online, so the processor's connectivity observation never reads the saved projects
+    // and reduces nothing: these tests see the same states as before it existed.
+    private val connectivity = object : ConnectivityService {
+        override val isOnline = mutableStateOf(true)
+    }
 
     @Test
     fun testSearchCancellationWhenMultipleIntentsDispatched() = runTest {
@@ -68,6 +76,7 @@ class SearchProcessorTest {
         val processor = SearchProcessor(
             searchUseCase = searchUseCase,
             savedProjectsUseCase = savedProjectsUseCase,
+            connectivity = connectivity,
             processorScope = testScope
         )
 

@@ -24,6 +24,7 @@ loop that must never die.
 | `kide-devtools` | TraceBuffer, FlightRecorder, MCP agent port, console streaming | server code in `src/jvmShared` (shared jvm+android source set) |
 | `kide-clean-architecture-devtools` | `UseCaseFlightRecorder` — domain events into a shared `TraceBuffer` | bridges two optional modules, which is why it is its own artifact |
 | `kide-decompose`, `kide-voyager` | host adapters | |
+| `kide-appstate` | Jetpack AppState bridge (`transformFlow`) | **experimental**: android + jvm only, own `VERSION_NAME`, own `CHANGELOG.md`, own `kide-appstate-*` tags; publishes only with `-Pkide.publishExperimental`. No other module may depend on it. Design: `docs/proposal-appstate.md` |
 | `app` | Android sample app (not published) | reference for all patterns |
 
 ## Build and verify

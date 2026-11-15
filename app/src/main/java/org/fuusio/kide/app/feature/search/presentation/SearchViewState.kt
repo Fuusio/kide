@@ -25,6 +25,10 @@ import org.fuusio.kide.presentation.ViewState
  * Persisted across process death (see `SearchNavKey.stateSerializer`): the user's search
  * inputs ([query], [languageFilter], [licenseFilter]) survive; transient fields ([results],
  * [isLoading], [errorMessage]) reset and the user re-triggers the search.
+ *
+ * [offlineSavedCount] is `null` while the device is online; while it is offline it holds the
+ * number of saved projects, which the screen offers as what is still available. It is live
+ * state fed by `kide-appstate` and is never persisted.
  */
 @Serializable
 data class SearchViewState(
@@ -33,5 +37,6 @@ data class SearchViewState(
     val licenseFilter: String? = null,
     @Transient val results: List<Project> = emptyList(),
     @Transient val isLoading: Boolean = false,
-    @Transient val errorMessage: String? = null
+    @Transient val errorMessage: String? = null,
+    @Transient val offlineSavedCount: Int? = null
 ) : ViewState

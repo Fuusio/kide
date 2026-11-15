@@ -51,6 +51,8 @@ dependencies {
     implementation(project(":kide-koin"))
     implementation(project(":kide-devtools"))
     implementation(project(":kide-clean-architecture-devtools"))
+    // Experimental: Jetpack AppState bridge, used by the Search feature's offline notice.
+    implementation(project(":kide-appstate"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

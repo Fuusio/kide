@@ -65,6 +65,7 @@ Kide is highly decoupled. Use only what you need:
 | `kide-clean-architecture-devtools` | `UseCaseFlightRecorder` — records domain events into the same `TraceBuffer` as the UI | `kide-clean-architecture`, `kide-devtools` |
 | `kide-decompose` | `InstanceKeeperHost` for hosting processors in Decompose | `kide`, Essenty |
 | `kide-voyager` | `ScreenModelHost` for hosting processors in Voyager | `kide`, Voyager |
+| `kide-appstate` | **Experimental.** Jetpack AppState bridge: `transformFlow` feeds Compose `State` and headless compositions into a processor. Android and JVM only; [versioned separately](#experimental-jetpack-appstate-kide-appstate) | `kide`, Compose runtime, AppState (alpha) |
 | `app` | Sample Android application exercising the full stack | all of the above |
 
 ## Installation
@@ -131,6 +132,49 @@ dependencies {
     testImplementation("org.fuusio.kide:kide-test:2.3.1")
 }
 ```
+
+### Experimental: Jetpack AppState (`kide-appstate`)
+
+[Jetpack AppState](https://developer.android.com/topic/libraries/architecture/appstate) is
+in alpha, so its Kide integration is too. `kide-appstate` is **not** part of the stable
+release above: it has its own pre-release version, its own
+[changelog](kide-appstate/CHANGELOG.md) and its own `kide-appstate-<version>` tags, and it
+is exempt from Kide's Semantic Versioning promise. No other Kide module depends on it, so
+leaving it out leaves AppState out of your build entirely.
+
+```kotlin
+implementation("org.fuusio.kide:kide-appstate:2.4.0-alpha01")
+```
+
+It currently targets **Android and JVM**; a multiplatform project with iOS targets cannot
+declare it in `commonMain` yet. AppState is published to Google's Maven repository, so
+`google()` is required — on desktop too.
+
+`transformFlow` turns a headless AppState composition into a cold `Flow`, which the
+processor's existing `observe` collects:
+
+```kotlin
+@OptIn(ExperimentalKideAppStateApi::class)
+override suspend fun map(intent: DashboardIntent) = when (intent) {
+    OnLaunched -> {
+        if (!isObserving("inputs")) {
+            observe("inputs", transformFlow {
+                val tasks by tasksRepository.tasks.collectAsState(emptyList())
+                DashboardInputs(online = networkMonitor.isOnline.value, tasks = tasks)
+            }) { inputs ->
+                reduce { copy(online = inputs.online, tasks = inputs.tasks) }
+            }
+        }
+        null
+    }
+    // …
+}
+```
+
+The result is **conflated**: when several inputs change at once only the latest value is
+reduced. Use it for the current value of something, not for values that must each be
+seen — those stay a plain `Flow` in `observe`, and events stay intents. The design is
+described in [docs/proposal-appstate.md](docs/proposal-appstate.md).
 
 ### Using the Gradle version catalog
 
@@ -558,7 +602,9 @@ the committed reference dumps and runs as part of `check`; after an intentional 
 change, regenerate the dumps with `./gradlew updateKotlinAbi`.
 
 Publishing is configured via the [vanniktech maven-publish plugin](https://github.com/vanniktech/gradle-maven-publish-plugin)
-with coordinates `org.fuusio.kide:<module>` (see `gradle.properties`).
+with coordinates `org.fuusio.kide:<module>` (see `gradle.properties`). The experimental
+`kide-appstate` module is excluded from that unless `-Pkide.publishExperimental` is
+passed; it is released from its own `kide-appstate-<version>` tags.
 
 ## For AI agents
 

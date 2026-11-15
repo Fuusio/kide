@@ -1,5 +1,6 @@
 [versions]
 activityCompose = "1.13.0"
+appstate = "1.0.0-alpha02"
 agp = "9.5.1"
 composeMultiplatform = "1.12.2"
 essenty = "2.7.1"
@@ -11,17 +12,17 @@ composeBom = "2026.09.00"
 datastore = "1.3.0"
 junitVersion = "1.3.0"
 koinBom = "4.2.2"
-kotest = "6.2.6"
+kotest = "6.2.7"
 kotlin = "2.4.21"
 mavenPublish = "0.37.0"
 kotlinxCoroutines = "1.11.0"
-kotlinxSerialization = "1.12.0"
+kotlinxSerialization = "1.13.0"
 turbine = "1.2.1"
 ksp = "2.3.12"
 lifecycleRuntimeKtx = "2.11.0"
 lifecycleViewmodelCompose = "2.11.0"
 material3 = "1.5.0-rc01"
-mockk = "1.14.11"
+mockk = "1.14.12"
 navigation = "2.10.2"
 navigation3 = "2.11.0"
 navigation3Material = "1.2.1"
@@ -72,6 +73,12 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber"}
+
+# AppState (alpha) — used only by the experimental :kide-appstate module
+androidx-appstate-transform = { module = "androidx.appstate.transform:transform", version.ref = "appstate" }
+androidx-appstate-transform-testing = { module = "androidx.appstate.transform:transform-testing", version.ref = "appstate" }
+androidx-appstate-statestore = { module = "androidx.appstate.statestore:statestore", version.ref = "appstate" }
+androidx-appstate-statestore-datastore = { module = "androidx.appstate.statestore:statestore-datastore", version.ref = "appstate" }
 
 # Test Libraries
 
