@@ -9,6 +9,9 @@ Deeper details behind [SKILL.md](SKILL.md). Package root: `org.fuusio.kide`.
 `kide-devtools`, `kide-clean-architecture-devtools`, `kide-decompose`, `kide-voyager`.
 Targets: Android, JVM desktop, iOS.
 
+`kide-appstate` is separate and **experimental**: its own pre-release version (not the
+version of the modules above), Android and JVM only. See *AppState* below.
+
 ## PresentationProcessor<I : ViewIntent, S : ViewState, E : SideEffect>
 
 Constructor: `(initialState: S, processorScope: CoroutineScope = defaultProcessorScope(), interceptors: List<KideInterceptor<I, S, E>> = emptyList())`
@@ -198,3 +201,33 @@ each feature registers nav keys in `initialize()` and provides a Koin module.
 `ViewModelHost` (used by `AppNavigation` automatically) · Decompose
 `InstanceKeeper.retainedProcessor(key) { }` or the persistence overload · Voyager
 `ScreenModelHost`. A host owns the processor's lifetime and calls `close()` exactly once.
+
+## AppState (`kide-appstate`, experimental)
+
+Jetpack AppState bridge. Alpha upstream, so: own version (`2.4.0-alpha01`, see
+`kide-appstate/CHANGELOG.md`), Android + JVM only, every declaration needs
+`@OptIn(ExperimentalKideAppStateApi::class)`, API may change in any release. Add it only
+when the user asks for AppState; never as a default. Needs the Compose compiler plugin in
+the module that calls `transformFlow`, and `google()` in repositories.
+
+Package `org.fuusio.kide.appstate`:
+
+- `transformFlow(dispatcher = Dispatchers.Default) { @Composable block }: Flow<T>` — cold;
+  each collection runs the block in a headless composition and emits its latest result,
+  conflated and distinct-until-changed. Read Compose `State` with `.value`, flows with
+  `collectAsState()`.
+- `State<T>.asFlow(): Flow<T>` — one `State` as a flow.
+
+Use only as the flow of `observe(key, flow) { value -> reduce { … } }`. That keeps every
+guarantee: reductions go through the normal path (interceptors, trace, agent port, `null`
+correlation id), `close()` and key reuse dispose the composition, a throwing block reaches
+`onObservationError`.
+
+Do not use it for intents, side effects, or anything that must be seen value by value — it
+skips intermediate values. Do not put `MutableState` in a `ViewState`, and do not read the
+processor's own `state` inside the block expecting recomposition (use
+`states.collectAsState()`). Screen-state persistence is unchanged (`stateSerializer`).
+
+Test deterministically with `transformTest { }` from
+`androidx.appstate.transform:transform-testing`: pass `testDispatcher` to both
+`transformFlow` and the processor scope, then `advance()` after each write.

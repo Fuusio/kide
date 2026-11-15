@@ -42,6 +42,7 @@ object FuusioApplicationFeature : KoinApplicationFeature {
         single { org.fuusio.kide.app.framework.db.AppDatabase.getDatabase(applicationContext) }
         single { get<org.fuusio.kide.app.framework.db.AppDatabase>().projectDao() }
         single { org.fuusio.kide.app.framework.datastore.PreferencesDataStore(applicationContext) }
+        single { org.fuusio.kide.app.framework.connectivity.NetworkMonitor(applicationContext) }
 
         // Data Sources
 
@@ -58,6 +59,9 @@ object FuusioApplicationFeature : KoinApplicationFeature {
         // Adapters
 
         single<AppInfoRepository> { AppInfoRepositoryImpl(get()) }
+        single<org.fuusio.kide.app.domain.adapter.connectivity.ConnectivityService> {
+            org.fuusio.kide.app.adapter.connectivity.ConnectivityServiceImpl(get())
+        }
         single<org.fuusio.kide.app.domain.adapter.project.ProjectRepository> {
             org.fuusio.kide.app.adapter.project.ProjectRepositoryImpl(get(), get())
         }

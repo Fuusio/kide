@@ -172,6 +172,23 @@ did not happen, group by `correlationId` and find the layer where the chain stop
 `"correlationId": null` is legitimate, not a gap: work with no originating intent, such as a
 repository flow collected at startup.
 
+## Compose State and Jetpack AppState as inputs (experimental)
+
+Only when the user asks for Jetpack AppState, or already has a `Manager`/`Service` exposing
+Compose `State<T>` (connectivity, a session) that a screen must reflect. Add
+`org.fuusio.kide:kide-appstate` — it has its **own pre-release version**, is Android + JVM
+only, and every use needs `@OptIn(ExperimentalKideAppStateApi::class)`.
+
+```kotlin
+observe("connectivity", transformFlow {
+    Inputs(online = connectivity.isOnline.value, tasks = tasksFlow.collectAsState(emptyList()).value)
+}) { inputs -> reduce { copy(online = inputs.online, tasks = inputs.tasks) } }
+```
+
+The block's result is conflated: use it for current values, never for events or for values
+that must each be seen. Everything else about the processor is unchanged. Details and the
+testing recipe are in [reference.md](reference.md#appstate-kide-appstate-experimental).
+
 ## Common mistakes to avoid
 
 - **Using `initializeWith` for a bootstrap intent that has to load something.**
@@ -209,6 +226,10 @@ repository flow collected at startup.
   wasted round trip, the reload races the composition that shows its result — a row that
   `remember`s something by id keeps the stale value. `observe(key, flow) { reduce { … } }`
   keeps the state current for the processor's life (2.2.0).
+- Adding `kide-appstate` at the version of the other Kide modules. It is versioned
+  separately (a pre-release such as `2.4.0-alpha01`); check `kide-appstate/CHANGELOG.md`.
+- Routing an event or an every-value stream through `transformFlow`. It conflates; use an
+  intent, or a plain `Flow` in `observe`.
 - Collecting `sideEffects` from more than one place — delivery is exactly-once to a
   single collector.
 - Collecting `sideEffects` in a plain `LaunchedEffect` — it keeps consuming effects while

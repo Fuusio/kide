@@ -349,3 +349,116 @@ The Kide library includes a complete sample application in the `app` module. It 
 - **Navigation:** Shows advanced usage of `ScreenNavKey`, back-stack management, and cross-process persistence.
 - **Clean Architecture:** Implements Repositories, DataSources (using Room and DataStore), and UseCases properly decoupled from the UI.
 - **Agent Debugging:** Includes the `kide-devtools` integration out-of-the-box in debug builds, allowing you to connect an AI agent to the emulator and test the MCP features firsthand.
+- **Jetpack AppState (experimental):** The Search screen's offline notice is fed by `kide-appstate`; see section 9.
+
+---
+
+## 9. Jetpack AppState (experimental, `kide-appstate`)
+
+> [!WARNING]
+> [Jetpack AppState](https://developer.android.com/topic/libraries/architecture/appstate) is in
+> alpha, and so is this module. `kide-appstate` has its own pre-release version, its own
+> [changelog](../kide-appstate/CHANGELOG.md) and `kide-appstate-<version>` tags, targets Android
+> and JVM only, and is not covered by Kide's compatibility guarantees. Every declaration
+> requires `@OptIn(ExperimentalKideAppStateApi::class)`. No other Kide module depends on it.
+
+AppState takes Compose `State` out of the UI: a `@Composable` block runs in a headless
+composition and recomposes whenever a `State` it read changes. `kide-appstate` lets a
+`PresentationProcessor` use such a block as an **input** to its `ViewState`.
+
+### Where each kind of state lives
+
+| State | Example | Where it lives in a Kide app |
+|---|---|---|
+| Screen state | query, selection, loading, results | `ViewState`, changed only by `reduce` |
+| Live state, shared | connectivity, a running session | a `Manager` or `Service` exposing Compose `State<T>` |
+| Session state, shared across components | a timer shared with a widget or service | AppState `StateStore` |
+| Durable data | settings, saved items | a repository `Flow` |
+
+Screen state stays in `ViewState`, and its persistence stays with
+`ScreenNavKey.stateSerializer`. The other three are *inputs*: `kide-appstate` brings them in.
+
+### Feeding a processor
+
+`transformFlow { }` turns a headless composition into a cold `Flow`. The processor's existing
+`observe` collects it, which is what gives it a lifetime (cancelled by `close()`), keyed
+replacement, error routing to `onObservationError`, and reductions that are reported to
+interceptors and visible to the agent port:
+
+```kotlin
+@OptIn(ExperimentalKideAppStateApi::class)
+class SearchProcessor(
+    private val savedProjects: SavedProjectsProcessor,
+    private val connectivity: ConnectivityService,   // val isOnline: State<Boolean>
+) : PresentationProcessor<SearchIntent, SearchViewState, SearchSideEffect>(SearchViewState()) {
+
+    init {
+        observe("connectivity", transformFlow {
+            if (connectivity.isOnline.value) {
+                null
+            } else {
+                val saved by savedProjects.stateFlow.collectAsState()
+                saved.projects.size
+            }
+        }) { savedCountWhileOffline ->
+            reduce { copy(offlineSavedCount = savedCountWhileOffline) }
+        }
+    }
+}
+```
+
+Inside the block, Compose `State` is read with `.value` and a `Flow` with `collectAsState`.
+Dependencies are tracked by what the block actually reads: above, the saved projects are not
+tracked at all while the device is online. For a single `State`, `state.asFlow()` is enough:
+`observe("online", connectivity.isOnline.asFlow()) { reduce { copy(online = it) } }`.
+
+### Rules
+
+- **The result is conflated.** If several inputs change before the block recomposes, only the
+  latest result is reduced. Use it for the *current value* of something. Values that must each
+  be seen stay a plain `Flow` in `observe`; things that happen stay intents.
+- **The first value arrives after the first composition**, so one frame can render without it.
+  Give the `ViewState` field an honest default.
+- **The block cannot see the processor's own `state` change.** `state` is not Compose `State`;
+  read `states.collectAsState()` inside the block if a result depends on the view state.
+- **It keeps running in the background**, like any `observe`. There is no lifecycle in a
+  headless composition, so `collectAsStateWithLifecycle` is not available inside the block.
+- **Nothing else changes.** Screens still render `processor.states`; intents, reducers and side
+  effects work exactly as before.
+
+### Testing
+
+A processor whose `transformFlow` inputs keep their defaults reduces nothing, so existing
+tests are unaffected — pass a fake whose `State` holds the default. To drive the composition
+deterministically, use AppState's `transformTest` and run both the processor and the
+composition on its dispatcher:
+
+```kotlin
+// testImplementation("androidx.appstate.transform:transform-testing:<version>")
+it("shows what is available offline") {
+    transformTest {
+        val isOnline = mutableStateOf(true)
+        val processor = SearchProcessor(
+            savedProjects = savedProjects,
+            connectivity = FakeConnectivity(isOnline),
+            dispatcher = testDispatcher,                                   // for transformFlow
+            processorScope = CoroutineScope(SupervisorJob() + testDispatcher),
+        )
+
+        isOnline.value = false
+        advance()
+        advance()
+
+        processor.state.offlineSavedCount shouldBe 2
+        processor.close()
+    }
+}
+```
+
+That requires the processor to take the composition's dispatcher as a constructor parameter
+and pass it to `transformFlow(dispatcher) { }`. `advance()` runs pending coroutines and applies
+snapshot changes; call it after each write, twice when a reduction has to follow a
+recomposition.
+
+In the demo app, the Search screen's offline notice is built this way: `NetworkMonitor`
+(framework) → `ConnectivityService` (adapter) → `SearchProcessor`.

@@ -278,6 +278,13 @@ state-tier table (what goes in ViewState, StateStore, a Manager, a repository Fl
 the conflation rule. Testing recipe; a `kide-appstate-test` artifact only if phase 0
 shows the recipe needs real glue.
 
+Status: done on `feature/kide-appstate`. The sample is the Search screen's offline notice
+(`NetworkMonitor` → `ConnectivityService` → `SearchProcessor`), chosen over the
+`BrowserProcessor` rewrite because it adds a Compose `State` input rather than replacing a
+flow that `observe` already handles. Guidance is section 9 of `docs/kide_guide.md` and the
+AppState sections of `skills/kide`. No `kide-appstate-test` artifact: the recipe is
+`transformTest` with a shared dispatcher, which needs no glue.
+
 **Phase 3 — StateStore bridge.** `kide-clean-architecture-appstate` with `mirrorTo`, and
 optionally a `listener`-based recorder that writes StateStore key changes into a shared
 `TraceBuffer`, so the agent port can see session state too.

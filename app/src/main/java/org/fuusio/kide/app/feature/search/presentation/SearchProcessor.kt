@@ -16,16 +16,23 @@
  */
 package org.fuusio.kide.app.feature.search.presentation
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import kotlinx.coroutines.CoroutineScope
+import org.fuusio.kide.app.domain.adapter.connectivity.ConnectivityService
+import org.fuusio.kide.appstate.ExperimentalKideAppStateApi
+import org.fuusio.kide.appstate.transformFlow
 import org.fuusio.kide.app.domain.usecase.SearchGitHubProjectsUseCase
 import org.fuusio.kide.app.domain.usecase.SavedProjectsProcessor
 import org.fuusio.kide.app.domain.usecase.SaveProject
 import org.fuusio.kide.app.domain.usecase.DeleteProject
 import org.fuusio.kide.presentation.*
 
+@OptIn(ExperimentalKideAppStateApi::class)
 class SearchProcessor(
     private val searchUseCase: SearchGitHubProjectsUseCase,
     private val savedProjectsUseCase: SavedProjectsProcessor,
+    private val connectivity: ConnectivityService,
     processorScope: CoroutineScope = defaultProcessorScope(),
     interceptors: List<KideInterceptor<SearchIntent, SearchViewState, SearchSideEffect>> = emptyList(),
 ) : PresentationProcessor<SearchIntent, SearchViewState, SearchSideEffect>(
@@ -33,6 +40,30 @@ class SearchProcessor(
     processorScope,
     interceptors,
 ) {
+
+    init {
+        // EXPERIMENTAL (kide-appstate): a headless composition computes what the screen
+        // needs to know about connectivity, and `observe` reduces it into the ViewState —
+        // so it reaches the interceptors and the agent port like any other state change.
+        //
+        // `connectivity.isOnline` is Compose State, `savedProjectsUseCase.stateFlow` is a
+        // Flow; the block reads both the same way. The saved projects are read only on the
+        // offline branch, so while the device is online the composition does not track them
+        // at all and saving a project causes no recomposition here.
+        observe(
+            "connectivity",
+            transformFlow {
+                if (connectivity.isOnline.value) {
+                    null
+                } else {
+                    val saved by savedProjectsUseCase.stateFlow.collectAsState()
+                    saved.projects.size
+                }
+            },
+        ) { savedCountWhileOffline ->
+            reduce { copy(offlineSavedCount = savedCountWhileOffline) }
+        }
+    }
 
     override suspend fun map(intent: SearchIntent): Action<SearchViewState, SearchSideEffect>? =
         when (intent) {
