@@ -224,7 +224,8 @@ correlation id), `close()` and key reuse dispose the composition, a throwing blo
 `onObservationError`.
 
 Do not use it for intents, side effects, or anything that must be seen value by value — it
-skips intermediate values. Do not put `MutableState` in a `ViewState`, and do not read the
+skips intermediate values. The block must only compute its result: it is a composable and
+may run any number of times, so no logging, counting, dispatching or `State` writes in it. Do not put `MutableState` in a `ViewState`, and do not read the
 processor's own `state` inside the block expecting recomposition (use
 `states.collectAsState()`). Screen-state persistence is unchanged (`stateSerializer`).
 

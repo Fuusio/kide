@@ -416,7 +416,14 @@ tracked at all while the device is online. For a single `State`, `state.asFlow()
 
 - **The result is conflated.** If several inputs change before the block recomposes, only the
   latest result is reduced. Use it for the *current value* of something. Values that must each
-  be seen stay a plain `Flow` in `observe`; things that happen stay intents.
+  be seen stay a plain `Flow` in `observe`; things that happen stay intents. This comes from
+  snapshot state itself, which only has a latest value, so it holds for any `State`-to-`Flow`
+  bridge.
+- **The block only computes.** It is a composable and can run more than once for the same
+  inputs, so keep it idempotent and free of side effects: no counters, no logging, no
+  dispatching, no writing `State`. Act on the result in the `observe` lambda. Nothing stops
+  you: unlike `snapshotFlow`, a write inside the block is not rejected. It succeeds silently,
+  and if the block also reads that state it recomposes itself.
 - **The first value arrives after the first composition**, so one frame can render without it.
   Give the `ViewState` field an honest default.
 - **The block cannot see the processor's own `state` change.** `state` is not Compose `State`;
