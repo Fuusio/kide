@@ -9,6 +9,14 @@ remove API, and every declaration requires opting in to `ExperimentalKideAppStat
 Each entry states the AppState version it was built against and the Kide version it
 depends on.
 
+## [Unreleased]
+
+### Changed
+
+- Documentation only: `transformFlow`'s KDoc and the guide now state that the block must be
+  idempotent and free of side effects, and that conflation is a property of snapshot state
+  rather than of AppState.
+
 ## [2.4.0-alpha02] — 2026-11-15
 
 Built against AppState `1.0.0-alpha02`. Depends on Kide `2.3.1`. Targets: Android, JVM.
